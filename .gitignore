@@ -1,0 +1,68 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.env
+.env.local
+.env.development
+.env.production
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# Firebase config (download from Firebase Console)
+firebase/GoogleService-Info.plist
+firebase/google-services.json
+
+# typescript
+*.tsbuildinfo
+
+# Native
+ios/
+android/
+
+# Fastlane store metadata
+!fastlane/metadata/
+!fastlane/metadata/ios/
+!fastlane/metadata/ios/**
+!fastlane/metadata/android/
+!fastlane/metadata/android/**
+
+# Screenshots (keep in repo for store deployment)
+!screenshots/**
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# CodeGraph index (local code-intelligence cache — rebuild with `codegraph init -i`)
+.codegraph/
+
+# IDE
+.idea/
+
+# Debug screenshots (root level PNGs)
+/*.png
+
+# Agent workspace (inter-agent data exchange)
+_workspace/
+
+# Build artifacts
+*.aab
+*.ipa
+
+# Fastlane generated reports
+fastlane/report.xml
+
+# Build output
+build-output/

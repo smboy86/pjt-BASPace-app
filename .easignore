@@ -1,0 +1,51 @@
+# EAS Build ignore - exclude files not needed for app binary
+# This reduces archive size and upload time significantly
+
+# Native builds (EAS generates these)
+ios/
+android/
+
+# Dependencies (EAS cloud installs from package.json)
+node_modules/
+
+# Build artifacts
+.expo/
+build-output/
+*.log
+
+# Store assets (not needed for app binary)
+assets/store-screenshots/
+assets/store-listing/
+assets/icons-original/
+screenshots/
+fastlane/
+docs/
+
+# Scripts & tooling (dev only)
+scripts/
+_workspace/
+
+# IDE & editor
+.git/
+.claude/
+.github/
+.idea/
+.vscode/
+
+# Playwright / browser automation
+.playwright-mcp/
+
+# Docs & secrets
+*.md
+*.tsbuildinfo
+*.p8
+*.key
+*.pem
+keys/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+forms_config.json
