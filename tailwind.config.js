@@ -7,6 +7,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          100: '#DCEFEA',
+          700: '#176D62',
+          900: '#123F3B',
+        },
+        sand: {
+          50: '#F8F6F0',
+        },
+        stone: {
+          100: '#EEEAE1',
+        },
+        ink: {
+          600: '#62706D',
+          900: '#1D2725',
+        },
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',

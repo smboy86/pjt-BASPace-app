@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from 'dayjs';
 import { ADS_CONFIG } from '@/shared/config';
 import type { IAdState, IPersistedAdData } from '../types';
 
 function getTodayDate(): string {
-  return new Date().toISOString().split('T')[0];
+  return dayjs().format('YYYY-MM-DD');
 }
 
 function getDefaultPersistedData(): IPersistedAdData {

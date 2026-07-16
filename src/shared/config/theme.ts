@@ -1,48 +1,48 @@
 export const Colors = {
   background: {
-    primary: '#0a0a0a',
-    secondary: '#141414',
-    tertiary: '#1a1a1a',
+    primary: '#F8F6F0',
+    secondary: '#FFFFFF',
+    tertiary: '#EEEAE1',
   },
 
   primary: {
-    DEFAULT: '#0ea5e9',
-    light: '#38bdf8',
-    dark: '#0284c7',
-    gradient: ['#0ea5e9', '#6366f1'],
+    DEFAULT: '#176D62',
+    light: '#DCEFEA',
+    dark: '#123F3B',
+    gradient: ['#176D62', '#2E887B'],
   },
 
   accent: {
-    gold: '#fbbf24',
-    lightGold: '#fcd34d',
-    darkGold: '#f59e0b',
+    gold: '#B86C22',
+    lightGold: '#F7E7D3',
+    darkGold: '#8A4A12',
   },
 
   text: {
-    primary: '#f5f5f5',
-    secondary: '#a1a1a1',
-    tertiary: '#737373',
-    muted: '#525252',
+    primary: '#1D2725',
+    secondary: '#62706D',
+    tertiary: '#84908D',
+    muted: '#62706D',
   },
 
   surface: {
-    card: 'rgba(26, 26, 26, 0.8)',
-    cardHover: 'rgba(38, 38, 38, 0.9)',
-    glass: 'rgba(255, 255, 255, 0.05)',
-    glassBorder: 'rgba(255, 255, 255, 0.1)',
+    card: '#FFFFFF',
+    cardHover: '#F2F7F5',
+    glass: '#FFFFFF',
+    glassBorder: '#E2E7E3',
   },
 
   status: {
-    success: '#10b981',
-    warning: '#f59e0b',
-    error: '#ef4444',
-    info: '#3b82f6',
+    success: '#277A57',
+    warning: '#B86C22',
+    error: '#B7433D',
+    info: '#176D62',
   },
 
   gradients: {
-    primary: ['#0ea5e9', '#6366f1'],
-    gold: ['#fbbf24', '#f59e0b'],
-    success: ['#10b981', '#059669'],
+    primary: ['#176D62', '#2E887B'],
+    gold: ['#C37B35', '#B86C22'],
+    success: ['#3A8B66', '#277A57'],
   },
 };
 

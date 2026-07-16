@@ -1,6 +1,11 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import { env } from '@shared/config';
+import {
+  clearAllSecure,
+  getSecureItem,
+  SECURE_KEYS,
+  setSecureItem,
+} from '@/shared/secure-storage';
 
 type TAuthFailureCallback = () => void;
 
@@ -10,44 +15,36 @@ export const setAuthFailureCallback = (callback: TAuthFailureCallback): void => 
   onAuthFailure = callback;
 };
 
-const TOKEN_KEYS = {
-  ACCESS_TOKEN: 'accessToken',
-  REFRESH_TOKEN: 'refreshToken',
-} as const;
-
 export const tokenManager = {
   setAccessToken: async (token: string): Promise<void> => {
-    await SecureStore.setItemAsync(TOKEN_KEYS.ACCESS_TOKEN, token);
+    await setSecureItem(SECURE_KEYS.ACCESS_TOKEN, token);
   },
 
   getAccessToken: async (): Promise<string | null> => {
-    return SecureStore.getItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
+    return getSecureItem(SECURE_KEYS.ACCESS_TOKEN);
   },
 
   setRefreshToken: async (token: string): Promise<void> => {
-    await SecureStore.setItemAsync(TOKEN_KEYS.REFRESH_TOKEN, token);
+    await setSecureItem(SECURE_KEYS.REFRESH_TOKEN, token);
   },
 
   getRefreshToken: async (): Promise<string | null> => {
-    return SecureStore.getItemAsync(TOKEN_KEYS.REFRESH_TOKEN);
+    return getSecureItem(SECURE_KEYS.REFRESH_TOKEN);
   },
 
   setTokens: async (accessToken: string, refreshToken: string): Promise<void> => {
     await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEYS.ACCESS_TOKEN, accessToken),
-      SecureStore.setItemAsync(TOKEN_KEYS.REFRESH_TOKEN, refreshToken),
+      setSecureItem(SECURE_KEYS.ACCESS_TOKEN, accessToken),
+      setSecureItem(SECURE_KEYS.REFRESH_TOKEN, refreshToken),
     ]);
   },
 
   clearTokens: async (): Promise<void> => {
-    await Promise.all([
-      SecureStore.deleteItemAsync(TOKEN_KEYS.ACCESS_TOKEN),
-      SecureStore.deleteItemAsync(TOKEN_KEYS.REFRESH_TOKEN),
-    ]);
+    await clearAllSecure();
   },
 
   hasTokens: async (): Promise<boolean> => {
-    const accessToken = await SecureStore.getItemAsync(TOKEN_KEYS.ACCESS_TOKEN);
+    const accessToken = await getSecureItem(SECURE_KEYS.ACCESS_TOKEN);
     return !!accessToken;
   },
 };
