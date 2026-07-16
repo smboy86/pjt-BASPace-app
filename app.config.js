@@ -1,6 +1,4 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => {
+module.exports = ({ config }) => {
   const API_URL = process.env.API_URL || 'http://localhost:3000/api/v1';
   const NODE_ENV = process.env.NODE_ENV || 'development';
   const DEBUG = process.env.DEBUG === 'true';
@@ -11,6 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: '바스페이스',
     slug: 'baspace',
+    owner: 'smboy86',
     version: APP_VERSION,
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
@@ -21,10 +20,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       resizeMode: 'contain',
       backgroundColor: '#0a0a0a',
     },
-    web: {
-      bundler: 'metro',
-      output: 'static',
+    web: { bundler: 'metro', output: 'static' },
+    updates: {
+      url: 'https://u.expo.dev/bd03574d-0e8a-44dd-89aa-bbaaa3d3a687',
     },
+    runtimeVersion: { policy: 'appVersion' },
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.baspace.app',
@@ -44,14 +44,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       'expo-router',
       'expo-secure-store',
-      ['./plugins/withLocalizedAppName', {
-        ko: '바스페이스',
-      }],
+      ['./plugins/withLocalizedAppName', { ko: '바스페이스' }],
     ],
-    experiments: {
-      typedRoutes: true,
-      reactCompiler: false,
-    },
+    experiments: { typedRoutes: true, reactCompiler: false },
     extra: {
       apiUrl: API_URL,
       nodeEnv: NODE_ENV,
@@ -59,9 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       logLevel: LOG_LEVEL,
       appVersion: APP_VERSION,
       router: {},
-      eas: {
-        projectId: '',
-      },
+      eas: { projectId: 'bd03574d-0e8a-44dd-89aa-bbaaa3d3a687' },
     },
   };
 };
