@@ -55,12 +55,12 @@
 | 변경 유형 | 위임 |
 |-----------|------|
 | 새 모듈/엔티티/타입 | feature-builder |
-| API·상태·Analytics·평점 인프라 | api-integrator |
+| Supabase 데이터·상태·평점 인프라 | api-integrator |
 | 화면·컴포넌트·배선 | ui-developer |
 각 에이전트는 spec.md 분기 규칙(Pre-Work Contract)을 따른다. 완료 task는 `docs/specs/`에서 체크.
 
 ### 4. Verify — 검증 게이트
-- **qa-reviewer**: `AGENTS.md` Hard Thresholds(정본) — typecheck/lint 0, FSD, 보안(SecureStore), Analytics/평점 안티패턴 (변경 슬라이스 + 의존 그래프).
+- **qa-reviewer**: `AGENTS.md` Hard Thresholds(정본) — typecheck/lint 0, FSD, Supabase RLS·migration·type, 보안 저장소, 평점 안티패턴 (변경 슬라이스 + 의존 그래프).
 - **app-inspector**: 변경 화면 기능/UX/접근성 + **회귀 검사**.
 - **추가 게이트**: KPI 회귀 없음(기존 이벤트/측정 유지) · 번들 회귀 없음(불필요 의존성 금지).
 - FAIL → 구현 에이전트 수정 (최대 3회). 3회 후 미해결 → 백로그 환원.

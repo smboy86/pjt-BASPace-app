@@ -36,13 +36,13 @@ description: "출시/1차 구현 완료 후 앱을 지속적으로 고도화하�
 | 변경 유형 | 위임 대상 |
 |-----------|----------|
 | 새 모듈/엔티티/타입 | `feature-builder` |
-| API·상태·Analytics·평점 인프라 | `api-integrator` |
+| Supabase 데이터·상태·평점 인프라 | `api-integrator` |
 | 화면·컴포넌트·배선 | `ui-developer` |
 
 각 에이전트는 자신의 Pre-Work Contract(spec.md 분기 규칙)를 따른다. 완료 시 `docs/specs/`의 `- [ ]` → `- [x]` 갱신.
 
 ### Step 4: Verify — 검증 게이트
-- `qa-reviewer`: typecheck/lint 0, FSD 의존성, 보안·Analytics·평점 안티패턴 (변경 슬라이스 + 의존 그래프 — CodeGraph 사용 시 `codegraph impact`로 변경 심볼의 파급 범위를 산출해 회귀 검사 대상 화면을 누락 없이 확정). **AGENTS.md "Hard Thresholds" 표가 정본.**
+- `qa-reviewer`: typecheck/lint 0, FSD 의존성, Supabase RLS·migration·type, 보안·평점 안티패턴 (변경 슬라이스 + 의존 그래프 — CodeGraph 사용 시 `codegraph impact`로 변경 심볼의 파급 범위를 산출해 회귀 검사 대상 화면을 누락 없이 확정). **AGENTS.md "Hard Thresholds" 표가 정본.**
 - `app-inspector`: 변경 화면 기능/UX/접근성 + **회귀 검사**(기존 동작 유지)
 - 추가: KPI 회귀 없음, 불필요 의존성 추가 없음
 - FAIL → 구현 에이전트에 수정 요청 (최대 3회). 3회 후 미해결은 백로그 환원.

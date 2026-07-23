@@ -24,7 +24,8 @@ FSD 아키텍처 규칙에 따라 새 feature 모듈을 생성하는 스킬.
 ```
 src/features/{name}/
 ├── api/
-│   ├── {name}.api.ts          # API 호출 함수
+│   ├── repository.ts          # Supabase query/mutation
+│   ├── query-keys.ts
 │   └── index.ts
 ├── hooks/
 │   ├── use-{name}.ts          # TanStack Query hooks
@@ -60,16 +61,21 @@ export interface IGet{Name}ListResponse {
 }
 ```
 
-#### `api/{name}.api.ts`
+#### `api/repository.ts`
 ```typescript
-import { apiClient } from '@shared/api';
+import { supabase } from '@/shared/supabase';
 import type { IGet{Name}ListRequest, IGet{Name}ListResponse } from '../types';
 
 export const get{Name}List = async (
   params: IGet{Name}ListRequest,
 ): Promise<IGet{Name}ListResponse> => {
-  const { data } = await apiClient.get('/{name}', { params });
-  return data;
+  const { data, error, count } = await supabase
+    .from('{table_name}')
+    .select('*', { count: 'exact' })
+    .range(0, params.limit ?? 20);
+
+  if (error) throw error;
+  return { items: data, total: count ?? 0 };
 };
 ```
 
@@ -98,6 +104,8 @@ export * from './hooks';
 - `npm run typecheck` 실행
 - FSD 레이어 의존성 규칙 확인
 - barrel export 정상 여부 확인
+- Supabase query가 feature repository에만 존재하는지 확인
+- client 접근 table의 RLS와 migration task가 정의되어 있는지 확인
 
 ## Agent Delegation
 

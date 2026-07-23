@@ -12,8 +12,7 @@ BASpace is a React Native and Expo application for bathroom-remodeling quote col
 - Zustand and TanStack Query
 - NativeWind
 - React Hook Form and Zod
-- Axios
-- Firebase Analytics and Crashlytics adapters
+- Supabase Postgres and `@supabase/supabase-js` as the persistence target
 - Vitest, ESLint, and Prettier
 
 ## Codex Harness
@@ -36,7 +35,7 @@ The repository keeps Codex guidance and reusable workflows in four locations.
 | `spec-planner` | Feature task decomposition and progress tracking |
 | `design-architect` | Design system and screen layouts |
 | `feature-builder` | FSD module scaffolding |
-| `api-integrator` | API, state, secure storage, measurement, and review policy |
+| `api-integrator` | Supabase data, state, secure storage, and review policy |
 | `ui-developer` | Expo Router screens and NativeWind UI |
 | `qa-reviewer` | Type, lint, FSD, security, and policy verification |
 | `app-inspector` | Functional, UX, accessibility, and runtime inspection |
@@ -63,7 +62,7 @@ Pre-flight
   → Product planning
   → Feature specs
   → Design
-  → Feature/API/UI/measurement implementation
+  → Feature/Supabase/UI implementation
   → Code QA and app inspection
   → Fix loop
   → Deployment
@@ -80,12 +79,12 @@ src/widgets/             Composed UI blocks
 src/features/            User actions and business features
 src/entities/            Domain models and state
 src/shared/              Shared API, config, libraries, storage, and UI
+supabase/                SQL migrations and local Supabase configuration
 docs/specs/              Feature task specifications
 _workspace/              Planning, design, QA, and pipeline artifacts
 .codex/agents/           Codex role profiles
 .agents/skills/          Codex workflow skills
 plugins/                 Expo config plugins
-firebase/                Local Firebase setup instructions
 ```
 
 FSD dependency direction:
@@ -133,3 +132,5 @@ The required thresholds and security rules are defined in `AGENTS.md`.
 EAS profiles are defined in `eas.json`. Before publishing, verify the target profile, runtime version, update channel, application identifiers, and generated artifact.
 
 Build troubleshooting is documented in `docs/troubleshooting.md` and `.agents/skills/orchestrate/references/deploy-build-troubleshooting.md`.
+
+Supabase is the planned persistence layer. Database changes should be versioned as SQL migrations, client-accessible tables require Row Level Security, and generated database types should be mapped to FSD domain entities through feature repositories. See the official [Supabase Expo React Native guide](https://supabase.com/docs/guides/getting-started/quickstarts/expo-react-native).

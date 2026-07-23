@@ -8,12 +8,13 @@ React Native + Expo template with Feature-Sliced Design (FSD) architecture and a
 
 ## Tech Stack
 
-- Framework: React Native 0.81 + Expo 54
+- Framework: React Native 0.83 + Expo 55
 - Routing: Expo Router
 - State: Zustand for client state, TanStack Query for server state
 - Styling: NativeWind
 - Forms and validation: React Hook Form + Zod
-- API: Axios with token auto-refresh
+- Backend and database: Supabase Postgres via `@supabase/supabase-js`
+- Server state: TanStack Query
 - TypeScript: strict mode
 
 ## Codex Harness Rules
@@ -56,9 +57,8 @@ For full app development, follow this pipeline and do not skip QA:
 4. Design
 5. Implementation
    - 5a feature scaffolding
-   - 5b API integration
+   - 5b Supabase data integration
    - 5c UI screens
-   - 5d Firebase Analytics + Crashlytics integration (KPI events from PRD)
 6. QA and app inspection
 7. Iteration, up to 3 fix loops
 8. Deployment through `store-deploy`
@@ -104,7 +104,7 @@ Forbidden:
 
 - Persisting tokens through Redux/Zustand `persist` into `AsyncStorage`. `persist` is only for non-sensitive slices.
 - Putting secrets in `app.config.ts` `extra`, `.env` files shipped to the client bundle, or plaintext JSON.
-- Logging tokens or PII to console, Crashlytics, or Analytics params — mask even in `__DEV__`.
+- Logging tokens or PII to console or remote diagnostics — mask even in `__DEV__`.
 
 FSD layout:
 
@@ -176,7 +176,7 @@ Hard thresholds for Secure Storage:
 | Tokens/secrets stored in `AsyncStorage`/`MMKV`/`localStorage`/plaintext | 0 |
 | Code touching tokens outside `@/shared/secure-storage` wrapper | 0 |
 | Zustand `persist` writing a token slice to `AsyncStorage` | 0 |
-| Tokens or PII appearing in `console.log`, Crashlytics, or Analytics params | 0 |
+| Tokens or PII appearing in logs or remote diagnostics | 0 |
 | Client-side secrets in `app.config.ts` `extra` or `.env` | 0 |
 
 ### Date and Time Handling
@@ -207,7 +207,7 @@ npm run format
 
 ## iOS Simulator Runbook
 
-The local-mock flow supports Expo Go. Native Firebase is intentionally replaced by the no-op analytics adapter in Expo Go. Use a development build when validating native Firebase behavior:
+The local-mock flow supports Expo Go. Use a development build when validating native integrations:
 
 ```bash
 npx expo run:ios --port 8083
@@ -342,97 +342,62 @@ features/{name}/
 - Use the `@/` alias for app imports.
 - Keep public imports behind barrel exports where the local module pattern expects it.
 
-## Analytics And Key Metrics
+## Supabase Data Layer
 
-Every app must collect measurable KPIs from launch. Firebase is the standard.
+Supabase Postgres is the backend and database target for persisted BASpace entities.
 
-Required packages:
+Standard stack:
 
-- `@react-native-firebase/app`
-- `@react-native-firebase/analytics`
-- `@react-native-firebase/crashlytics`
-- `@react-native-firebase/remote-config` (optional)
+- Supabase Postgres
+- `@supabase/supabase-js`
+- SQL migrations under `supabase/migrations/`
+- generated database types
+- Row Level Security for every client-accessible table
+- TanStack Query for server state
 
-Standard KPI axes (define all three in the PRD, plus one north-star metric):
-
-| Axis | Examples | Firebase event |
-| --- | --- | --- |
-| Acquisition | new installs, first open | `first_open` (auto), `app_install` |
-| Activation | DAU/WAU, first key action | custom `activation`, `screen_view` (auto) |
-| Retention | D1/D7/D30, session length | `session_start`, `user_engagement` (auto) |
-
-Event naming:
-
-- snake_case, verb_noun (`tap_camera_capture`, `view_gallery_grid`)
-- Do not reuse Firebase reserved auto-event names.
-- Max 25 params per event. Key length ≤ 40, value length ≤ 100.
-- Never log PII (email, phone, real name, precise location).
-
-Code layout under FSD:
+FSD boundary:
 
 ```text
-src/shared/analytics/
-├── client.ts           # firebase analytics wrapper — logEvent, setUserProperty
-├── events.ts           # event catalog (constants + param types)
-├── hooks/
-│   └── useScreenTracking.ts
-├── types/index.ts
-└── index.ts            # barrel export
+src/shared/supabase/
+├── client.ts
+├── config.ts
+├── database.types.ts
+└── index.ts
+
+src/entities/{entity}/
+├── types/
+├── model/
+└── index.ts
+
+src/features/{feature}/api/
+└── repository.ts
 ```
 
 Rules:
 
-- Never call `firebase.analytics()` or `logEvent` directly outside `@/shared/analytics`.
-- Define every event name as a constant in `events.ts`. No magic strings.
-- Disable collection in dev: gate with `env.IS_PROD`.
-- Do not commit `GoogleService-Info.plist` or `google-services.json`. Inject via EAS Secrets and `eas.json` env.
+- Initialize the Supabase client only in `@/shared/supabase`.
+- Feature repositories perform queries and map database rows to domain entities.
+- UI components and screens never query Supabase directly.
+- Treat generated database types as the persistence contract; do not duplicate table row types manually.
+- Keep domain behavior in FSD entities and features rather than database helpers.
+- Every schema change requires a versioned SQL migration and regenerated types.
+- Enable RLS before exposing a table to the client.
+- Write explicit policies for customer, partner, and administrator access.
+- Never ship a service-role key in the app bundle.
+- Only the project URL and publishable client key may be exposed to the client.
+- Store session tokens through the project SecureStore adapter.
+- Use storage buckets only when remote file persistence is explicitly added to the product scope.
 
-Integration order:
-
-1. **Create Firebase project and apps via Playwright MCP** (browser automation on https://console.firebase.google.com). Firebase REST APIs for app provisioning are not available to standard OAuth scopes, so the console UI is the authoritative channel.
-   - Navigate to the Firebase console with `mcp__playwright__browser_navigate`.
-   - If not signed in, ask the user to sign in directly in the opened browser window. Resume automation after sign-in.
-   - Create a new project (`{app-slug}-prod`) or pick an existing one. Enable Google Analytics during creation.
-   - Add iOS app: bundle ID from `app.config.ts` `ios.bundleIdentifier`. Click "Register app". Click "Download GoogleService-Info.plist". Skip the SDK/console steps.
-   - Add Android app: package name from `app.config.ts` `android.package`. Leave SHA-1 blank for now. Click "Register app". Click "Download google-services.json". Skip the SDK/console steps.
-   - Move downloaded files:
-     - `~/Downloads/GoogleService-Info.plist` → `ios/GoogleService-Info.plist`
-     - `~/Downloads/google-services.json` → `android/app/google-services.json`
-   - If `ios/` or `android/` does not yet exist (pre-prebuild), park files in `firebase/` and re-place after `expo prebuild --clean`.
-   - If the Firebase console UI changes and selectors break, stop automation, ask the user to register both apps manually and download the files, then resume from the move step.
-2. **Place config files locally and protect them**.
-   - Add to `.gitignore`: `ios/GoogleService-Info.plist`, `android/app/google-services.json`, `firebase/`.
-   - Upload as EAS Secrets so cloud builds receive them:
-     ```bash
-     eas secret:create --scope project --name GOOGLE_SERVICES_PLIST --type file --value ./ios/GoogleService-Info.plist
-     eas secret:create --scope project --name GOOGLE_SERVICES_JSON  --type file --value ./android/app/google-services.json
-     ```
-   - Reference them in `app.config.ts` via `ios.googleServicesFile` / `android.googleServicesFile`.
-3. Install packages and register plugins:
-   ```bash
-   npm install @react-native-firebase/app @react-native-firebase/analytics @react-native-firebase/crashlytics
-   npx expo install expo-build-properties
-   ```
-   Add to `app.config.ts` `plugins`:
-   ```ts
-   '@react-native-firebase/app',
-   '@react-native-firebase/crashlytics',
-   ['expo-build-properties', { ios: { useFrameworks: 'static' } }],
-   ```
-4. Implement `src/shared/analytics/` wrapper, catalog, and screen tracking hook.
-5. Initialize Analytics and Crashlytics in root `_layout.tsx` with collection gated on `env.IS_PROD`.
-6. Wire events to the KPI map from the PRD.
-7. Verify: `expo prebuild --clean`, `npm run typecheck`, `npm run lint`, then a local EAS build. Confirm `[Firebase/Analytics]` initialization appears in the device log.
-
-Hard thresholds for Analytics:
+Hard thresholds:
 
 | Check | Threshold |
 | --- | --- |
-| PRD missing KPI section (north-star + 4 axes) | 0 |
-| Direct `firebase.analytics()` calls outside `@/shared/analytics` | 0 |
-| `logEvent` called with magic strings (no constant in `events.ts`) | 0 |
-| Event params containing PII | 0 |
-| Committed `GoogleService-Info.plist` or `google-services.json` | 0 |
+| Direct Supabase client initialization outside `@/shared/supabase` | 0 |
+| Supabase queries from screens or UI components | 0 |
+| Client-accessible tables without RLS | 0 |
+| Service-role key in client code or configuration | 0 |
+| Schema changes without a migration | 0 |
+| Manually duplicated database row types | 0 |
 
 ## In-App Store Review Prompts
 
@@ -505,7 +470,6 @@ Hook contract (`useStoreReview.ts`):
 
 ```ts
 import * as StoreReview from 'expo-store-review';
-import { logEvent } from '@/shared/analytics';
 import { useReviewStore } from '../store';
 import { canRequestReview } from '../policy';
 import type { TReviewTrigger } from '../triggers';
@@ -517,7 +481,6 @@ export const useStoreReview = () => {
       if (!(await StoreReview.isAvailableAsync())) return false;
       if (!canRequestReview(state)) return false;
       state.markRequested();
-      await logEvent('request_store_review', { trigger });
       await StoreReview.requestReview();
       return true;
     },
@@ -529,14 +492,13 @@ Call rules:
 
 - Code outside `@/shared/store-review` never calls `expo-store-review` directly.
 - Trigger IDs come only from `REVIEW_TRIGGERS`. No magic strings.
-- Every prompt logs `request_store_review` to Firebase Analytics with the trigger param.
 - Call from the success callback of a positive action, after the UI is idle (toast dismissed, navigation settled).
 - Never call from `onError`, `catch`, or boundary handlers.
 
 Automatic counters:
 
 - Root `_layout.tsx` calls `reviewStore.recordLaunch()` on app start.
-- A global error boundary / Crashlytics handler calls `reviewStore.recordError()`.
+- A global error boundary calls `reviewStore.recordError()`.
 - `recordKeyAction()` is invoked from screen success callbacks by ui-developer.
 
 Hard thresholds for store review:

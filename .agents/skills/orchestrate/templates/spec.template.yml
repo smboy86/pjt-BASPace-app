@@ -12,12 +12,6 @@ execution:
   unattended: false
   on_ambiguity: ask
 
-measurement:
-  firebase_analytics: false
-  crashlytics: false
-  remote_config: false
-  north_star: ""
-
 ux:
   onboarding: none
   store_review: false
@@ -33,7 +27,11 @@ auth:
   biometric_gate: none
 
 backend:
-  type: none
+  type: supabase
+  project_ref: ""
+  database: postgres
+  row_level_security: true
+  generated_types: true
   offline_first: false
   uploads: false
   realtime: false

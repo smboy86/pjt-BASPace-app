@@ -12,8 +12,7 @@
 - Zustand, TanStack Query
 - NativeWind
 - React Hook Form, Zod
-- Axios
-- Firebase Analytics·Crashlytics 어댑터
+- Supabase Postgres와 `@supabase/supabase-js`를 영속 데이터 기술로 사용 예정
 - Vitest, ESLint, Prettier
 
 ## Codex 하네스
@@ -36,7 +35,7 @@
 | `spec-planner` | 기능별 task 분해와 진행 추적 |
 | `design-architect` | 디자인 시스템과 화면 설계 |
 | `feature-builder` | FSD 모듈 구성 |
-| `api-integrator` | API, 상태, 보안 저장소, 측정, 평점 정책 |
+| `api-integrator` | Supabase 데이터, 상태, 보안 저장소, 평점 정책 |
 | `ui-developer` | Expo Router 화면과 NativeWind UI |
 | `qa-reviewer` | 타입·린트·FSD·보안·정책 검증 |
 | `app-inspector` | 기능·UX·접근성·런타임 검수 |
@@ -63,7 +62,7 @@
   → 제품 기획
   → 기능별 스펙
   → 디자인
-  → Feature/API/UI/측정 구현
+  → Feature/Supabase/UI 구현
   → 코드 QA와 앱 검수
   → 수정 루프
   → 배포
@@ -80,12 +79,12 @@ src/widgets/             조합형 UI 블록
 src/features/            사용자 행동과 비즈니스 기능
 src/entities/            도메인 모델과 상태
 src/shared/              공통 API, 설정, 라이브러리, 저장소, UI
+supabase/                SQL migration과 로컬 Supabase 설정
 docs/specs/              기능별 작업 스펙
 _workspace/              기획·디자인·QA·진행 산출물
 .codex/agents/           Codex 역할 프로필
 .agents/skills/          Codex 작업 스킬
 plugins/                 Expo config plugin
-firebase/                로컬 Firebase 설정 안내
 ```
 
 FSD 의존 방향:
@@ -133,3 +132,5 @@ npm run format
 EAS profile은 `eas.json`에 정의되어 있습니다. 게시 전 대상 profile, runtime version, update channel, 앱 식별자와 생성 artifact를 확인합니다.
 
 빌드 문제 해결은 `docs/troubleshooting.md`와 `.agents/skills/orchestrate/references/deploy-build-troubleshooting.md`를 참고합니다.
+
+Supabase는 향후 영속 데이터 계층의 기준입니다. DB 변경은 SQL migration으로 버전 관리하고, 클라이언트가 접근하는 테이블에는 RLS를 적용하며, 생성된 DB 타입을 feature repository에서 FSD domain entity로 변환합니다. 자세한 시작 방법은 공식 [Supabase Expo React Native 가이드](https://supabase.com/docs/guides/getting-started/quickstarts/expo-react-native)를 참고합니다.

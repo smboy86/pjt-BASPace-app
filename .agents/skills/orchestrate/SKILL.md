@@ -63,7 +63,7 @@ _workspace/
 - 사진·파일 처리
 - 필요한 네이티브 권한
 - 온보딩, 언어, 테마
-- Firebase Analytics/Crashlytics 사용 여부
+- Supabase 프로젝트와 데이터 전환 범위
 - 스토어 리뷰 사용 여부
 - 배포 채널과 목표
 - 무인 실행 여부
@@ -113,9 +113,9 @@ PRD 필수 항목:
 - 유저 스토리와 인수 조건
 - 화면 흐름
 - FSD 모듈 맵
-- 데이터 모델과 API 초안
+- Supabase 데이터 모델, 관계, RLS 초안
 - 북극성 지표
-- 획득·활성·유지 KPI와 이벤트 매핑
+- 획득·활성·유지 KPI와 산정 데이터
 - 보안·개인정보 경계
 
 ## Phase 2.5 — Spec Planning
@@ -157,11 +157,14 @@ Phase 4는 의존성 순서대로 진행한다.
 - 타입과 public barrel export 작성
 - FSD 의존 방향 검증
 
-### Phase 4b — API And State
+### Phase 4b — Supabase Data And State
 
 담당: `api-integrator`
 
-- API 함수와 query/mutation 훅
+- Supabase client와 generated database types
+- SQL migration과 RLS 정책
+- feature repository와 query/mutation 훅
+- database row와 domain entity mapper
 - Zustand 상태
 - SecureStore 기반 토큰 저장
 - Store Review 정책 모듈
@@ -174,17 +177,7 @@ Phase 4는 의존성 순서대로 진행한다.
 - NativeWind UI
 - Safe Area와 접근성
 - 성공·오류·빈 상태
-- API와 상태 배선
-
-### Phase 4d — Measurement
-
-담당: `api-integrator`
-
-- Firebase Analytics/Crashlytics 래퍼
-- 이벤트 카탈로그
-- PRD KPI 이벤트 배선
-- 개발 환경 수집 비활성화
-- 설정 파일 보안 처리
+- repository와 상태 배선
 
 각 하위 단계 시작 전에 `_workspace/implementation/sprint-contract-4{x}.md`를 작성한다.
 
@@ -220,7 +213,7 @@ npm run lint
 - `any`와 barrel export
 - 보안 저장소와 민감정보 로그
 - 날짜 처리
-- Analytics와 Store Review 정책
+- Supabase migration·RLS·generated type과 Store Review 정책
 - 관련 테스트
 
 ### Functional And UX Inspection
@@ -256,7 +249,7 @@ HIGH 또는 FAIL 항목을 우선 수정한다.
 - 미해결 HIGH 이슈 없음
 - 앱 이름과 식별자 일치
 - 권한과 사용 설명 일치
-- Firebase 설정 파일이 Git에서 제외됨
+- Supabase service-role key가 client 코드와 설정에 없음
 - EAS profile, runtime, channel 확인
 - 릴리즈 노트와 스토어 메타데이터 확인
 

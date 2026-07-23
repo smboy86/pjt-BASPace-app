@@ -10,14 +10,15 @@ developer_instructions = """
 3. 기능 목록 (Feature List) 및 우선순위 정의
 4. 정보 구조 (IA) 및 화면 흐름 (User Flow) 설계
 5. MVP 범위 정의 — 1차 출시에 포함할 핵심 기능 선정
-6. **핵심 지표(KPIs) 정의** — 북극성 지표 1개 + 획득·활성·유지 지표를 Firebase Analytics 이벤트로 매핑한다.
+6. **핵심 지표(KPIs) 정의** — 북극성 지표 1개 + 획득·활성·유지 지표와 산정 기준을 정의한다.
 7. **Review Trigger 카탈로그 정의** — 사용자가 가치를 느끼는 긍정적 액션 2~5개를 트리거 후보로 선정하고 각 임계값(N회 완료 등)을 명시한다. 안티패턴(첫 실행/온보딩/에러 직후)은 제외 사항으로 명문화한다.
+8. **Supabase 데이터 모델 정의** — 고객, 업체, 담당자, 요청, 견적 버전, 코멘트, 카탈로그의 관계와 역할별 접근 경계를 정의한다.
 
 ## Pre-Work Contract — `_workspace/spec.md` 우선 읽기 (MANDATORY)
 
 작업 시작 전 반드시 아래 순서로 컨텍스트를 로드한다:
 
-1. `_workspace/spec.md` 의 `project`, `measurement`, `ux`, `auth`, `backend`, `permissions`, `policy`, `deployment` 전 섹션 Read
+1. `_workspace/spec.md` 의 `project`, `ux`, `auth`, `backend`, `permissions`, `policy`, `deployment` 전 섹션 Read
 2. 모든 `*_notes` 자유 입력 필드 Read
 3. `project.context` Read
 
@@ -29,7 +30,6 @@ developer_instructions = """
 
 spec에서 켜진(true) 항목만 PRD에 명시한다:
 - `ux.store_review=true` → "Review Triggers" 섹션 작성
-- `measurement.firebase_analytics=true` → "KPIs" 섹션 작성
 - `auth.methods≠[]` → "계정 삭제 흐름" 섹션 자동 포함 (Apple 5.1.1(v))
 - `policy.ugc=true` → "신고/차단/모더레이션" 섹션 자동 포함 (Apple 1.2)
 
@@ -80,33 +80,24 @@ spec에서 켜진(true) 항목만 PRD에 명시한다:
   - 1차 출시: [기능 ID 목록]
   - 2차 확장: [기능 ID 목록]
 
-  ## API 엔드포인트 (예상)
-  | Method | Path | Description |
-  |--------|------|-------------|
-  | POST | /auth/login | 로그인 |
+  ## Supabase 데이터 모델
+  | Table | Purpose | Main Relations | RLS Roles |
+  |-------|---------|----------------|-----------|
+  | remodel_requests | 고객 견적 요청 | customer, assignments | customer, admin |
+  | request_assignments | 업체 담당자 배정 | request, partner_user | admin, partner |
+  | quote_versions | 견적 버전 | request, partner | customer, partner, admin |
 
-  ## 핵심 지표 (KPIs) — Firebase Analytics 매핑
+  ## 핵심 지표 (KPIs)
 
   ### 북극성 지표 (North Star Metric)
   - {NSM 이름}: {정의 + 목표값} (예: "주간 N장 이상 촬영 사용자 수 ≥ 30% of WAU")
 
   ### 기본 지표 세트
-  | 축 | 지표 | 정의 | 목표 | Firebase 이벤트 | 주요 파라미터 |
-  |----|------|------|------|----------------|--------------|
-  | 획득 | 신규 설치 | 최초 앱 실행자 수 | 일 N건 | `first_open` (auto) | source |
-  | 활성 | D0 핵심 행동 완료율 | 설치 당일 핵심 액션 완료 비율 | 60% | `activation` (커스텀) | feature_id |
-  | 유지 | D7 리텐션 | 설치 7일 후 재방문 비율 | 25% | `session_start` (auto) | — |
-
-  ### 커스텀 이벤트 카탈로그
-  | 이벤트 | 트리거 | 파라미터 | 매핑 기능 |
-  |--------|--------|----------|----------|
-  | `tap_{action}_{target}` | 사용자가 {action} | {param1, param2} | F-NNN |
-  | `complete_{flow_name}` | 플로우 완료 시 | duration_ms | F-NNN |
-
-  **규칙**
-  - 모든 이벤트는 snake_case, 동사_명사 형식
-  - PII(이메일/전화/실명/정확한 위치) 파라미터 금지
-  - 이벤트 이름은 `src/shared/analytics/events.ts` 상수로 정의 예정 (api-integrator가 구현)
+  | 축 | 지표 | 정의 | 목표 | 산정 데이터 |
+  |----|------|------|------|-----------|
+  | 획득 | 신규 고객 요청자 | 기간 내 첫 요청을 만든 고객 수 | 월 N명 | customers, remodel_requests |
+  | 활성 | 첫 요청 완료율 | 요청 작성을 시작한 고객 중 제출 완료 비율 | 60% | remodel_requests.status |
+  | 유지 | 재요청 고객 비율 | 일정 기간 안에 새 요청을 만든 기존 고객 비율 | 25% | remodel_requests.customer_id |
 
   ## Store Review Triggers — 평점 유도 정책
 

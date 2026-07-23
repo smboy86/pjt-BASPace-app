@@ -10,7 +10,7 @@ FSD 아키텍처의 entity(도메인 모델) 레이어에 새 엔티티를 생�
 ## Input
 
 - `name`: 엔티티 이름 (kebab-case, 예: `product`)
-- `with-store`: Zustand store 포함 여부 (default: true)
+- `with-store`: UI 전용 Zustand store 포함 여부 (default: false)
 
 ## Steps
 
@@ -22,14 +22,14 @@ FSD 아키텍처의 entity(도메인 모델) 레이어에 새 엔티티를 생�
 
 ```
 src/entities/{name}/
-├── api/
-│   ├── {name}.api.ts
-│   └── index.ts
-├── store/
-│   ├── {name}.store.ts
+├── model/
+│   ├── {name}.mapper.ts
 │   └── index.ts
 ├── types/
 │   ├── {name}.types.ts
+│   └── index.ts
+├── store/                   # optional, UI/domain state only
+│   ├── {name}.store.ts
 │   └── index.ts
 └── index.ts
 ```
@@ -44,46 +44,35 @@ export interface I{Name} {
   updatedAt: string;
 }
 
-export interface I{Name}State {
-  {name}: I{Name} | null;
-  set{Name}: ({name}: I{Name}) => void;
-  clear: () => void;
-}
 ```
 
-#### `store/{name}.store.ts`
+#### `model/{name}.mapper.ts`
 ```typescript
-import { create } from 'zustand';
-import type { I{Name}State } from '../types';
-
-export const use{Name}Store = create<I{Name}State>()((set) => ({
-  {name}: null,
-  set{Name}: ({name}) => set({ {name} }),
-  clear: () => set({ {name}: null }),
-}));
-```
-
-#### `api/{name}.api.ts`
-```typescript
-import { apiClient } from '@shared/api';
 import type { I{Name} } from '../types';
+import type { Database } from '@/shared/supabase';
 
-export const get{Name} = async (id: string): Promise<I{Name}> => {
-  const { data } = await apiClient.get(`/{name}/${id}`);
-  return data;
+type T{Name}Row = Database['public']['Tables']['{table_name}']['Row'];
+
+export const map{Name}Row = (row: T{Name}Row): I{Name} => {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 };
 ```
 
 #### `index.ts`
 ```typescript
 export * from './types';
-export * from './store';
-export * from './api';
+export * from './model';
 ```
 
 ### Step 4: QA 검증
 - `npm run typecheck` 실행
 - FSD 의존성 규칙 확인 (entities는 shared만 참조 가능)
+- generated database row type과 domain entity type이 mapper로 분리되었는지 확인
+- Supabase query가 entity 또는 UI에 직접 포함되지 않았는지 확인
 
 ## Agent Delegation
 

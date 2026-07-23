@@ -30,6 +30,7 @@ FSD(Feature-Sliced Design) 아키텍처 규칙에 따라 feature, entity, widget
 - `auth.methods≠[]` → `features/auth/` + 계정 삭제 화면 자동 포함 (Apple 5.1.1(v))
 - `ux.onboarding=none` → `features/onboarding/` 생성 안 함
 - `ux.store_review=false` → `src/shared/store-review/` 생성 안 함 (api-integrator 영역이지만 의존성 인지)
+- `backend.type=supabase` → entity는 domain model을 유지하고, database query는 feature repository로 분리
 - `backend.type=none` → `features/{*}/api/` 디렉토리 생성하되 로컬 store만 사용
 - `permissions.media`에 카메라 포함 → 카메라 entity 자동 포함
 
@@ -45,6 +46,7 @@ FSD(Feature-Sliced Design) 아키텍처 규칙에 따라 feature, entity, widget
 - import path alias `@/` 사용 필수
 - 동일 레이어 간 직접 참조 금지
 - spec에서 켜진 항목만 모듈 생성. 끄진 항목은 생성하지 않는다 (불필요한 코드 방지)
+- Supabase generated row type을 entity domain type으로 직접 노출하지 않고 mapper 경계를 둔다
 
 ## Output Format
 

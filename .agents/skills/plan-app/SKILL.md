@@ -1,6 +1,6 @@
 ---
 name: plan-app
-description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기능 목록, 화면 구조, FSD 모듈 맵, API 엔드포인트를 정의한다. '기획해줘', 'PRD 작성', '기능 정의해줘', '화면 흐름 설계해줘', '앱 설계' 요청 시 반드시 이 스킬을 사용할 것."
+description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기능 목록, 화면 구조, FSD 모듈 맵, Supabase 데이터 모델을 정의한다. '기획해줘', 'PRD 작성', '기능 정의해줘', '화면 흐름 설계해줘', '앱 설계' 요청 시 반드시 이 스킬을 사용할 것."
 ---
 
 # Plan App — 앱 기획/PRD 작성 스킬
@@ -13,7 +13,7 @@ description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기�
 - "앱 설계", "앱 구조 잡아줘"
 
 ## Input
-- 아이디어 리서치 보고서 (`_workspace/01_idea_research.md`) 또는 사용자 직접 설명
+- 아이디어 리서치 보고서 (`_workspace/idea/baspace-domain-research.md`) 또는 사용자 직접 설명
 
 ## Steps
 
@@ -42,15 +42,17 @@ description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기�
 - 모듈 간 의존성 관계 정의
 - 각 모듈에 포함될 파일 목록 (api, hooks, types, store)
 
-### Step 5: API 설계
-- RESTful 엔드포인트 목록
-- 각 엔드포인트의 Request/Response 타입 초안
-- 인증 방식 정의
+### Step 5: Supabase 데이터 설계
+- Postgres table과 relation 초안
+- 고객·업체 담당자·관리자 역할별 RLS 경계
+- generated database type과 FSD entity mapping
+- feature repository의 query/mutation 계약
+- SQL migration 단위 정의
 
 ### Step 6: MVP 범위 결정
 - 1차 출시 기능 목록 (P0만)
 - 2차 확장 기능 목록 (P1)
-- `_workspace/02_product_plan.md`에 저장
+- `_workspace/plan/prd.md`에 저장
 
 ## Agent Delegation
 | Step | Agent |
