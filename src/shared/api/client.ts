@@ -1,11 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { env } from '@shared/config';
-import {
-  clearAllSecure,
-  getSecureItem,
-  SECURE_KEYS,
-  setSecureItem,
-} from '@/shared/secure-storage';
+import { clearAllSecure, getSecureItem, SECURE_KEYS, setSecureItem } from '@/shared/secure-storage';
 
 type TAuthFailureCallback = () => void;
 

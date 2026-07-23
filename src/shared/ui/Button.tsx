@@ -30,31 +30,40 @@ export function Button({
 
   const getVariantStyle = () => {
     switch (variant) {
-      case 'primary': return 'bg-primary dark:bg-primary-dark';
-      case 'secondary': return 'bg-surface dark:bg-surface-dark';
-      case 'outline': return 'bg-transparent border border-primary dark:border-primary-dark';
-      case 'ghost': return 'bg-transparent';
-      default: return 'bg-primary';
+      case 'primary':
+        return 'bg-primary dark:bg-primary-dark';
+      case 'secondary':
+        return 'bg-surface dark:bg-surface-dark';
+      case 'outline':
+        return 'bg-transparent border border-primary dark:border-primary-dark';
+      case 'ghost':
+        return 'bg-transparent';
+      default:
+        return 'bg-primary';
     }
   };
 
   const getSizeStyle = () => {
     switch (size) {
-      case 'sm': return 'h-9 px-3';
-      case 'md': return 'h-11 px-4';
-      case 'lg': return 'h-13 px-6';
-      default: return 'h-11 px-4';
+      case 'sm':
+        return 'h-9 px-3';
+      case 'md':
+        return 'h-11 px-4';
+      case 'lg':
+        return 'h-13 px-6';
+      default:
+        return 'h-11 px-4';
     }
   };
 
   const getTextStyle = () => {
-    const base = "font-semibold";
-    const sizeStyle = size === 'sm' ? "text-sm" : size === 'lg' ? "text-lg" : "text-base";
-    let color = "text-white";
-    
-    if (variant === 'secondary') color = "text-primary dark:text-primary-dark";
-    if (variant === 'outline' || variant === 'ghost') color = "text-primary dark:text-primary-dark";
-    
+    const base = 'font-semibold';
+    const sizeStyle = size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-lg' : 'text-base';
+    let color = 'text-white';
+
+    if (variant === 'secondary') color = 'text-primary dark:text-primary-dark';
+    if (variant === 'outline' || variant === 'ghost') color = 'text-primary dark:text-primary-dark';
+
     return `${base} ${sizeStyle} ${color}`;
   };
 
@@ -78,9 +87,7 @@ export function Button({
           color={variant === 'outline' || variant === 'ghost' ? undefined : '#fff'}
         />
       ) : (
-        <Text className={getTextStyle()}>
-          {title}
-        </Text>
+        <Text className={getTextStyle()}>{title}</Text>
       )}
     </Pressable>
   );

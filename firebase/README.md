@@ -11,21 +11,20 @@ Firebase Analytics를 사용하려면 아래 두 파일을 이 디렉토리에 �
 
 EAS 빌드 환경에서는 환경변수 `GOOGLE_SERVICE_INFO_PLIST` / `GOOGLE_SERVICES_JSON`로 경로를 오버라이드할 수 있다 (`eas secret` + `eas.json`의 `env.file` 조합).
 
-## 왜 Firebase Analytics가 필요한가
+## Firebase Analytics 사용 목적
 
-Firebase Analytics를 통합하지 않으면 AdMob 광고가 audience signal 없이 non-personalized(NPA) 형태로만 노출되어 eCPM이 3~5배 낮아진다. AdMob과 Firebase Analytics를 함께 사용하는 것이 표준 권장 구성이다.
+Firebase Analytics는 견적 요청 제출, 업체 매칭, 견적 발송, 고객 최종 컨펌 등 핵심 상담 흐름을 측정할 때 사용한다.
 
 ## 빌드 호환성 메모
 
-`@react-native-firebase` + Expo SDK 54 + RN 0.81 + AdMob(`react-native-google-mobile-ads`) 조합은 iOS 빌드에서 "include of non-modular header inside framework module" 에러가 발생한다 (Expo issue #39607).
+`@react-native-firebase`를 iOS 정적 프레임워크로 사용할 때는 Firebase 모듈의 링크 설정을 맞춰야 한다.
 
 `app.config.ts`의 `expo-build-properties` 플러그인에 다음이 설정되어 있어야 한다:
 
 ```ts
 ios: {
-  useFrameworks: 'static',                              // AdMob 요구사항
-  forceStaticLinking: ['RNFBApp', 'RNFBAnalytics'],     // 헤더 에러 회피
-  extraPods: [{ name: 'GoogleUtilities', modular_headers: true }], // AdMob 공유 pod 호환
+  useFrameworks: 'static',
+  forceStaticLinking: ['RNFBApp', 'RNFBAnalytics'],
 }
 ```
 
@@ -38,4 +37,3 @@ ios: {
 3. `GoogleService-Info.plist` 다운로드 → 이 디렉토리에 배치
 4. Android 앱 추가 → 패키지명 입력 (`app.config.ts`의 `android.package`와 동일하게)
 5. `google-services.json` 다운로드 → 이 디렉토리에 배치
-6. AdMob ↔ Firebase 연동: AdMob Console → 앱 → 앱 설정 → 연결된 Firebase 앱 → 연결

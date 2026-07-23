@@ -4,7 +4,13 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    exclude: ['node_modules/**', '.expo/**', '.claude/**', '_workspace/**', 'plugins/**'],
+    exclude: [
+      'node_modules/**',
+      '.expo/**',
+      '.agents/**',
+      '.codex/**',
+      '_workspace/**',
+      'plugins/**',
+    ],
   },
 });
-

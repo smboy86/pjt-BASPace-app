@@ -26,7 +26,7 @@
 
 1. **한 사이클 = 한 슬라이스.** 한 번에 여러 기능을 벌이지 않는다. 작게 만들고 빨리 검증한다.
 2. **데이터가 우선순위를 정한다.** "추천"은 직감이 아니라 KPI 갭·사용자 가치·노력·부채·커버리지의 가중 점수로 결정한다.
-3. **검증은 협상 불가.** 모든 사이클은 CLAUDE.md "Hard Thresholds" 표를 통과해야 닫힌다. + 회귀 없음.
+3. **검증은 협상 불가.** 모든 사이클은 `AGENTS.md`의 Hard Thresholds를 통과하고 회귀가 없어야 닫힌다.
 4. **전체 재빌드 금지.** 건드리는 슬라이스만 구현/검증한다. 멀티 에이전트 하네스는 단일 대비 20배 토큰을 쓰므로(orchestrate "Model Capability Adaptation" 참조), 증분 작업에 전체 파이프라인을 재실행하지 않는다.
 5. **루프는 닫혀야 한다.** 모든 사이클은 "다음에 만들 것 1개 추천"으로 끝나, 다음 사이클의 입력이 된다.
 
@@ -55,12 +55,12 @@
 | 변경 유형 | 위임 |
 |-----------|------|
 | 새 모듈/엔티티/타입 | feature-builder |
-| API·상태·Analytics·광고·평점 인프라 | api-integrator |
+| API·상태·Analytics·평점 인프라 | api-integrator |
 | 화면·컴포넌트·배선 | ui-developer |
 각 에이전트는 spec.md 분기 규칙(Pre-Work Contract)을 따른다. 완료 task는 `docs/specs/`에서 체크.
 
 ### 4. Verify — 검증 게이트
-- **qa-reviewer**: CLAUDE.md Hard Thresholds(정본) — typecheck/lint 0, FSD, 보안(SecureStore), Analytics/평점/광고 안티패턴 (변경 슬라이스 + 의존 그래프).
+- **qa-reviewer**: `AGENTS.md` Hard Thresholds(정본) — typecheck/lint 0, FSD, 보안(SecureStore), Analytics/평점 안티패턴 (변경 슬라이스 + 의존 그래프).
 - **app-inspector**: 변경 화면 기능/UX/접근성 + **회귀 검사**.
 - **추가 게이트**: KPI 회귀 없음(기존 이벤트/측정 유지) · 번들 회귀 없음(불필요 의존성 금지).
 - FAIL → 구현 에이전트 수정 (최대 3회). 3회 후 미해결 → 백로그 환원.

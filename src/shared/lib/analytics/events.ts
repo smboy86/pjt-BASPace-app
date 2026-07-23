@@ -4,15 +4,9 @@
 export const EAnalyticsEvent = {
   APP_OPEN: 'app_open',
   SCREEN_VIEW: 'screen_view',
-  REWARDED_AD_COMPLETED: 'rewarded_ad_completed',
-  INTERSTITIAL_AD_SHOWN: 'interstitial_ad_shown',
   REQUEST_STORE_REVIEW: 'request_store_review',
 } as const;
 
-export type TAnalyticsEvent =
-  (typeof EAnalyticsEvent)[keyof typeof EAnalyticsEvent];
+export type TAnalyticsEvent = (typeof EAnalyticsEvent)[keyof typeof EAnalyticsEvent];
 
-export type TAnalyticsParams = Record<
-  string,
-  string | number | boolean | null | undefined
->;
+export type TAnalyticsParams = Record<string, string | number | boolean | null | undefined>;

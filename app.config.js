@@ -4,6 +4,9 @@ module.exports = ({ config }) => {
   const DEBUG = process.env.DEBUG === 'true';
   const LOG_LEVEL = process.env.LOG_LEVEL || 'debug';
   const APP_VERSION = process.env.APP_VERSION || '1.0.0';
+  const ANDROID_BUILD_ARCHS = process.env.ANDROID_BUILD_ARCHS
+    ? process.env.ANDROID_BUILD_ARCHS.split(',').map((arch) => arch.trim())
+    : ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'];
 
   return {
     ...config,
@@ -36,6 +39,12 @@ module.exports = ({ config }) => {
     },
     android: {
       package: 'com.baspace.app',
+      blockedPermissions: [
+        'com.google.android.gms.permission.AD_ID',
+        'android.permission.ACCESS_ADSERVICES_AD_ID',
+        'android.permission.ACCESS_ADSERVICES_ATTRIBUTION',
+        'android.permission.ACCESS_ADSERVICES_TOPICS',
+      ],
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#0a0a0a',
@@ -44,6 +53,17 @@ module.exports = ({ config }) => {
     plugins: [
       'expo-router',
       'expo-secure-store',
+      [
+        'expo-build-properties',
+        {
+          android: {
+            buildArchs: ANDROID_BUILD_ARCHS,
+            enableBundleCompression: true,
+            enableMinifyInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+          },
+        },
+      ],
       ['./plugins/withLocalizedAppName', { ko: '바스페이스' }],
     ],
     experiments: { typedRoutes: true, reactCompiler: false },

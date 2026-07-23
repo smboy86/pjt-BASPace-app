@@ -18,21 +18,21 @@ React Native + Expo template with Feature-Sliced Design (FSD) architecture and a
 
 ## Codex Harness Rules
 
-This repository includes Claude-era harness files under `.claude/`. Codex does not execute Claude agents, Claude settings, or Claude permission files as native runtime features. Treat those files as project reference documents only.
+Codex agent profiles live in `.codex/agents/`, and reusable workflow skills live in `.agents/skills/`.
 
-When a task maps to a harness role, read the relevant `.claude/agents/*.md` file before implementation and apply the domain rules manually:
+When a task maps to a harness role, use the matching Codex agent profile:
 
 | Task Type | Reference |
 | --- | --- |
-| Idea and market research | `.claude/agents/idea-researcher.md` |
-| Product planning and PRD | `.claude/agents/product-planner.md` |
-| Specs and task breakdown | `.claude/agents/spec-planner.md` |
-| Design system and theme | `.claude/agents/design-architect.md` |
-| FSD module scaffolding | `.claude/agents/feature-builder.md` |
-| API and state integration | `.claude/agents/api-integrator.md` |
-| UI and screens | `.claude/agents/ui-developer.md` |
-| Code quality review | `.claude/agents/qa-reviewer.md` |
-| Functional and UX inspection | `.claude/agents/app-inspector.md` |
+| Idea and market research | `.codex/agents/idea-researcher.toml` |
+| Product planning and PRD | `.codex/agents/product-planner.toml` |
+| Specs and task breakdown | `.codex/agents/spec-planner.toml` |
+| Design system and theme | `.codex/agents/design-architect.toml` |
+| FSD module scaffolding | `.codex/agents/feature-builder.toml` |
+| API and state integration | `.codex/agents/api-integrator.toml` |
+| UI and screens | `.codex/agents/ui-developer.toml` |
+| Code quality review | `.codex/agents/qa-reviewer.toml` |
+| Functional and UX inspection | `.codex/agents/app-inspector.toml` |
 
 Use Codex skills when they are available for the same workflow:
 
@@ -51,7 +51,7 @@ Use Codex skills when they are available for the same workflow:
 For full app development, follow this pipeline and do not skip QA:
 
 1. Ideation
-2. Product planning (must define KPIs — north-star metric + acquisition/activation/retention/monetization)
+2. Product planning (must define a north-star metric plus acquisition, activation, and retention KPIs)
 3. Spec planning and task breakdown
 4. Design
 5. Implementation
@@ -96,7 +96,7 @@ Storage boundary:
 
 | Class | Examples | Storage |
 | --- | --- | --- |
-| Sensitive | access token, refresh token, OAuth/session tokens, API secret keys, payment tokens, passwords/PINs, premium license keys, PII-bound tokens | `expo-secure-store` |
+| Sensitive | access token, refresh token, OAuth/session tokens, API secret keys, passwords/PINs, PII-bound tokens | `expo-secure-store` |
 | Semi-sensitive | push tokens, device secrets, recoverable user pseudo-IDs | `expo-secure-store` |
 | Non-sensitive | UI theme, locale, last-visited screen, onboarding flags, non-identifying cache, non-sensitive Zustand slices | `@react-native-async-storage/async-storage` or `react-native-mmkv` |
 
@@ -207,13 +207,7 @@ npm run format
 
 ## iOS Simulator Runbook
 
-This app uses native modules and cannot run in Expo Go:
-
-- `@shopify/react-native-skia`
-- `react-native-google-mobile-ads`
-- `expo-face-detector`
-
-Use a development build through Expo:
+The local-mock flow supports Expo Go. Native Firebase is intentionally replaced by the no-op analytics adapter in Expo Go. Use a development build when validating native Firebase behavior:
 
 ```bash
 npx expo run:ios --port 8083
@@ -286,7 +280,7 @@ npm run lint
 - Use ESLint 9 flat config in `eslint.config.js`.
 - Do not use `--ext` in the lint script.
 - Do not add `estimatedItemSize` to FlashList v2 unless the installed type definitions require it.
-- Exclude `_workspace/`, `.claude/`, and `plugins/` from lint and typecheck when they are not production source.
+- Exclude `_workspace/`, `.agents/`, `.codex/`, and `plugins/` from lint and typecheck when they are not production source.
 
 ## NativeWind Required Setup
 
@@ -359,14 +353,13 @@ Required packages:
 - `@react-native-firebase/crashlytics`
 - `@react-native-firebase/remote-config` (optional)
 
-Standard KPI axes (define all four in the PRD, plus one north-star metric):
+Standard KPI axes (define all three in the PRD, plus one north-star metric):
 
 | Axis | Examples | Firebase event |
 | --- | --- | --- |
 | Acquisition | new installs, first open | `first_open` (auto), `app_install` |
 | Activation | DAU/WAU, first key action | custom `activation`, `screen_view` (auto) |
 | Retention | D1/D7/D30, session length | `session_start`, `user_engagement` (auto) |
-| Monetization | ad impressions, IAP revenue, ARPU | `ad_impression` (auto), `purchase` |
 
 Event naming:
 
@@ -396,7 +389,7 @@ Rules:
 
 Integration order:
 
-1. **Create Firebase project and apps via Playwright MCP** (browser automation on https://console.firebase.google.com, same pattern as AdMob console setup). Firebase REST APIs for app provisioning are not available to standard OAuth scopes, so the console UI is the authoritative channel.
+1. **Create Firebase project and apps via Playwright MCP** (browser automation on https://console.firebase.google.com). Firebase REST APIs for app provisioning are not available to standard OAuth scopes, so the console UI is the authoritative channel.
    - Navigate to the Firebase console with `mcp__playwright__browser_navigate`.
    - If not signed in, ask the user to sign in directly in the opened browser window. Resume automation after sign-in.
    - Create a new project (`{app-slug}-prod`) or pick an existing one. Enable Google Analytics during creation.
@@ -502,7 +495,7 @@ Trigger catalog (`triggers.ts`):
 export const REVIEW_TRIGGERS = {
   AFTER_PHOTO_SAVE: 'after_photo_save',
   AFTER_TASK_COMPLETE: 'after_task_complete',
-  AFTER_PREMIUM_UNLOCK: 'after_premium_unlock',
+  AFTER_QUOTE_CONFIRM: 'after_quote_confirm',
 } as const;
 
 export type TReviewTrigger = (typeof REVIEW_TRIGGERS)[keyof typeof REVIEW_TRIGGERS];
@@ -585,11 +578,7 @@ Store app names and home screen names must match by locale:
 
 Android changelogs must stay within 500 bytes. iOS release notes can be longer, but prefer the Android-safe copy when sharing metadata across stores.
 
-For global store deployment key paths, AdMob setup, package ID rules, localized app names, privacy/support pages, Fastlane conventions, and commit message rules, follow the migrated global Codex rules in:
-
-```text
-/Users/seungmanchoi/.codex/global-claude-rules.md
-```
+For store deployment key paths, package ID rules, localized app names, privacy/support pages, Fastlane conventions, and commit message rules, follow the active `store-deploy` workflow.
 
 ## Branch Strategy
 

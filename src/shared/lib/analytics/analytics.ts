@@ -1,10 +1,6 @@
 import Constants from 'expo-constants';
 import { env } from '@/shared/config';
-import {
-  EAnalyticsEvent,
-  type TAnalyticsEvent,
-  type TAnalyticsParams,
-} from './events';
+import { EAnalyticsEvent, type TAnalyticsEvent, type TAnalyticsParams } from './events';
 import { noopAnalytics } from './noop';
 import type { IAnalyticsAdapter } from './types';
 
@@ -42,10 +38,7 @@ export async function initAnalytics(): Promise<void> {
   }
 }
 
-export async function logEvent(
-  name: TAnalyticsEvent,
-  params?: TAnalyticsParams,
-): Promise<void> {
+export async function logEvent(name: TAnalyticsEvent, params?: TAnalyticsParams): Promise<void> {
   if (!isValidEventName(name)) {
     if (env.DEBUG) {
       console.warn('[analytics] invalid event name:', name);
@@ -61,10 +54,7 @@ export async function logEvent(
   }
 }
 
-export async function logScreenView(
-  screenName: string,
-  screenClass?: string,
-): Promise<void> {
+export async function logScreenView(screenName: string, screenClass?: string): Promise<void> {
   try {
     adapter.screen(screenName, screenClass);
   } catch (error) {
@@ -74,10 +64,7 @@ export async function logScreenView(
   }
 }
 
-export async function setUserProperty(
-  name: string,
-  value: string | null,
-): Promise<void> {
+export async function setUserProperty(name: string, value: string | null): Promise<void> {
   try {
     adapter.setUserProperty(name, value);
   } catch (error) {

@@ -27,9 +27,7 @@ describe('canRequestReview', () => {
   });
 
   test('blocks when a request was already made this session', () => {
-    expect(
-      canRequestReview({ ...passing(), requestedThisSession: true }, idle),
-    ).toBe(false);
+    expect(canRequestReview({ ...passing(), requestedThisSession: true }, idle)).toBe(false);
   });
 
   test('blocks before the minimum days since install', () => {
@@ -46,9 +44,7 @@ describe('canRequestReview', () => {
   });
 
   test('blocks below the minimum key-action count', () => {
-    expect(canRequestReview({ ...passing(), keyActionCount: 1 }, idle)).toBe(
-      false,
-    );
+    expect(canRequestReview({ ...passing(), keyActionCount: 1 }, idle)).toBe(false);
   });
 
   test('blocks during the post-launch cooldown', () => {

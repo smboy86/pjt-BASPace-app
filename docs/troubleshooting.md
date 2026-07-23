@@ -91,7 +91,6 @@ QR 코드 스캔으로 Expo Go에서 실행하면 커스텀 네이티브 모듈�
 
 **Expo Go에서 지원 안 되는 패키지 예시**:
 - `react-native-compressor`
-- `react-native-google-mobile-ads`
 - 기타 커스텀 네이티브 모듈
 
 이런 패키지를 사용하는 프로젝트는 반드시 `npx expo run:ios --device`로 Development Build를 해야 한다.
@@ -171,27 +170,15 @@ npx expo run:ios --device
 
 ---
 
-## AdMob (react-native-google-mobile-ads) 설정
+## Android 테스트 APK 용량이 큰 경우
 
-### app.config.ts 플러그인 설정
+기본 APK는 `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64` 네 CPU 아키텍처를 모두 포함하므로 MVP 앱도 용량이 커질 수 있다. 외부 실기기 테스트에는 `release-apk-arm64` 프로필을 사용한다.
 
-이 템플릿은 `app.config.ts`를 Expo 설정의 단일 소스로 사용한다. `app.json`을 별도로 두면 앱 이름, bundle ID, AdMob 설정이 서로 어긋날 수 있으므로 새 설정은 `app.config.ts`에만 추가한다.
-
-```typescript
-plugins: [
-  [
-    'react-native-google-mobile-ads',
-    {
-      iosAppId: 'ca-app-pub-xxxx~zzzz',
-      androidAppId: 'ca-app-pub-xxxx~yyyy',
-      delayAppMeasurementInit: true,
-      userTrackingUsageDescription:
-        'This identifier will be used to deliver personalized ads to you.',
-    },
-  ],
-  'expo-tracking-transparency',
-],
+```bash
+npm run eas:build:release-apk
 ```
+
+이 프로필은 최신 Android 실기기용 `arm64-v8a`만 포함하며 릴리스 빌드에서 R8 코드 축소, 미사용 리소스 제거, JS 번들 압축을 적용한다. x86 계열 Android 에뮬레이터에는 설치할 수 없다. Play Store 배포에는 ABI별 파일을 직접 배포하지 말고 기본 `production` 프로필의 AAB를 사용한다.
 
 ---
 

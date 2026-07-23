@@ -1,8 +1,8 @@
 # Deploy & Build Troubleshooting (on-demand reference)
 
-배포(Phase 7 / `/store-deploy`)·빌드 단계에서만 필요한 절차/트러블슈팅 모음. CLAUDE.md(상시 컨텍스트)에서 분리해 on-demand로 참조한다. 항상 적용되는 규칙(빌드 순서, 앱 이름 일관성)은 CLAUDE.md "EAS Build & Deploy Rules"에 남아 있다.
+배포(Phase 7 / `/store-deploy`)·빌드 단계에서만 필요한 절차와 트러블슈팅 모음이다. 항상 적용되는 빌드 순서와 앱 이름 일관성 규칙은 `AGENTS.md`를 따른다.
 
-> 전체 배포 파이프라인은 global `~/.claude/CLAUDE.md`의 `store-deploy` 스킬 규칙을 따른다.
+> 전체 배포 파이프라인은 현재 활성화된 `store-deploy` 워크플로와 `AGENTS.md` 규칙을 따른다.
 
 ## 빌드 아카이브 최적화 (.easignore)
 
@@ -18,7 +18,8 @@ docs/
 scripts/
 build-output/
 _workspace/
-.claude/
+.agents/
+.codex/
 plugins/
 .git/
 .idea/
@@ -55,8 +56,8 @@ plugins/
 | **릴리즈 노트** | **Android changelogs는 반드시 500 bytes 이내**. Google Play API 제한. iOS release_notes는 4000자까지 가능하지만, 동일 내용을 Android에도 사용하므로 **500 bytes 기준으로 작성** |
 | 앱 버전 관리 | ASC/Play 기존 버전보다 높은 version 설정 필수 |
 | `.easignore` 설정 | 빌드 아카이브에 불필요한 파일 제외 |
-| **런타임 트리거 배선** | **게시 후엔 코드로만 수정 가능.** 빌드 직전 확인: `ux.store_review=true`면 평점 트리거(`maybeRequest`)가 가치-순간 화면 성공 콜백에 최소 1곳 배선됐는지 / 광고 사용 시 AdMob GDPR·IDFA 메시지 Published 여부 / KPI 이벤트 배선 여부. (시뮬레이터·dev·TestFlight에선 검증 불가 → 코드로만 판정) 상세: orchestrate Phase 7 Step 7.0 |
-| **배포 게이트 (b) 항목** | 앱 이름 4곳 일치 / 권한↔사용설명 일치(미사용 권한 미선언) / 데이터 안전 라벨↔수집 SDK 일치 / IAP·구독 상품 콘솔 등록 / 미해결 HIGH QA 이슈 0 / app-ads.txt 게시 / EAS Secrets 주입. 상세: orchestrate Phase 7 Step 7.0 (b) |
+| **런타임 트리거 배선** | **게시 후엔 코드로만 수정 가능.** 빌드 직전 확인: `ux.store_review=true`면 평점 트리거(`maybeRequest`)가 가치-순간 화면 성공 콜백에 최소 1곳 배선됐는지와 KPI 이벤트 배선 여부를 확인한다. (시뮬레이터·dev·TestFlight에선 검증 불가 → 코드로만 판정) |
+| **배포 게이트** | 앱 이름 일치 / 권한↔사용설명 일치(미사용 권한 미선언) / 데이터 안전 라벨↔수집 SDK 일치 / 미해결 HIGH QA 이슈 0 / EAS Secrets 주입 |
 
 ## 네이티브 설정 변경 → 재빌드 무효화 (재검증 규칙)
 
@@ -93,7 +94,7 @@ plugins/
 | 증상 | 원인 | 해결 |
 |------|------|------|
 | `xcodebuild -showBuildSettings` 타임아웃 (fastlane 단계) | Apple Silicon + RN 0.81 + SPM 의존성 해석 시간 초과. 기본 3초 4회 retry로 부족 | 빌드 명령 앞에 `FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT=120 FASTLANE_XCODEBUILD_SETTINGS_RETRIES=8` 환경변수 설정 |
-| "Multiple commands produce .../InfoPlist.strings" | `app.config.ts`의 `locales` 필드와 `withLocalizedAppName` plugin이 둘 다 PBXVariantGroup을 등록 | CLAUDE.md "앱 이름 일관성" 항목 참고. plugin은 `locales` 사용 시 자동으로 iOS 처리를 생략함. 각 언어 JSON에 `CFBundleDisplayName` 추가 |
+| "Multiple commands produce .../InfoPlist.strings" | `app.config.ts`의 `locales` 필드와 `withLocalizedAppName` plugin이 둘 다 PBXVariantGroup을 등록 | `AGENTS.md`의 앱 이름 일관성 항목 참고. plugin은 `locales` 사용 시 자동으로 iOS 처리를 생략함. 각 언어 JSON에 `CFBundleDisplayName` 추가 |
 | `eas submit` "You've already submitted this version" | 동일 `expo.version`이 이미 ASC에 업로드됨 (TestFlight도 동일 version+build 조합 거부) | `app.config.ts`의 `APP_VERSION` 패치(예: 1.0.2 → 1.0.3) 후 재빌드 |
 | `non-modular-include-in-framework-module` / `RCT_EXPORT_METHOD ... type specifier missing` / `fmt::basic_format_string ... call to consteval function is not a constant expression` | RNFirebase + RN 0.81 + New Architecture + `useFrameworks: 'static'` 조합 비호환. 자세한 원인은 아래 참고 | `./plugins/withRNFirebaseStaticBuild` plugin을 `app.config.ts`의 `plugins`에 추가 + `npx expo prebuild --clean` |
 

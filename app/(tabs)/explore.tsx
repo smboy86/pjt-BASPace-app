@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useDemoSessionStore } from '@/features/demo-session';
@@ -27,18 +28,25 @@ export default function ActionScreen(): React.JSX.Element {
 }
 
 function CustomerRequestScreen(): React.JSX.Element {
+  const router = useRouter();
   const createRequest = useRemodelRequestStore((state) => state.createRequest);
   const updateRequest = useRemodelRequestStore((state) => state.updateRequest);
   const [region, setRegion] = useState('서울 성동구');
   const [budgetRange, setBudgetRange] = useState('300~500만원');
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [toiletDecision, setToiletDecision] = useState<ESelectionDecision>(
     ESelectionDecision.CONSULTATION_REQUIRED,
   );
   const [tileDecision, setTileDecision] = useState<ESelectionDecision>(ESelectionDecision.SELECTED);
 
   const selectPhoto = async (): Promise<void> => {
+    if (photos.length >= 5) {
+      Alert.alert('사진은 최대 5장까지 등록할 수 있어요.');
+      return;
+    }
+
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert(
@@ -50,7 +58,7 @@ function CustomerRequestScreen(): React.JSX.Element {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
-      selectionLimit: 5,
+      selectionLimit: 5 - photos.length,
       quality: 0.7,
     });
     if (!result.canceled) {
@@ -59,14 +67,6 @@ function CustomerRequestScreen(): React.JSX.Element {
   };
 
   const submitRequest = (): void => {
-    if (photos.length === 0) {
-      Alert.alert(
-        '욕실 사진을 등록해주세요',
-        '전경 또는 주요 부위를 최소 한 장 등록해야 요청을 보낼 수 있어요.',
-      );
-      return;
-    }
-
     const request = createRequest({
       customerId: 'customer-1',
       region,
@@ -114,12 +114,9 @@ function CustomerRequestScreen(): React.JSX.Element {
       status: ERemodelRequestStatus.SUBMITTED,
       submittedAt: new Date().toISOString(),
     });
-    Alert.alert(
-      '견적 요청을 보냈어요',
-      '관리자가 참여 업체를 매칭한 뒤 앱에서 회신을 알려드릴게요.',
-    );
     setNotes('');
     setPhotos([]);
+    setIsConfirmationVisible(true);
   };
 
   return (
@@ -127,7 +124,7 @@ function CustomerRequestScreen(): React.JSX.Element {
       <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
         <Text className="text-2xl font-bold text-ink-900">새 욕실 견적 요청</Text>
         <Text className="mt-2 text-sm leading-5 text-ink-600">
-          필수 조건과 사진을 남기면, 상담에 필요한 내용을 한 번에 전달할 수 있어요.
+          조건과 사진을 남기면, 상담에 필요한 내용을 한 번에 전달할 수 있어요.
         </Text>
 
         <Section title="기본 조건">
@@ -140,10 +137,38 @@ function CustomerRequestScreen(): React.JSX.Element {
           />
         </Section>
 
-        <Section title="욕실 사진 · 필수">
+        <Section title="욕실 사진 · 선택">
           <Text className="text-sm leading-5 text-ink-600">
             욕실 전경과 교체가 필요한 부위를 최대 5장까지 올려주세요.
           </Text>
+          {photos.length > 0 && (
+            <View className="mt-4 flex-row flex-wrap gap-2">
+              {photos.map((photo, index) => (
+                <View
+                  key={`${photo.uri}-${index}`}
+                  className="relative h-24 w-24 overflow-hidden rounded-xl"
+                >
+                  <Image
+                    accessibilityLabel={`선택한 욕실 사진 ${index + 1}`}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                    source={{ uri: photo.uri }}
+                  />
+                  <Pressable
+                    accessibilityLabel={`선택한 욕실 사진 ${index + 1} 삭제`}
+                    className="absolute right-1 top-1 h-7 w-7 items-center justify-center rounded-full bg-ink-900/80 active:opacity-70"
+                    onPress={() =>
+                      setPhotos((current) =>
+                        current.filter((_, photoIndex) => photoIndex !== index),
+                      )
+                    }
+                  >
+                    <Ionicons name="close" color="#FFFFFF" size={18} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
           <Pressable
             accessibilityLabel="욕실 사진 추가"
             className="mt-4 min-h-28 items-center justify-center rounded-2xl border border-dashed border-brand-700 bg-brand-100 active:opacity-80"
@@ -191,6 +216,32 @@ function CustomerRequestScreen(): React.JSX.Element {
           <Text className="text-base font-bold text-white">견적 요청 보내기</Text>
         </Pressable>
       </ScrollView>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => undefined}
+        transparent
+        visible={isConfirmationVisible}
+      >
+        <View className="flex-1 items-center justify-center bg-black/50 px-6">
+          <View accessibilityRole="alert" className="w-full max-w-md rounded-3xl bg-white p-6">
+            <Text className="text-xl font-bold text-ink-900">견적이 접수 되었습니다.</Text>
+            <Text className="mt-3 text-sm leading-6 text-ink-600">
+              담당자가 배정되면 견적과 함께 고객님 희망 연락처로 연락을 드립니다. (연락 희망 번호
+              010-1234-5678)
+            </Text>
+            <Pressable
+              accessibilityLabel="견적 접수 확인"
+              className="mt-6 min-h-12 items-center justify-center rounded-2xl bg-brand-900 active:opacity-80"
+              onPress={() => {
+                setIsConfirmationVisible(false);
+                router.replace('/(tabs)');
+              }}
+            >
+              <Text className="font-bold text-white">확인</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

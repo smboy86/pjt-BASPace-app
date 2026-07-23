@@ -29,8 +29,7 @@ export const useReviewStore = create<IReviewState>()(
         })),
 
       // Call from a positive key-action success callback.
-      recordKeyAction: () =>
-        set((s) => ({ keyActionCount: s.keyActionCount + 1 })),
+      recordKeyAction: () => set((s) => ({ keyActionCount: s.keyActionCount + 1 })),
 
       // Call from the global error boundary / Crashlytics handler.
       recordError: () => set({ lastErrorAt: nowIso() }),
@@ -38,9 +37,7 @@ export const useReviewStore = create<IReviewState>()(
       // Call right before firing requestReview(). Prunes year-old entries.
       markRequested: () => {
         const stamp = nowIso();
-        const pruned = get().requestHistory.filter((iso) =>
-          dayjs(iso).isAfter(oneYearAgo()),
-        );
+        const pruned = get().requestHistory.filter((iso) => dayjs(iso).isAfter(oneYearAgo()));
         set({
           lastRequestedAt: stamp,
           requestedThisSession: true,

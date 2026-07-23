@@ -1,7 +1,7 @@
 /**
  * Persisted review counters/timestamps (data only — no actions).
  * Kept separate from store actions so the policy engine stays pure and testable.
- * All timestamps are ISO strings (see CLAUDE.md date rules).
+ * All timestamps are ISO strings (see AGENTS.md date rules).
  */
 export interface IReviewSnapshot {
   /** ISO timestamp of first launch (set once, persisted). */

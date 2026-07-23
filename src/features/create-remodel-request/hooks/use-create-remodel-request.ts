@@ -14,7 +14,6 @@ const validateRequest = (request: IRemodelRequest): IRemodelRequestValidationRes
   if (!request.bathroomType) errors.push('욕실 유형을 선택해 주세요.');
   if (!request.budgetRange) errors.push('희망 예산을 선택해 주세요.');
   if (!request.desiredSchedule) errors.push('희망 시기를 선택해 주세요.');
-  if (request.photos.length === 0) errors.push('욕실 사진을 한 장 이상 등록해 주세요.');
 
   return { isValid: errors.length === 0, errors };
 };

@@ -8,14 +8,14 @@ interface IInputProps extends TextInputProps {
   inputClassName?: string;
 }
 
-export function Input({ 
-  label, 
-  error, 
-  style, 
+export function Input({
+  label,
+  error,
+  style,
   className,
   labelClassName,
   inputClassName,
-  ...props 
+  ...props
 }: IInputProps): React.JSX.Element {
   return (
     <View className={`w-full ${className || ''}`}>
@@ -36,11 +36,7 @@ export function Input({
         placeholderTextColor="#A1A1AA"
         {...props}
       />
-      {error && (
-        <Text className="text-xs text-red-500 mt-1">
-          {error}
-        </Text>
-      )}
+      {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
     </View>
   );
 }

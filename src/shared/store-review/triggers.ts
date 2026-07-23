@@ -6,8 +6,7 @@
 export const REVIEW_TRIGGERS = {
   AFTER_KEY_ACTION_COMPLETE: 'after_key_action_complete',
   AFTER_TASK_COMPLETE: 'after_task_complete',
-  AFTER_PREMIUM_UNLOCK: 'after_premium_unlock',
+  AFTER_QUOTE_CONFIRM: 'after_quote_confirm',
 } as const;
 
-export type TReviewTrigger =
-  (typeof REVIEW_TRIGGERS)[keyof typeof REVIEW_TRIGGERS];
+export type TReviewTrigger = (typeof REVIEW_TRIGGERS)[keyof typeof REVIEW_TRIGGERS];

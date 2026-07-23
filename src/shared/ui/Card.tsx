@@ -8,22 +8,20 @@ interface ICardProps {
   className?: string;
 }
 
-export function Card({ 
-  children, 
-  style, 
+export function Card({
+  children,
+  style,
   variant = 'default',
-  className 
+  className,
 }: ICardProps): React.JSX.Element {
-  const baseStyle = "rounded-2xl p-4";
-  const variantStyle = variant === 'glass' 
-    ? "bg-surface dark:bg-surface-dark border border-border dark:border-border-dark shadow-md"
-    : "bg-surface dark:bg-surface-dark shadow-sm";
+  const baseStyle = 'rounded-2xl p-4';
+  const variantStyle =
+    variant === 'glass'
+      ? 'bg-surface dark:bg-surface-dark border border-border dark:border-border-dark shadow-md'
+      : 'bg-surface dark:bg-surface-dark shadow-sm';
 
   return (
-    <View 
-      style={style}
-      className={`${baseStyle} ${variantStyle} ${className || ''}`}
-    >
+    <View style={style} className={`${baseStyle} ${variantStyle} ${className || ''}`}>
       {children}
     </View>
   );

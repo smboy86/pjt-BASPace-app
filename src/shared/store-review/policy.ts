@@ -1,9 +1,5 @@
 import dayjs from 'dayjs';
-import type {
-  ICanRequestContext,
-  IReviewPolicy,
-  IReviewSnapshot,
-} from './types';
+import type { ICanRequestContext, IReviewPolicy, IReviewSnapshot } from './types';
 
 /**
  * Mandated default gates. `maxRequestsPerYear` mirrors the iOS system quota
@@ -45,17 +41,13 @@ export const canRequestReview = (
   // Require repeated key actions (real engagement).
   if (state.keyActionCount < policy.minKeyActionCount) return false;
   // Block "right after launch" exposure (HIG).
-  if (
-    dayjs().diff(dayjs(state.sessionStartedAt), 'second') <
-    policy.cooldownAfterLaunchSec
-  ) {
+  if (dayjs().diff(dayjs(state.sessionStartedAt), 'second') < policy.cooldownAfterLaunchSec) {
     return false;
   }
   // Protect the iOS system quota window.
   if (
     state.lastRequestedAt &&
-    dayjs().diff(dayjs(state.lastRequestedAt), 'day') <
-      policy.minDaysSinceLastRequest
+    dayjs().diff(dayjs(state.lastRequestedAt), 'day') < policy.minDaysSinceLastRequest
   ) {
     return false;
   }
@@ -68,8 +60,7 @@ export const canRequestReview = (
   // Never ask right after a negative moment (error/crash).
   if (
     state.lastErrorAt &&
-    dayjs().diff(dayjs(state.lastErrorAt), 'minute') <
-      policy.blockAfterErrorWindowMin
+    dayjs().diff(dayjs(state.lastErrorAt), 'minute') < policy.blockAfterErrorWindowMin
   ) {
     return false;
   }

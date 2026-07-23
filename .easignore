@@ -27,7 +27,8 @@ _workspace/
 
 # IDE & editor
 .git/
-.claude/
+.agents/
+.codex/
 .github/
 .idea/
 .vscode/

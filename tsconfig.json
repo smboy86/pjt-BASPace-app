@@ -27,7 +27,8 @@
     "build-output",
     "dist",
     "_workspace",
-    ".claude",
+    ".agents",
+    ".codex",
     "plugins"
   ]
 }
