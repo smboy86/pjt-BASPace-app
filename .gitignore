@@ -13,6 +13,7 @@ web-build/
 .env.local
 .env.development
 .env.production
+supabase/.temp/
 
 # macOS
 .DS_Store

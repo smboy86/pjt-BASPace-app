@@ -3,14 +3,19 @@ export interface ILoginRequest {
   password: string;
 }
 
+export interface IAuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+}
+
+export interface IAuthSession {
+  expiresAt: number | null;
+}
+
 export interface ILoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-  };
+  session: IAuthSession;
+  user: IAuthUser;
 }
 
 export interface ISignupRequest {
@@ -20,11 +25,6 @@ export interface ISignupRequest {
 }
 
 export interface ISignupResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-  };
+  session: IAuthSession | null;
+  user: IAuthUser;
 }
