@@ -95,9 +95,10 @@ app → widgets → features → entities → shared
 
 ## Getting Started
 
-Use Node 22.
+Use Node v24.15.0.
 
 ```bash
+nvm use
 npm install
 npm start
 ```

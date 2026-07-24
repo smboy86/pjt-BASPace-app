@@ -67,6 +67,7 @@ export default function TabLayout(): React.JSX.Element {
         }}
       />
       <Tabs.Screen name="request/[requestId]" options={{ href: null }} />
+      <Tabs.Screen name="assignment" options={{ href: null }} />
     </Tabs>
   );
 }

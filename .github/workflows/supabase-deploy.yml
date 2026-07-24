@@ -11,7 +11,7 @@ on:
       - supabase/migrations/**
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: supabase-deploy
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Migrate and generate types
+    name: Validate and migrate
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -36,7 +36,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24.15.0
           cache: npm
 
       - name: Validate required credentials
@@ -46,6 +46,23 @@ jobs:
             echo "::error::SUPABASE_ACCESS_TOKEN is not configured."
             exit 1
           fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Reject placeholder database types
+        shell: bash
+        run: |
+          if grep -q 'Record<string, never>' src/shared/supabase/database.types.ts; then
+            echo "::error::Commit generated Supabase database types before deployment."
+            exit 1
+          fi
+
+      - name: Run static verification
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test
 
       - name: Link Supabase project
         run: npx --yes supabase@2.109.1 link --project-ref "$SUPABASE_PROJECT_REF"
@@ -65,26 +82,13 @@ jobs:
           npx --yes supabase@2.109.1 gen types typescript \
             --project-id "$SUPABASE_PROJECT_REF" \
             --schema public \
-            > src/shared/supabase/database.types.ts
+            > /tmp/database.types.ts
+          npx prettier --config .prettierrc.js --write /tmp/database.types.ts
 
-      - name: Verify generated types
+      - name: Verify committed database types
         shell: bash
         run: |
-          if grep -q 'Record<string, never>' src/shared/supabase/database.types.ts; then
-            echo "::error::Generated database types still contain the placeholder."
+          if ! diff -u src/shared/supabase/database.types.ts /tmp/database.types.ts; then
+            echo "::error::Committed database types do not match the remote schema."
             exit 1
           fi
-
-      - name: Commit generated types
-        shell: bash
-        run: |
-          if git diff --quiet -- src/shared/supabase/database.types.ts; then
-            echo "Database types are already current."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/shared/supabase/database.types.ts
-          git commit -m "chore: refresh Supabase database types"
-          git push

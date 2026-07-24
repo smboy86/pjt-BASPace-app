@@ -95,9 +95,10 @@ app → widgets → features → entities → shared
 
 ## 실행
 
-Node 22를 사용합니다.
+Node v24.15.0을 사용합니다.
 
 ```bash
+nvm use
 npm install
 npm start
 ```

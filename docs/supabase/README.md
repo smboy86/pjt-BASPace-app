@@ -13,6 +13,9 @@
 Database password, secret key, `service_role` key는 저장소와 앱 번들에 넣지 않는다.
 클라이언트에는 Project URL과 publishable key만 사용한다.
 
+이메일 가입부터 `profiles` 생성과 RLS 조회까지의 재현 절차는
+[`verification.md`](./verification.md)를 따른다.
+
 ## 인증 정책
 
 - 고객: 이메일·비밀번호 자가가입, 이메일 확인 필수
@@ -25,7 +28,7 @@ Database password, secret key, `service_role` key는 저장소와 앱 번들에 
 
 ## 로컬 CLI 연결
 
-Node 20 이상 환경에서 실행한다.
+이 저장소의 표준 런타임인 Node v24.15.0 환경에서 실행한다.
 
 ```bash
 npx supabase login
@@ -64,6 +67,8 @@ where id = (
    - 카탈로그, 요청, 업체 배정, 견적 버전, 상담 메시지
 3. `20260724000300_rls_and_storage.sql`
    - 고객·업체 담당자·관리자 RLS와 비공개 사진 버킷
+4. `20260724000400_enforce_request_limits.sql`
+   - 요청당 사진 최대 5장과 관리자 전용 담당자 재배정 강제
 
 여러 업체가 같은 요청에 참여해도 견적과 상담 메시지는
 `request_assignments.id` 기준으로 격리된다.

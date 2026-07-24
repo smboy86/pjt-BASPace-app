@@ -31,7 +31,7 @@ const ROLE_COPY = {
   admin: {
     eyebrow: '바스페이스 운영',
     title: '매칭과 상담 흐름을\n한눈에 관리하세요.',
-    action: '카탈로그 관리',
+    action: '담당자 배정하기',
   },
 };
 
@@ -57,6 +57,10 @@ export default function HomeScreen(): React.JSX.Element {
   ).length;
 
   const openAction = (): void => {
+    if (role === 'admin') {
+      router.navigate('/(tabs)/assignment');
+      return;
+    }
     router.navigate('/(tabs)/explore');
   };
 

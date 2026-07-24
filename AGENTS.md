@@ -219,10 +219,10 @@ Before running iOS:
 node -v
 ```
 
-Use Node 22.x. Node 24 can crash Expo CLI with `ERR_SOCKET_BAD_PORT`. If needed:
+Use Node v24.15.0. The repository pins this version in `.nvmrc`:
 
 ```bash
-nvm use 22
+nvm use
 ```
 
 Check Metro port conflicts:
