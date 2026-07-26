@@ -25,7 +25,7 @@ const LOGIN_SCHEMA = z.object({
 });
 const SIGNUP_SCHEMA = z.object({
   email: EMAIL_SCHEMA,
-  password: z.string().min(8).regex(/[a-z]/).regex(/[A-Z]/).regex(/[0-9]/),
+  password: z.string().min(8).regex(/[a-z]/).regex(/[^A-Za-z0-9\s]/),
   name: z.string().trim().min(2).max(80),
 });
 

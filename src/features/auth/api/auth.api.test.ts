@@ -124,7 +124,7 @@ describe('authApi', () => {
     await expect(
       authApi.signup({
         email: AUTH_USER.email,
-        password: 'Password1',
+        password: 'qwer1234$',
         name: ' 고객 ',
       }),
     ).resolves.toMatchObject({
@@ -133,6 +133,15 @@ describe('authApi', () => {
         role: 'customer',
         emailVerified: false,
         name: '고객',
+      },
+    });
+    expect(mocks.signUp).toHaveBeenCalledWith({
+      email: AUTH_USER.email,
+      password: 'qwer1234$',
+      options: {
+        data: {
+          display_name: '고객',
+        },
       },
     });
     expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });

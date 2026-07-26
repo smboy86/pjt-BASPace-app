@@ -32,10 +32,9 @@ export default function SignupScreen(): React.JSX.Element {
     if (
       password.length < 8 ||
       !/[a-z]/.test(password) ||
-      !/[A-Z]/.test(password) ||
-      !/[0-9]/.test(password)
+      !/[^A-Za-z0-9\s]/.test(password)
     ) {
-      return '비밀번호는 영문 대·소문자와 숫자를 포함해 8자 이상이어야 합니다.';
+      return '비밀번호는 영문 소문자와 특수기호를 포함해 8자 이상이어야 합니다.';
     }
     if (password !== passwordConfirm) return '비밀번호가 서로 일치하지 않습니다.';
     if (!agreed) return '필수 약관에 동의해 주세요.';
@@ -54,8 +53,7 @@ export default function SignupScreen(): React.JSX.Element {
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) &&
       password.length >= 8 &&
       /[a-z]/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9\s]/.test(password) &&
       password === passwordConfirm &&
       agreed;
     if (!isValid) return;
@@ -129,7 +127,7 @@ export default function SignupScreen(): React.JSX.Element {
               autoCapitalize="none"
               autoComplete="new-password"
               editable={!signup.isPending}
-              helper="영문 대·소문자와 숫자를 포함해 8자 이상 입력해 주세요."
+              helper="영문 소문자와 특수기호를 포함해 8자 이상 입력해 주세요."
               label="비밀번호"
               placeholder="8자 이상 입력"
               secureTextEntry
