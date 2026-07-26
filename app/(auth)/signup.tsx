@@ -184,7 +184,7 @@ export default function SignupScreen(): React.JSX.Element {
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ disabled: signup.isPending, busy: signup.isPending }}
-              className={`min-h-13 flex-row items-center justify-center rounded-xl bg-brand-900 ${
+              className={`h-12 flex-row items-center justify-center rounded-xl bg-brand-900 ${
                 signup.isPending ? 'opacity-60' : 'active:opacity-80'
               }`}
               disabled={signup.isPending}

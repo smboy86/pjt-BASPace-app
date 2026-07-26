@@ -120,7 +120,7 @@ export default function LoginScreen(): React.JSX.Element {
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ disabled: login.isPending, busy: login.isPending }}
-              className={`mt-5 min-h-13 flex-row items-center justify-center rounded-xl bg-brand-900 ${
+              className={`mt-5 h-12 flex-row items-center justify-center rounded-xl bg-brand-900 ${
                 login.isPending ? 'opacity-60' : 'active:opacity-80'
               }`}
               disabled={login.isPending}
@@ -139,7 +139,7 @@ export default function LoginScreen(): React.JSX.Element {
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ disabled: login.isPending }}
-              className="mt-3 min-h-12 items-center justify-center rounded-xl border border-brand-700"
+              className="mt-3 h-12 items-center justify-center rounded-xl border border-brand-700"
               disabled={login.isPending}
               onPress={() => router.push('/(auth)/signup')}
             >
