@@ -2,8 +2,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useDemoSessionStore } from '@/features/demo-session';
-import { usePartnerStore } from '@/entities/partner';
+import { useAuthSession } from '@/features/auth';
 import { ERemodelRequestStatus, useRemodelRequestStore } from '@/entities/remodel-request';
 import { useQuoteStore } from '@/entities/quote';
 
@@ -17,50 +16,14 @@ const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.CLOSED]: '상담 종료',
 };
 
-const ROLE_COPY = {
-  customer: {
-    eyebrow: '나의 욕실 프로젝트',
-    title: '좋은 선택은\n정확한 조건에서 시작돼요.',
-    action: '새 견적 요청',
-  },
-  partner: {
-    eyebrow: '업체 담당자',
-    title: '고객의 선택을\n신뢰할 수 있는 견적으로.',
-    action: '견적 작성하기',
-  },
-  admin: {
-    eyebrow: '바스페이스 운영',
-    title: '매칭과 상담 흐름을\n한눈에 관리하세요.',
-    action: '담당자 배정하기',
-  },
-};
-
 export default function HomeScreen(): React.JSX.Element {
-  const user = useDemoSessionStore((state) => state.user);
+  const { user } = useAuthSession();
   const requests = useRemodelRequestStore((state) => state.requests);
-  const assignments = usePartnerStore((state) => state.requestPartners);
   const quotes = useQuoteStore((state) => state.quotes);
 
-  const role = user?.role ?? 'customer';
-  const copy = ROLE_COPY[role];
-  const visibleRequests = requests.filter((request) => {
-    if (role === 'customer') return request.customerId === 'customer-1';
-    if (role === 'partner') {
-      return assignments.some(
-        (assignment) => assignment.requestId === request.id && assignment.partnerId === 'partner-1',
-      );
-    }
-    return true;
-  });
-  const confirmedCount = requests.filter(
-    (request) => request.status === ERemodelRequestStatus.CONFIRMED,
-  ).length;
+  const visibleRequests = user ? requests.filter((request) => request.customerId === user.id) : [];
 
   const openAction = (): void => {
-    if (role === 'admin') {
-      router.navigate('/(tabs)/assignment');
-      return;
-    }
     router.navigate('/(tabs)/explore');
   };
 
@@ -69,10 +32,8 @@ export default function HomeScreen(): React.JSX.Element {
       <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-sm font-semibold text-brand-700">{copy.eyebrow}</Text>
-            <Text className="mt-1 text-sm text-ink-600">
-              {user?.name ?? '데모 사용자'}님, 반가워요.
-            </Text>
+            <Text className="text-sm font-semibold text-brand-700">나의 욕실 프로젝트</Text>
+            <Text className="mt-1 text-sm text-ink-600">{user?.name ?? '고객'}님, 반가워요.</Text>
           </View>
           <View className="h-11 w-11 items-center justify-center rounded-full bg-brand-900">
             <Ionicons name="water-outline" color="#FFFFFF" size={22} />
@@ -81,32 +42,21 @@ export default function HomeScreen(): React.JSX.Element {
 
         <View className="mt-6 overflow-hidden rounded-3xl bg-brand-900 p-6">
           <View className="absolute -right-8 -top-9 h-36 w-36 rounded-full bg-brand-700 opacity-60" />
-          <Text className="text-2xl font-bold leading-8 text-white">{copy.title}</Text>
+          <Text className="text-2xl font-bold leading-8 text-white">
+            좋은 선택은{`\n`}정확한 조건에서 시작돼요.
+          </Text>
           <Pressable
-            accessibilityLabel={copy.action}
+            accessibilityLabel="새 견적 요청"
             className="mt-6 min-h-12 self-start justify-center rounded-xl bg-white px-4 active:opacity-80"
             onPress={openAction}
           >
-            <Text className="font-bold text-brand-900">{copy.action}</Text>
+            <Text className="font-bold text-brand-900">새 견적 요청</Text>
           </Pressable>
         </View>
 
-        {role === 'admin' && (
-          <View className="mt-5 flex-row gap-3">
-            <MetricCard label="전체 요청" value={String(requests.length)} />
-            <MetricCard label="최종 컨펌" value={String(confirmedCount)} />
-          </View>
-        )}
-
         <View className="mt-8 flex-row items-center justify-between">
           <View>
-            <Text className="text-lg font-bold text-ink-900">
-              {role === 'customer'
-                ? '내 견적 요청'
-                : role === 'partner'
-                  ? '배정된 상담'
-                  : '전체 상담 요청'}
-            </Text>
+            <Text className="text-lg font-bold text-ink-900">내 견적 요청</Text>
             <Text className="mt-1 text-sm text-ink-600">최근 진행 상황을 확인하세요.</Text>
           </View>
           <Text className="text-sm font-semibold text-brand-700">{visibleRequests.length}건</Text>
@@ -159,15 +109,6 @@ export default function HomeScreen(): React.JSX.Element {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }): React.JSX.Element {
-  return (
-    <View className="flex-1 rounded-2xl bg-white p-4">
-      <Text className="text-xs font-semibold text-ink-600">{label}</Text>
-      <Text className="mt-2 text-2xl font-bold text-ink-900">{value}</Text>
-    </View>
   );
 }
 
