@@ -14,6 +14,7 @@ description: "앱 디자인 시스템을 설계하고 NativeWind/Tailwind 코드
 
 ## Input
 - PRD (`_workspace/02_product_plan.md`)
+- 통합 화면정의서 (`docs/screen-definition.md`)
 - 경쟁 앱 디자인 레퍼런스 (있으면)
 
 ## Steps
@@ -69,10 +70,11 @@ description: "앱 디자인 시스템을 설계하고 NativeWind/Tailwind 코드
 - 필요 시 새 컴포넌트 생성
 
 ### Step 5: 화면별 레이아웃
-- PRD의 화면 구조를 기반으로 상세 레이아웃 정의
+- `docs/screen-definition.md`의 역할·화면 ID·액션·상태를 기반으로 상세 레이아웃 정의
 - 각 화면의 구조: SafeAreaView → 내부 컴포넌트 트리
 - NativeWind className으로 레이아웃 표현
 - 핵심 화면 2~3개의 상세 레이아웃 제공
+- 화면 기능이나 동작이 바뀌면 통합 화면정의서도 갱신
 
 ### Step 6: 파일 업데이트
 - `tailwind.config.js` 업데이트

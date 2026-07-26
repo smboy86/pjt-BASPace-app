@@ -15,6 +15,11 @@ Expo Router 규칙에 맞는 새 스크린을 추가하는 스킬.
 
 ## Steps
 
+### Step 0: 통합 화면정의 확인
+- `maintain-screen-definition`을 사용한다.
+- `docs/screen-definition.md`에서 역할과 관련 화면 ID를 확인한다.
+- 새 화면이면 구현 전에 화면 ID, 목적, 예정 경로, 액션, 상태를 추가한다.
+
 ### Step 1: 라우트 구조 확인
 - `app/` 디렉토리의 기존 라우트 구조 분석
 - 지정된 group 존재 여부 확인, 없으면 생성
@@ -49,6 +54,11 @@ export default function {Name}Screen() {
 - SafeAreaView 적용 확인
 - NativeWind className 사용 확인
 - TypeScript 타입 체크
+
+### Step 6: 통합 화면정의 동기화
+- 실제 경로, 구현 파일, 버튼, 상태, 내비게이션을 `docs/screen-definition.md`와 대조한다.
+- 계획 화면은 실제 구현 수준에 맞는 상태로 변경한다.
+- `node .agents/skills/maintain-screen-definition/scripts/validate-screen-definition.mjs`를 실행한다.
 
 ## Agent Delegation
 

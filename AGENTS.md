@@ -45,6 +45,7 @@ Use Codex skills when they are available for the same workflow:
 | FSD feature creation | `create-feature` |
 | Entity creation | `create-entity` |
 | Screen creation | `create-screen` |
+| Screen definition maintenance | `maintain-screen-definition` |
 | App inspection | `inspect-app` |
 | Full lifecycle app development | `orchestrate` |
 | Store deployment | `store-deploy` |
@@ -65,6 +66,30 @@ For full app development, follow this pipeline and do not skip QA:
 
 Use `_workspace/` for handoff artifacts between phases. Before moving to a later phase, read the previous phase outputs from `_workspace/` and continue from them.
 
+## Integrated Planning And Screen Definition
+
+`docs/screen-definition.md` is the single source of truth for BASpace screen planning and behavior.
+It is organized by `Common`, `Customer`, `Partner Staff`, and `Administrator`; reusable screens
+belong under `Common`.
+
+For every feature addition or modification that can affect a screen, button, input, copy, role,
+permission, state, navigation, or data behavior:
+
+1. Use `maintain-screen-definition`.
+2. Read the affected screen IDs before implementation.
+3. Update the definition before implementation when the requested behavior is missing or conflicts
+   with the document.
+4. Implement within the documented scope.
+5. Reconcile the summary table and detailed definition with the actual code after implementation.
+6. Run:
+
+```bash
+node .agents/skills/maintain-screen-definition/scripts/validate-screen-definition.mjs
+```
+
+Do not mark work complete when code and `docs/screen-definition.md` disagree. Do not describe local
+Zustand state or a prototype interaction as persisted backend behavior.
+
 ## Hard Thresholds
 
 These are fail conditions:
@@ -77,6 +102,7 @@ These are fail conditions:
 | FSD layer dependency violations | 0 |
 | Missing safe area handling in screens | 0 |
 | Missing barrel exports | 0 |
+| Implemented screens missing or stale in `docs/screen-definition.md` | 0 |
 | Broken NativeWind setup | 0 |
 | `toISOString().split('T')[0]` for local date | 0 |
 | Tokens or secrets stored in AsyncStorage/MMKV/plaintext | 0 |

@@ -14,6 +14,7 @@ description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기�
 
 ## Input
 - 아이디어 리서치 보고서 (`_workspace/idea/baspace-domain-research.md`) 또는 사용자 직접 설명
+- 기존 통합 기획 및 화면정의서 (`docs/screen-definition.md`)
 
 ## Steps
 
@@ -34,6 +35,7 @@ description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기�
   - `(modal)/` — 모달 화면
   - `(stack)/` — 스택 네비게이션
 - 각 화면의 주요 UI 요소 목록
+- 역할별 화면 ID, 목적, 경로, 주요 액션과 상태를 `docs/screen-definition.md`에 반영
 
 ### Step 4: FSD 모듈 맵
 - features: 비즈니스 기능 단위
@@ -53,6 +55,7 @@ description: "앱 기획서(PRD)를 작성하는 스킬. 유저 스토리, 기�
 - 1차 출시 기능 목록 (P0만)
 - 2차 확장 기능 목록 (P1)
 - `_workspace/plan/prd.md`에 저장
+- 화면에 영향을 주는 결정은 `docs/screen-definition.md`에도 함께 반영
 
 ## Agent Delegation
 | Step | Agent |
