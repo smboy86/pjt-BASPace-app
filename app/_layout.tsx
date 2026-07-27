@@ -13,18 +13,41 @@ import '../global.css';
 function AuthenticatedNavigator(): React.JSX.Element {
   const segments = useSegments();
   const navigationState = useRootNavigationState();
-  const { isAuthenticated, isLoading, error, retry } = useAuthSession();
+  const { user, isAuthenticated, isLoading, error, retry } = useAuthSession();
 
   useEffect(() => {
     if (!navigationState?.key || isLoading || error) return;
 
-    const isInAuthGroup = segments[0] === '(auth)';
-    if (!isAuthenticated && !isInAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && isInAuthGroup) {
-      router.replace('/(tabs)');
+    const currentGroup = segments[0];
+    const isInAuthGroup = currentGroup === '(auth)';
+    const isInCustomerGroup = currentGroup === '(tabs)';
+    const isInAdminGroup = currentGroup === '(admin)';
+
+    if (!isAuthenticated || !user) {
+      if (!isInAuthGroup) {
+        router.replace('/(auth)/login');
+      }
+      return;
     }
-  }, [error, isAuthenticated, isLoading, navigationState?.key, segments]);
+
+    if (user.role === 'admin') {
+      if (!isInAdminGroup) {
+        router.replace('/(admin)/dashboard');
+      }
+      return;
+    }
+
+    if (user.role === 'customer') {
+      if (!isInCustomerGroup) {
+        router.replace('/(tabs)');
+      }
+      return;
+    }
+
+    if (!isInAuthGroup) {
+      router.replace('/(auth)/login');
+    }
+  }, [error, isAuthenticated, isLoading, navigationState?.key, segments, user]);
 
   if (isLoading) {
     return (
@@ -64,6 +87,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(admin)" />
       </Stack>
       <Toast config={toastConfig} />
     </>

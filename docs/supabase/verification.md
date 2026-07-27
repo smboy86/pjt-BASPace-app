@@ -2,12 +2,13 @@
 
 ## 현재 앱 범위
 
-`app/(auth)`의 로그인·회원가입·이메일 확인 화면은 UI 프로토타입이다. 화면에서 입력한
-이메일과 비밀번호는 아직 `useSignup` 또는 `useLogin`에 연결되지 않으므로 앱 화면만
-조작해서는 실제 Supabase 가입이나 로그인을 검증할 수 없다.
+`app/(auth)`의 로그인·회원가입·이메일 확인 화면은 실제 Supabase Auth에 연결되어 있다.
+공개 회원가입은 고객 전용이며 활성 고객은 고객 탭, 운영자가 생성한 활성 관리자는 관리자
+운영 홈으로 진입한다. 업체 담당자는 전용 화면이 구현되기 전까지 앱 로그인을 허용하지
+않는다.
 
-아래 절차는 현재 구현된 `authApi`, 원격 Auth 설정, `auth.users` → `public.profiles`
-트리거, RLS가 정상 동작하는지 백엔드 경계에서 확인한다.
+아래 절차는 앱 화면, 원격 Auth 설정, `auth.users` → `public.profiles` 트리거, 역할별
+진입과 RLS가 정상 동작하는지 확인한다.
 
 ## 1. 사전 확인
 
@@ -176,7 +177,58 @@ NODE
 - 고객 역할과 활성 상태 조회 성공
 - publishable key만으로 동작하며 RLS를 우회하지 않음
 
-## 6. 테스트 계정 정리
+## 6. 최초 관리자 계정 생성과 검증
+
+관리자는 공개 회원가입으로 만들지 않는다. Supabase Dashboard → Authentication → Users에서
+`smboy86@naver.com` 사용자를 직접 생성하고 이메일 확인 상태와 강한 임시 비밀번호를
+설정한다. 비밀번호는 문서, 환경 파일, 명령 기록 또는 Git에 저장하지 않는다.
+이미 같은 이메일의 사용자가 있으면 삭제하거나 중복 생성하지 말고, 본인 소유와 이메일
+확인 상태를 검증한 뒤 기존 프로필을 관리자 역할로 승격한다.
+
+사용자 생성 후 SQL Editor에서 이메일과 대상 ID를 먼저 확인한다.
+
+```sql
+select
+  u.id,
+  u.email,
+  u.email_confirmed_at,
+  p.role,
+  p.status,
+  p.display_name
+from auth.users u
+join public.profiles p on p.id = u.id
+where lower(u.email) = lower('smboy86@naver.com');
+```
+
+정확한 한 행임을 확인한 다음 같은 SQL Editor에서 관리자 프로필로 승격한다.
+
+```sql
+update public.profiles as p
+set
+  role = 'admin',
+  status = 'active',
+  display_name = '바스페이스 관리자'
+from auth.users as u
+where p.id = u.id
+  and lower(u.email) = lower('smboy86@naver.com')
+returning p.id, u.email, p.role, p.status, p.display_name;
+```
+
+기대 결과:
+
+- 수정된 행이 정확히 1개
+- `email_confirmed_at`이 `null`이 아님
+- `role = admin`
+- `status = active`
+- 앱 로그인 후 `/(admin)/dashboard` 진입
+- 관리자 운영 홈에서 이름·이메일·관리자 배지와 준비 중 기능 카드가 표시됨
+- 로그아웃 후 로그인 화면으로 복귀
+
+공개 가입 트리거는 클라이언트 메타데이터의 역할 값을 무시하고 항상 `customer`를
+생성한다. 앱에 service-role key를 추가하거나 클라이언트에서 관리자 역할을 변경하는
+기능을 만들지 않는다.
+
+## 7. 테스트 고객 계정 정리
 
 Dashboard → Authentication → Users에서 테스트 사용자만 정확히 선택해 삭제한다.
 `public.profiles.id`는 `auth.users.id`에 `on delete cascade`로 연결되어 있으므로 다음
@@ -191,13 +243,12 @@ where u.email = '테스트_이메일';
 
 운영 사용자나 다른 테스트 사용자는 삭제하지 않는다.
 
-## 앱 E2E 연결 후 추가할 검증
+## 추가 E2E 검증
 
-실제 앱 화면 기반 E2E 검증 전에는 다음 구현이 필요하다.
-
-1. 회원가입 화면을 `useSignup()`에 연결
-2. 로그인 화면을 `useLogin()`에 연결
-3. 로딩·오류·이메일 재전송 상태 연결
-4. `baspace://auth/callback` route와 PKCE code exchange 구현
-5. 확인 완료 후 세션 복원 및 고객 탭 진입 검증
-6. 실제 계정으로 견적 요청 생성과 RLS 검증
+1. 고객 가입 → 이메일 확인 → 로그인 → 고객 탭 진입
+2. 관리자 로그인 → 관리자 운영 홈 진입 → 앱 재실행 후 관리자 세션 복원
+3. 고객이 관리자 경로에 접근할 때 고객 탭으로 복귀
+4. 관리자가 고객 탭 경로에 접근할 때 관리자 운영 홈으로 복귀
+5. 업체 담당자 프로필 로그인 거절과 로컬 세션 정리
+6. `baspace://auth/callback` route와 PKCE code exchange
+7. 실제 계정으로 견적 요청 생성과 RLS 검증

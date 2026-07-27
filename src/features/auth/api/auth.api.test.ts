@@ -60,6 +60,12 @@ const CUSTOMER_PROFILE = {
   updated_at: '2026-07-25T00:00:00.000Z',
 };
 
+const ADMIN_PROFILE = {
+  ...CUSTOMER_PROFILE,
+  role: 'admin',
+  display_name: '관리자',
+};
+
 describe('authApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -67,7 +73,7 @@ describe('authApi', () => {
     mocks.signOut.mockResolvedValue({ error: null });
   });
 
-  test('logs in only after loading an active customer profile', async () => {
+  test('logs in after loading an active customer profile', async () => {
     mocks.signInWithPassword.mockResolvedValue({
       data: { session: SESSION, user: AUTH_USER },
       error: null,
@@ -93,21 +99,152 @@ describe('authApi', () => {
     });
   });
 
-  test('clears a session when a non-customer account enters the customer flow', async () => {
+  test('logs in after loading an active admin profile', async () => {
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { session: SESSION, user: AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: ADMIN_PROFILE, error: null });
+
+    await expect(authApi.login({ email: AUTH_USER.email, password: 'Password1' })).resolves.toEqual(
+      {
+        session: { expiresAt: SESSION.expires_at },
+        user: {
+          id: AUTH_USER.id,
+          email: AUTH_USER.email,
+          name: ADMIN_PROFILE.display_name,
+          role: 'admin',
+          status: 'active',
+          emailVerified: true,
+        },
+      },
+    );
+    expect(mocks.signOut).not.toHaveBeenCalled();
+    expect(mocks.clearAllSecure).not.toHaveBeenCalled();
+  });
+
+  test('restores an active admin session', async () => {
+    mocks.getSession.mockResolvedValue({
+      data: { session: SESSION },
+      error: null,
+    });
+    mocks.getUser.mockResolvedValue({
+      data: { user: AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: ADMIN_PROFILE, error: null });
+
+    await expect(authApi.restoreSession()).resolves.toEqual({
+      session: { expiresAt: SESSION.expires_at },
+      user: {
+        id: AUTH_USER.id,
+        email: AUTH_USER.email,
+        name: ADMIN_PROFILE.display_name,
+        role: 'admin',
+        status: 'active',
+        emailVerified: true,
+      },
+    });
+    expect(mocks.signOut).not.toHaveBeenCalled();
+    expect(mocks.clearAllSecure).not.toHaveBeenCalled();
+  });
+
+  test('rejects an unsupported partner account and clears its local session', async () => {
     mocks.signInWithPassword.mockResolvedValue({
       data: { session: SESSION, user: AUTH_USER },
       error: null,
     });
     mocks.single.mockResolvedValue({
-      data: { ...CUSTOMER_PROFILE, role: 'admin' },
+      data: { ...CUSTOMER_PROFILE, role: 'partner_staff' },
       error: null,
     });
 
     await expect(
       authApi.login({ email: AUTH_USER.email, password: 'Password1' }),
     ).rejects.toMatchObject({
-      code: 'account_not_customer',
+      code: 'unsupported_role',
+      message: '업체 담당자 계정은 아직 앱에서 지원하지 않습니다.',
     });
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
+  test('preserves the unsupported-role error when local Supabase sign-out throws', async () => {
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { session: SESSION, user: AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({
+      data: { ...CUSTOMER_PROFILE, role: 'partner_staff' },
+      error: null,
+    });
+    mocks.signOut.mockRejectedValue(new Error('Local auth storage unavailable'));
+
+    await expect(
+      authApi.login({ email: AUTH_USER.email, password: 'Password1' }),
+    ).rejects.toMatchObject({
+      code: 'unsupported_role',
+      message: '업체 담당자 계정은 아직 앱에서 지원하지 않습니다.',
+    });
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
+  test('rejects an unsupported restored partner session and clears local credentials', async () => {
+    mocks.getSession.mockResolvedValue({
+      data: { session: SESSION },
+      error: null,
+    });
+    mocks.getUser.mockResolvedValue({
+      data: { user: AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({
+      data: { ...CUSTOMER_PROFILE, role: 'partner_staff' },
+      error: null,
+    });
+
+    await expect(authApi.restoreSession()).rejects.toMatchObject({
+      code: 'unsupported_role',
+    });
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
+  test('rejects an inactive admin account and clears its local session', async () => {
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { session: SESSION, user: AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({
+      data: { ...ADMIN_PROFILE, status: 'suspended' },
+      error: null,
+    });
+
+    await expect(
+      authApi.login({ email: AUTH_USER.email, password: 'Password1' }),
+    ).rejects.toMatchObject({
+      code: 'account_inactive',
+    });
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
+  test('rejects an unverified admin account and clears its local session', async () => {
+    mocks.signInWithPassword.mockResolvedValue({
+      data: {
+        session: SESSION,
+        user: { ...AUTH_USER, email_confirmed_at: null },
+      },
+      error: null,
+    });
+
+    await expect(
+      authApi.login({ email: AUTH_USER.email, password: 'Password1' }),
+    ).rejects.toMatchObject({
+      code: 'email_not_verified',
+    });
+    expect(mocks.single).not.toHaveBeenCalled();
     expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
     expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
   });

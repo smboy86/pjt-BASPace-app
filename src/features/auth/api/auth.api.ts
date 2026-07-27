@@ -25,7 +25,11 @@ const LOGIN_SCHEMA = z.object({
 });
 const SIGNUP_SCHEMA = z.object({
   email: EMAIL_SCHEMA,
-  password: z.string().min(8).regex(/[a-z]/).regex(/[^A-Za-z0-9\s]/),
+  password: z
+    .string()
+    .min(8)
+    .regex(/[a-z]/)
+    .regex(/[^A-Za-z0-9\s]/),
   name: z.string().trim().min(2).max(80),
 });
 
@@ -37,9 +41,9 @@ const AUTH_ERROR_MESSAGES: Record<TAuthErrorCode, string> = {
   weak_password: '비밀번호 보안 기준을 충족하지 못했습니다.',
   rate_limited: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
   signup_disabled: '현재 신규 회원가입을 이용할 수 없습니다.',
-  account_not_customer: '고객 계정으로 로그인해 주세요.',
+  unsupported_role: '업체 담당자 계정은 아직 앱에서 지원하지 않습니다.',
   account_inactive: '현재 이용할 수 없는 계정입니다. 고객센터에 문의해 주세요.',
-  profile_unavailable: '고객 프로필을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  profile_unavailable: '사용자 프로필을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
   network_error: '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
   validation_error: '입력한 정보를 다시 확인해 주세요.',
   unknown: '인증 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
@@ -113,7 +117,7 @@ const mapSession = (session: Session): IAuthSession => ({
   expiresAt: session.expires_at ?? null,
 });
 
-const mapCustomer = (user: User, profile: TProfileRow): IAuthUser => ({
+const mapProfile = (user: User, profile: TProfileRow): IAuthUser => ({
   id: user.id,
   email: user.email ?? '',
   name: profile.display_name.trim() || null,
@@ -154,12 +158,16 @@ const validateSignup = (input: ISignupRequest): ISignupRequest => {
 const clearLocalSession = async (): Promise<void> => {
   try {
     await getSupabaseClient().auth.signOut({ scope: 'local' });
-  } finally {
-    await clearAllSecure();
+  } catch {
+    // SecureStore is the final local credential boundary. Preserve the
+    // original authorization error even if the Supabase adapter cannot sign
+    // out its local session.
   }
+
+  await clearAllSecure();
 };
 
-const loadCustomer = async (user: User): Promise<IAuthUser> => {
+const loadSupportedProfile = async (user: User): Promise<IAuthUser> => {
   if (!user.email_confirmed_at) {
     throw createAuthError('email_not_verified');
   }
@@ -173,14 +181,14 @@ const loadCustomer = async (user: User): Promise<IAuthUser> => {
   if (error || !profile) {
     throw createAuthError('profile_unavailable');
   }
-  if (profile.role !== 'customer') {
-    throw createAuthError('account_not_customer');
+  if (profile.role !== 'customer' && profile.role !== 'admin') {
+    throw createAuthError('unsupported_role');
   }
   if (profile.status !== 'active') {
     throw createAuthError('account_inactive');
   }
 
-  return mapCustomer(user, profile);
+  return mapProfile(user, profile);
 };
 
 export const authApi = {
@@ -196,7 +204,7 @@ export const authApi = {
       try {
         return {
           session: mapSession(data.session),
-          user: await loadCustomer(data.user),
+          user: await loadSupportedProfile(data.user),
         };
       } catch (error: unknown) {
         await clearLocalSession();
@@ -299,7 +307,7 @@ export const authApi = {
       try {
         return {
           session: mapSession(session),
-          user: await loadCustomer(user),
+          user: await loadSupportedProfile(user),
         };
       } catch (error: unknown) {
         const mappedError = mapAuthError(error);

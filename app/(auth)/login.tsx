@@ -46,7 +46,6 @@ export default function LoginScreen(): React.JSX.Element {
     setValidationError('');
     try {
       await login.mutateAsync({ email: normalizedEmail, password });
-      router.replace('/(tabs)');
     } catch {
       // The mutation exposes a sanitized, user-facing error below.
     }
@@ -73,7 +72,7 @@ export default function LoginScreen(): React.JSX.Element {
               다시 만나서 반가워요.
             </Text>
             <Text className="mt-3 text-base leading-6 text-ink-600">
-              고객 계정으로 로그인하고{`\n`}욕실 상담을 이어가세요.
+              바스페이스 계정으로 로그인하고{`\n`}역할에 맞는 업무를 이어가세요.
             </Text>
           </View>
 
@@ -151,7 +150,7 @@ export default function LoginScreen(): React.JSX.Element {
             <View className="flex-row items-start">
               <Ionicons name="information-circle-outline" color="#176D62" size={21} />
               <Text className="ml-3 flex-1 text-sm leading-5 text-ink-600">
-                현재 고객 계정만 직접 가입할 수 있습니다. 업체 담당자는 운영자의 초대를 통해
+                고객 계정만 직접 가입할 수 있습니다. 업체 담당자와 관리자는 운영자가 생성한 계정으로
                 참여합니다.
               </Text>
             </View>

@@ -12,7 +12,7 @@ export type TAuthErrorCode =
   | 'weak_password'
   | 'rate_limited'
   | 'signup_disabled'
-  | 'account_not_customer'
+  | 'unsupported_role'
   | 'account_inactive'
   | 'profile_unavailable'
   | 'network_error'
