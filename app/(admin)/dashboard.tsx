@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession, useLogout } from '@/features/auth';
 
@@ -10,7 +10,7 @@ interface IAdminMenuCardProps {
   icon: TIoniconName;
   title: string;
   description: string;
-  isAvailable?: boolean;
+  destination?: Href;
 }
 
 interface IAdminMenuSection {
@@ -33,7 +33,7 @@ const ADMIN_MENU_SECTIONS: IAdminMenuSection[] = [
         icon: 'business-outline',
         title: '업체 관리',
         description: '등록 업체를 조회하고 새로운 업체를 추가합니다.',
-        isAvailable: true,
+        destination: '/(admin)/partners',
       },
     ],
   },
@@ -44,7 +44,8 @@ const ADMIN_MENU_SECTIONS: IAdminMenuSection[] = [
       {
         icon: 'grid-outline',
         title: '견적 옵션 관리',
-        description: '제품과 가격표 관리 기능을 준비하고 있습니다.',
+        description: '고객 견적양식의 옵션과 기준 단가를 관리합니다.',
+        destination: '/(admin)/catalog',
       },
     ],
   },
@@ -131,8 +132,10 @@ function AdminMenuCard({
   icon,
   title,
   description,
-  isAvailable = false,
+  destination,
 }: IAdminMenuCardProps): React.JSX.Element {
+  const isAvailable = Boolean(destination);
+
   return (
     <Pressable
       accessibilityRole={isAvailable ? 'button' : undefined}
@@ -141,7 +144,7 @@ function AdminMenuCard({
         isAvailable ? 'active:bg-brand-100' : ''
       }`}
       disabled={!isAvailable}
-      onPress={isAvailable ? () => router.push('/(admin)/partners') : undefined}
+      onPress={destination ? () => router.push(destination) : undefined}
     >
       <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-100">
         <Ionicons name={icon} color="#176D62" size={24} />

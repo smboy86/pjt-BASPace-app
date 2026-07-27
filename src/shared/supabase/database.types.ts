@@ -425,6 +425,95 @@ export type Database = {
           },
         ];
       };
+      quote_option_image_cleanup_queue: {
+        Row: {
+          attempts: number;
+          created_at: string;
+          last_attempt_at: string | null;
+          storage_path: string;
+        };
+        Insert: {
+          attempts?: number;
+          created_at?: string;
+          last_attempt_at?: string | null;
+          storage_path: string;
+        };
+        Update: {
+          attempts?: number;
+          created_at?: string;
+          last_attempt_at?: string | null;
+          storage_path?: string;
+        };
+        Relationships: [];
+      };
+      quote_option_images: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          id: string;
+          quote_option_id: string;
+          storage_path: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_order: number;
+          id?: string;
+          quote_option_id: string;
+          storage_path: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          quote_option_id?: string;
+          storage_path?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'quote_option_images_quote_option_id_fkey';
+            columns: ['quote_option_id'];
+            isOneToOne: false;
+            referencedRelation: 'quote_option_masters';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      quote_option_masters: {
+        Row: {
+          base_price: number;
+          code: string;
+          created_at: string;
+          display_order: number;
+          form_type: Database['public']['Enums']['quote_option_form_type'];
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          base_price?: number;
+          code: string;
+          created_at?: string;
+          display_order: number;
+          form_type?: Database['public']['Enums']['quote_option_form_type'];
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          base_price?: number;
+          code?: string;
+          created_at?: string;
+          display_order?: number;
+          form_type?: Database['public']['Enums']['quote_option_form_type'];
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       quotes: {
         Row: {
           assignment_id: string;
@@ -774,6 +863,17 @@ export type Database = {
         Args: { target_quote_id: string };
         Returns: undefined;
       };
+      update_quote_option_master: {
+        Args: {
+          target_base_price: number;
+          target_display_order: number;
+          target_form_type: Database['public']['Enums']['quote_option_form_type'];
+          target_image_paths: string[];
+          target_name: string;
+          target_option_id: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: 'customer' | 'partner_staff' | 'admin';
@@ -788,6 +888,7 @@ export type Database = {
       partner_approval_status: 'pending' | 'approved' | 'inactive';
       partner_member_status: 'invited' | 'active' | 'inactive';
       profile_status: 'active' | 'invited' | 'suspended' | 'deleted';
+      quote_option_form_type: 'simple' | 'advanced';
       quote_status: 'draft' | 'sent' | 'final' | 'confirmed';
       remodel_request_status:
         | 'draft'
@@ -937,6 +1038,7 @@ export const Constants = {
       partner_approval_status: ['pending', 'approved', 'inactive'],
       partner_member_status: ['invited', 'active', 'inactive'],
       profile_status: ['active', 'invited', 'suspended', 'deleted'],
+      quote_option_form_type: ['simple', 'advanced'],
       quote_status: ['draft', 'sent', 'final', 'confirmed'],
       remodel_request_status: [
         'draft',
