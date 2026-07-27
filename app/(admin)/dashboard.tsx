@@ -152,15 +152,11 @@ function AdminMenuCard({
       <View className="ml-4 flex-1">
         <View className="flex-row items-center">
           <Text className="flex-1 text-base font-bold text-ink-900">{title}</Text>
-          <View
-            className={`rounded-full px-2.5 py-1 ${isAvailable ? 'bg-brand-100' : 'bg-sand-50'}`}
-          >
-            <Text
-              className={`text-xs font-semibold ${isAvailable ? 'text-brand-700' : 'text-ink-600'}`}
-            >
-              {isAvailable ? '사용 가능' : '준비 중'}
-            </Text>
-          </View>
+          {!isAvailable ? (
+            <View className="rounded-full bg-sand-50 px-2.5 py-1">
+              <Text className="text-xs font-semibold text-ink-600">준비 중</Text>
+            </View>
+          ) : null}
         </View>
         <Text className="mt-1 text-sm leading-5 text-ink-600">{description}</Text>
       </View>
