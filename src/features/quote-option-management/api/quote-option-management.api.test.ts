@@ -147,6 +147,12 @@ describe('updateQuoteOption image compensation', () => {
     expect(mocks.remove).toHaveBeenCalledWith([
       expect.stringContaining('11111111-1111-1111-1111-111111111111/'),
     ]);
+    expect(mocks.upload).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(/^11111111-1111-1111-1111-111111111111\/[^/]+\.jpg$/),
+      JPEG_BUFFER,
+      { contentType: 'image/jpeg', upsert: false },
+    );
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
