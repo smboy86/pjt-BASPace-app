@@ -41,7 +41,7 @@ const AUTH_ERROR_MESSAGES: Record<TAuthErrorCode, string> = {
   weak_password: '비밀번호 보안 기준을 충족하지 못했습니다.',
   rate_limited: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
   signup_disabled: '현재 신규 회원가입을 이용할 수 없습니다.',
-  unsupported_role: '업체 담당자 계정은 아직 앱에서 지원하지 않습니다.',
+  unsupported_role: '지원하지 않는 계정 역할입니다.',
   account_inactive: '현재 이용할 수 없는 계정입니다. 고객센터에 문의해 주세요.',
   profile_unavailable: '사용자 프로필을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
   network_error: '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
@@ -181,7 +181,7 @@ const loadSupportedProfile = async (user: User): Promise<IAuthUser> => {
   if (error || !profile) {
     throw createAuthError('profile_unavailable');
   }
-  if (profile.role !== 'customer' && profile.role !== 'admin') {
+  if (profile.role !== 'customer' && profile.role !== 'partner_staff' && profile.role !== 'admin') {
     throw createAuthError('unsupported_role');
   }
   if (profile.status !== 'active') {

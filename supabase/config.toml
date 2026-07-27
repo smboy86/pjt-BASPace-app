@@ -65,3 +65,6 @@ otp_expiry = 3600
 [auth.sms]
 enable_signup = false
 enable_confirmations = false
+
+[functions.create-partner-account]
+verify_jwt = false

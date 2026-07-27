@@ -15,6 +15,7 @@ export interface IPartner {
   companyName: string;
   businessNumber: string;
   businessRegistrationImagePath: string | null;
+  representativeEmail: string | null;
   contactName: string;
   contactPhone: string;
   note: string | null;

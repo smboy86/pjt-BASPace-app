@@ -4,8 +4,8 @@
 
 `app/(auth)`의 로그인·회원가입·이메일 확인 화면은 실제 Supabase Auth에 연결되어 있다.
 공개 회원가입은 고객 전용이며 활성 고객은 고객 탭, 운영자가 생성한 활성 관리자는 관리자
-운영 홈으로 진입한다. 업체 담당자는 전용 화면이 구현되기 전까지 앱 로그인을 허용하지
-않는다.
+운영 홈으로 진입한다. 관리자가 업체 등록 화면에서 생성한 활성 업체 담당자는 연결 업체를
+확인하는 업체 담당자 홈으로 진입한다.
 
 아래 절차는 앱 화면, 원격 Auth 설정, `auth.users` → `public.profiles` 트리거, 역할별
 진입과 RLS가 정상 동작하는지 확인한다.
@@ -40,8 +40,8 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
 
 ## 2. 테스트 고객 가입
 
-다른 사용자와 겹치지 않는 실제 수신 가능한 이메일을 준비한다. 비밀번호는 원격 정책에
-맞게 영문 대문자·소문자·숫자를 포함한 8자 이상을 사용한다.
+다른 사용자와 겹치지 않는 실제 수신 가능한 이메일을 준비한다. 비밀번호는 앱 정책에
+맞게 영문 소문자와 특수문자를 포함한 8자 이상을 사용한다.
 
 저장소 루트에서 다음 명령을 실행한다.
 
@@ -51,7 +51,7 @@ source .env.local
 set +a
 
 export TEST_EMAIL='실제_수신_가능한_이메일'
-export TEST_PASSWORD='영문_대소문자_숫자를_포함한_8자_이상'
+export TEST_PASSWORD='영문_소문자와_특수문자를_포함한_8자_이상'
 export TEST_NAME='BASpace 테스트 고객'
 
 node --input-type=module <<'NODE'
@@ -228,7 +228,47 @@ returning p.id, u.email, p.role, p.status, p.display_name;
 생성한다. 앱에 service-role key를 추가하거나 클라이언트에서 관리자 역할을 변경하는
 기능을 만들지 않는다.
 
-## 7. 테스트 고객 계정 정리
+## 7. 업체와 대표 담당자 계정 등록 검증
+
+관리자 계정으로 앱에 로그인해 `업체 관리 → 업체 추가`로 이동한다. 업체명,
+사업자등록번호, 업체 대표 이메일, 패스워드, 담당자 이름, 담당자 연락처를 입력하고
+`업체 등록`을 누른다. 사업자등록증과 비고는 선택 항목이다.
+
+기대 결과:
+
+- 업체가 `partners`에 `approved` 상태로 생성됨
+- 대표 이메일의 Auth 사용자가 이메일 확인 완료 상태로 생성됨
+- 같은 사용자 ID의 `profiles`가 `partner_staff / active`로 변경됨
+- `partner_members`에 해당 업체의 `active / is_manager = true` 멤버로 연결됨
+- `partner_login_accounts`에는 로그인 이메일만 저장되고 비밀번호는 저장되지 않음
+- 같은 사업자등록번호 또는 같은 로그인 이메일은 다시 등록되지 않음
+- 대표 이메일과 입력한 패스워드로 로그인하면 `/(partner)/dashboard`에 진입함
+
+SQL Editor에서 연결을 확인한다.
+
+```sql
+select
+  p.company_name,
+  p.business_number,
+  pla.login_email,
+  profile.role,
+  profile.status,
+  pm.status as member_status,
+  pm.is_manager
+from public.partners p
+join public.partner_login_accounts pla on pla.partner_id = p.id
+join public.profiles profile on profile.id = pla.user_id
+join public.partner_members pm
+  on pm.partner_id = p.id
+ and pm.user_id = pla.user_id
+where lower(pla.login_email) = lower('등록한_업체_대표_이메일');
+```
+
+`create-partner-account` Edge Function만 service-role 환경을 사용한다. 앱 번들에는
+service-role key를 넣지 않으며 Edge Function은 호출자의 활성 관리자 역할을 다시
+검증하고 비밀번호를 로그·DB·응답에 남기지 않는다.
+
+## 8. 테스트 고객 계정 정리
 
 Dashboard → Authentication → Users에서 테스트 사용자만 정확히 선택해 삭제한다.
 `public.profiles.id`는 `auth.users.id`에 `on delete cascade`로 연결되어 있으므로 다음

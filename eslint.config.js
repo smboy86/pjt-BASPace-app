@@ -21,6 +21,7 @@ module.exports = [
       '.codex/**',
       'plugins/**',
       '_workspace/**',
+      'supabase/functions/**',
     ],
   },
 ];

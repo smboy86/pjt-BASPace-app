@@ -1,5 +1,6 @@
 export {
   useCreatePartner,
+  useCurrentPartnerWorkspace,
   usePartner,
   usePartnerDocumentUrl,
   usePartners,

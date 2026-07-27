@@ -133,6 +133,9 @@ function PartnerListItem({ partner }: { partner: IPartner }): React.JSX.Element 
       </View>
       <View className="mt-4 border-t border-stone-100 pt-3">
         <Text className="text-sm font-semibold text-ink-900">{partner.contactName}</Text>
+        {partner.representativeEmail ? (
+          <Text className="mt-1 text-sm text-ink-600">{partner.representativeEmail}</Text>
+        ) : null}
         <Text className="mt-1 text-sm text-ink-600">{partner.contactPhone}</Text>
       </View>
     </Pressable>

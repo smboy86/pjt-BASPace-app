@@ -1,6 +1,7 @@
 export {
   createPartner,
   createPartnerDocumentSignedUrl,
+  fetchCurrentPartnerWorkspace,
   fetchPartner,
   fetchPartners,
   normalizeBusinessNumber,

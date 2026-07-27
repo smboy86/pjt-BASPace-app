@@ -57,6 +57,10 @@ export default function AdminPartnerDetailScreen(): React.JSX.Element {
           </DetailSection>
 
           <DetailSection title="담당자 정보">
+            <DetailRow
+              label="업체 대표 이메일 (로그인용)"
+              value={partnerQuery.data.representativeEmail ?? '연결된 로그인 계정이 없어요.'}
+            />
             <DetailRow label="담당자 이름" value={partnerQuery.data.contactName} />
             <DetailRow label="담당자 연락처" value={partnerQuery.data.contactPhone} />
           </DetailSection>

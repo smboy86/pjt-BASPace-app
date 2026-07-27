@@ -7,6 +7,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  type TextInputProps,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,12 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const createPartnerSchema = z.object({
   companyName: z.string().trim().min(1, '업체명을 입력해 주세요.'),
   businessNumber: z.string().trim().min(1, '사업자등록번호를 입력해 주세요.'),
+  representativeEmail: z.string().trim().toLowerCase().email('올바른 이메일 주소를 입력해 주세요.'),
+  password: z
+    .string()
+    .min(8, '비밀번호는 8자 이상이어야 합니다.')
+    .regex(/[a-z]/, '영문 소문자를 하나 이상 포함해 주세요.')
+    .regex(/[^A-Za-z0-9\s]/, '특수문자를 하나 이상 포함해 주세요.'),
   contactName: z.string().trim().min(1, '담당자 이름을 입력해 주세요.'),
   contactPhone: z.string().trim().min(1, '담당자 연락처를 입력해 주세요.'),
   note: z.string().max(1000, '비고는 1,000자 이하로 입력해 주세요.'),
@@ -49,6 +56,8 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
     defaultValues: {
       companyName: '',
       businessNumber: '',
+      representativeEmail: '',
+      password: '',
       contactName: '',
       contactPhone: '',
       note: '',
@@ -80,26 +89,36 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
 
   const submitForm = async (values: ICreatePartnerForm): Promise<void> => {
     createPartner.reset();
-    clearErrors('businessNumber');
+    clearErrors();
 
     try {
       await createPartner.mutateAsync({
         ...values,
         businessRegistrationImage: image,
       });
+      createPartner.reset();
       router.replace('/(admin)/partners');
     } catch (error) {
       if (error instanceof PartnerManagementError && error.code === 'duplicate_business_number') {
         setError('businessNumber', { message: error.message });
+      } else if (
+        error instanceof PartnerManagementError &&
+        (error.code === 'email_already_registered' || error.code === 'invalid_email')
+      ) {
+        setError('representativeEmail', { message: error.message });
+      } else if (error instanceof PartnerManagementError && error.code === 'weak_password') {
+        setError('password', { message: error.message });
+      } else {
+        setError('root.server', {
+          message:
+            error instanceof PartnerManagementError
+              ? error.message
+              : '입력 내용을 유지했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.',
+        });
       }
+      createPartner.reset();
     }
   };
-
-  const serverError =
-    createPartner.error instanceof PartnerManagementError &&
-    createPartner.error.code === 'duplicate_business_number'
-      ? null
-      : createPartner.error;
 
   return (
     <SafeAreaView className="flex-1 bg-sand-50">
@@ -126,16 +145,14 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
             업체와 대표 담당자 정보를 입력해 주세요. 별표(*) 항목은 필수입니다.
           </Text>
 
-          {serverError ? (
+          {errors.root?.server?.message ? (
             <View
               accessibilityRole="alert"
               className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4"
             >
               <Text className="font-bold text-red-700">업체를 등록하지 못했어요.</Text>
               <Text className="mt-1 text-sm leading-5 text-red-600">
-                {serverError instanceof PartnerManagementError
-                  ? serverError.message
-                  : '입력 내용을 유지했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.'}
+                {errors.root.server.message}
               </Text>
             </View>
           ) : null}
@@ -208,6 +225,31 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
             </View>
 
             <FormField
+              autoCapitalize="none"
+              autoComplete="email"
+              control={control}
+              disabled={createPartner.isPending}
+              error={errors.representativeEmail?.message}
+              keyboardType="email-address"
+              label="업체 대표 이메일 (로그인용) *"
+              name="representativeEmail"
+              placeholder="대표 담당자 이메일 입력"
+              textContentType="emailAddress"
+            />
+            <FormField
+              autoCapitalize="none"
+              autoComplete="new-password"
+              control={control}
+              disabled={createPartner.isPending}
+              error={errors.password?.message}
+              helperText="영문 소문자와 특수문자를 포함해 8자 이상"
+              label="패스워드 *"
+              name="password"
+              placeholder="로그인 패스워드 입력"
+              secureTextEntry
+              textContentType="newPassword"
+            />
+            <FormField
               control={control}
               disabled={createPartner.isPending}
               error={errors.contactName?.message}
@@ -271,25 +313,35 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
 }
 
 interface IFormFieldProps {
+  autoCapitalize?: TextInputProps['autoCapitalize'];
+  autoComplete?: TextInputProps['autoComplete'];
   control: ReturnType<typeof useForm<ICreatePartnerForm>>['control'];
   disabled: boolean;
   error?: string;
-  keyboardType?: 'default' | 'number-pad' | 'phone-pad';
+  helperText?: string;
+  keyboardType?: TextInputProps['keyboardType'];
   label: string;
   multiline?: boolean;
   name: keyof ICreatePartnerForm;
   placeholder: string;
+  secureTextEntry?: boolean;
+  textContentType?: TextInputProps['textContentType'];
 }
 
 function FormField({
+  autoCapitalize,
+  autoComplete,
   control,
   disabled,
   error,
+  helperText,
   keyboardType = 'default',
   label,
   multiline = false,
   name,
   placeholder,
+  secureTextEntry = false,
+  textContentType,
 }: IFormFieldProps): React.JSX.Element {
   return (
     <View>
@@ -300,6 +352,8 @@ function FormField({
         render={({ field: { onBlur, onChange, value } }) => (
           <TextInput
             accessibilityLabel={label}
+            autoCapitalize={autoCapitalize}
+            autoComplete={autoComplete}
             className={`rounded-2xl border bg-white px-4 text-base text-ink-900 ${
               multiline ? 'min-h-28 py-4' : 'min-h-12 py-3'
             } ${error ? 'border-red-400' : 'border-stone-100'}`}
@@ -310,7 +364,9 @@ function FormField({
             onChangeText={onChange}
             placeholder={placeholder}
             placeholderTextColor="#84908D"
+            secureTextEntry={secureTextEntry}
             textAlignVertical={multiline ? 'top' : 'center'}
+            textContentType={textContentType}
             value={value}
           />
         )}
@@ -319,6 +375,8 @@ function FormField({
         <Text accessibilityRole="alert" className="mt-1.5 text-xs text-red-600">
           {error}
         </Text>
+      ) : helperText ? (
+        <Text className="mt-1.5 text-xs text-ink-600">{helperText}</Text>
       ) : null}
     </View>
   );

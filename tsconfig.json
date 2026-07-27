@@ -29,6 +29,7 @@
     "_workspace",
     ".agents",
     ".codex",
-    "plugins"
+    "plugins",
+    "supabase/functions"
   ]
 }

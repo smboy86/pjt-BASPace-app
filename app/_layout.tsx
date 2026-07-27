@@ -22,6 +22,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
     const isInAuthGroup = currentGroup === '(auth)';
     const isInCustomerGroup = currentGroup === '(tabs)';
     const isInAdminGroup = currentGroup === '(admin)';
+    const isInPartnerGroup = currentGroup === '(partner)';
 
     if (!isAuthenticated || !user) {
       if (!isInAuthGroup) {
@@ -33,6 +34,13 @@ function AuthenticatedNavigator(): React.JSX.Element {
     if (user.role === 'admin') {
       if (!isInAdminGroup) {
         router.replace('/(admin)/dashboard');
+      }
+      return;
+    }
+
+    if (user.role === 'partner_staff') {
+      if (!isInPartnerGroup) {
+        router.replace('/(partner)/dashboard');
       }
       return;
     }
@@ -88,6 +96,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(admin)" />
+        <Stack.Screen name="(partner)" />
       </Stack>
       <Toast config={toastConfig} />
     </>

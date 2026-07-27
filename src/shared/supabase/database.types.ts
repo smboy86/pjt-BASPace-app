@@ -219,6 +219,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      partner_login_accounts: {
+        Row: {
+          created_at: string;
+          login_email: string;
+          partner_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          login_email: string;
+          partner_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          login_email?: string;
+          partner_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'partner_login_accounts_partner_id_fkey';
+            columns: ['partner_id'];
+            isOneToOne: true;
+            referencedRelation: 'partners';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'partner_login_accounts_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       partner_members: {
         Row: {
           created_at: string;
@@ -700,6 +736,39 @@ export type Database = {
       confirm_final_quote: {
         Args: { target_quote_id: string };
         Returns: undefined;
+      };
+      create_partner_with_representative: {
+        Args: {
+          p_business_number: string;
+          p_business_registration_image_path: string;
+          p_company_name: string;
+          p_contact_name: string;
+          p_contact_phone: string;
+          p_login_email: string;
+          p_note: string;
+          p_target_user_id: string;
+        };
+        Returns: {
+          approval_status: Database['public']['Enums']['partner_approval_status'];
+          business_number: string;
+          business_number_normalized: string | null;
+          business_registration_image_path: string | null;
+          company_name: string;
+          contact_name: string;
+          contact_phone: string;
+          created_at: string;
+          id: string;
+          note: string | null;
+          service_regions: string[];
+          service_types: string[];
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'partners';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       mark_quote_final: {
         Args: { target_quote_id: string };
