@@ -13,27 +13,40 @@ interface IAdminMenuCardProps {
   isAvailable?: boolean;
 }
 
-const ADMIN_MENU_ITEMS: IAdminMenuCardProps[] = [
+interface IAdminMenuSection {
+  title: string;
+  description: string;
+  items: IAdminMenuCardProps[];
+}
+
+const ADMIN_MENU_SECTIONS: IAdminMenuSection[] = [
   {
-    icon: 'document-text-outline',
-    title: '요청 관리',
-    description: '전체 요청 조회 기능을 준비하고 있습니다.',
+    title: '견적 및 시공 관리',
+    description: '고객 견적 요청과 참여 업체를 관리합니다.',
+    items: [
+      {
+        icon: 'document-text-outline',
+        title: '견적 관리',
+        description: '전체 견적 요청 조회 기능을 준비하고 있습니다.',
+      },
+      {
+        icon: 'business-outline',
+        title: '업체 관리',
+        description: '등록 업체를 조회하고 새로운 업체를 추가합니다.',
+        isAvailable: true,
+      },
+    ],
   },
   {
-    icon: 'git-branch-outline',
-    title: '배정 관리',
-    description: '업체와 담당자 배정 기능을 준비하고 있습니다.',
-  },
-  {
-    icon: 'business-outline',
-    title: '업체 관리',
-    description: '등록 업체를 조회하고 새로운 업체를 추가합니다.',
-    isAvailable: true,
-  },
-  {
-    icon: 'grid-outline',
-    title: '카탈로그 관리',
-    description: '제품과 가격표 관리 기능을 준비하고 있습니다.',
+    title: '운영 관리',
+    description: '견적에 사용하는 제품과 선택 옵션을 관리합니다.',
+    items: [
+      {
+        icon: 'grid-outline',
+        title: '견적 옵션 관리',
+        description: '제품과 가격표 관리 기능을 준비하고 있습니다.',
+      },
+    ],
   },
 ];
 
@@ -63,19 +76,20 @@ export default function AdminDashboardScreen(): React.JSX.Element {
           </Text>
           <Text className="mt-1 text-sm text-brand-100">{user?.email ?? ''}</Text>
           <Text className="mt-5 text-sm leading-6 text-brand-100">
-            바스페이스의 요청, 배정, 업체와 카탈로그 운영 기능을 관리합니다.
+            바스페이스의 견적 요청, 참여 업체와 견적 옵션을 관리합니다.
           </Text>
         </View>
 
-        <View className="mb-4 mt-7">
-          <Text className="text-2xl font-bold text-ink-900">운영 현황</Text>
-          <Text className="mt-1 text-sm leading-5 text-ink-600">
-            관리자 기능을 순차적으로 연결하고 있습니다.
-          </Text>
-        </View>
-
-        {ADMIN_MENU_ITEMS.map((item) => (
-          <AdminMenuCard key={item.title} {...item} />
+        {ADMIN_MENU_SECTIONS.map((section, sectionIndex) => (
+          <View key={section.title} className={sectionIndex === 0 ? 'mt-7' : 'mt-5'}>
+            <View className="mb-4">
+              <Text className="text-2xl font-bold text-ink-900">{section.title}</Text>
+              <Text className="mt-1 text-sm leading-5 text-ink-600">{section.description}</Text>
+            </View>
+            {section.items.map((item) => (
+              <AdminMenuCard key={item.title} {...item} />
+            ))}
+          </View>
         ))}
 
         {logout.error ? (
