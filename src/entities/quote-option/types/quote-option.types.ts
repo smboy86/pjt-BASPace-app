@@ -3,10 +3,11 @@ export enum EQuoteOptionFormType {
   ADVANCED = 'advanced',
 }
 
-export interface IQuoteOptionImage {
+export interface IQuoteOptionProduct {
   id: string;
+  name: string;
+  price: number;
   storagePath: string;
-  displayOrder: number;
   url: string;
 }
 
@@ -16,9 +17,8 @@ export interface IQuoteOption {
   name: string;
   displayOrder: number;
   formType: EQuoteOptionFormType;
-  basePrice: number;
   isActive: boolean;
-  images: IQuoteOptionImage[];
+  products: IQuoteOptionProduct[];
   createdAt: string;
   updatedAt: string;
 }

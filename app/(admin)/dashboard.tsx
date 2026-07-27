@@ -44,7 +44,7 @@ const ADMIN_MENU_SECTIONS: IAdminMenuSection[] = [
       {
         icon: 'grid-outline',
         title: '견적 옵션 관리',
-        description: '고객 견적양식의 옵션과 기준 단가를 관리합니다.',
+        description: '고객 견적양식의 카테고리와 제품을 관리합니다.',
         destination: '/(admin)/catalog',
       },
     ],

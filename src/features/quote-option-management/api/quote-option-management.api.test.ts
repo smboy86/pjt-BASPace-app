@@ -57,12 +57,11 @@ const createInput = (assets: ImagePickerAsset[]) => ({
   name: '타일',
   displayOrder: 1,
   formType: quoteOptionTypes.EQuoteOptionFormType.ADVANCED as EQuoteOptionFormType,
-  basePrice: 0,
-  images: assets.map((asset, index) => ({
+  products: assets.map((asset, index) => ({
     key: `new-${index}`,
-    kind: 'new' as const,
-    asset,
-    uri: asset.uri,
+    name: `제품 ${index + 1}`,
+    price: 0,
+    image: { key: `new-image-${index}`, kind: 'new' as const, asset, uri: asset.uri },
   })),
 });
 
@@ -90,10 +89,10 @@ const configureTableQueries = ({
         upsert: mocks.queueUpsert,
       };
     }
-    if (table === 'quote_option_images') {
+    if (table === 'quote_option_products') {
       return {
         select: (columns: string) =>
-          columns === 'storage_path'
+          columns === 'image_path'
             ? { eq: () => Promise.resolve({ data: [], error: null }) }
             : {
                 eq: () => ({

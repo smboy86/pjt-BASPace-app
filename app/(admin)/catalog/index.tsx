@@ -4,7 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EQuoteOptionFormType, type IQuoteOption } from '@/entities/quote-option';
-import { formatWon, useQuoteOptions } from '@/features/quote-option-management';
+import { useQuoteOptions } from '@/features/quote-option-management';
 
 export default function AdminQuoteOptionListScreen(): React.JSX.Element {
   const optionsQuery = useQuoteOptions();
@@ -27,7 +27,7 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
       <View className="px-5 pb-4 pt-3">
         <Text className="text-xs font-semibold text-ink-600">총 {options.length}개 옵션</Text>
         <Text className="mt-2 text-sm leading-5 text-ink-600">
-          고객 견적양식에 표시할 옵션과 기준 단가를 관리합니다.
+          고객 견적양식에 표시할 카테고리와 그 안의 제품을 관리합니다.
         </Text>
       </View>
 
@@ -137,8 +137,8 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
           <Text className="mt-1 text-sm font-bold text-ink-900">{option.displayOrder}</Text>
         </View>
         <View className="flex-1">
-          <Text className="text-xs text-ink-600">제품 단가</Text>
-          <Text className="mt-1 text-sm font-bold text-ink-900">{formatWon(option.basePrice)}</Text>
+          <Text className="text-xs text-ink-600">등록 제품</Text>
+          <Text className="mt-1 text-sm font-bold text-ink-900">{option.products.length}개</Text>
         </View>
       </View>
     </Pressable>

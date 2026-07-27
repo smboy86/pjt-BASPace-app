@@ -1,7 +1,7 @@
 import type { ImagePickerAsset } from 'expo-image-picker';
 import type { EQuoteOptionFormType } from '@/entities/quote-option';
 
-export type TQuoteOptionEditableImage =
+export type TQuoteOptionEditableProductImage =
   | {
       key: string;
       kind: 'stored';
@@ -15,19 +15,26 @@ export type TQuoteOptionEditableImage =
       uri: string;
     };
 
+export interface IQuoteOptionEditableProduct {
+  id?: string;
+  key: string;
+  name: string;
+  price: number;
+  image: TQuoteOptionEditableProductImage | null;
+}
+
 export interface IUpdateQuoteOptionInput {
   optionId: string;
   name: string;
   displayOrder: number;
   formType: EQuoteOptionFormType;
-  basePrice: number;
-  images: TQuoteOptionEditableImage[];
+  products: IQuoteOptionEditableProduct[];
 }
 
 export type TQuoteOptionManagementErrorCode =
   | 'cleanup_pending'
   | 'image_too_large'
-  | 'too_many_images'
+  | 'missing_product_image'
   | 'unauthorized'
   | 'unsupported_image'
   | 'upload_failed'

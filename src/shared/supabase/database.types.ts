@@ -480,7 +480,6 @@ export type Database = {
       };
       quote_option_masters: {
         Row: {
-          base_price: number;
           code: string;
           created_at: string;
           display_order: number;
@@ -491,7 +490,6 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          base_price?: number;
           code: string;
           created_at?: string;
           display_order: number;
@@ -502,7 +500,6 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          base_price?: number;
           code?: string;
           created_at?: string;
           display_order?: number;
@@ -513,6 +510,44 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      quote_option_products: {
+        Row: {
+          created_at: string;
+          id: string;
+          image_path: string | null;
+          name: string;
+          price: number;
+          quote_option_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          image_path?: string | null;
+          name: string;
+          price: number;
+          quote_option_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          image_path?: string | null;
+          name?: string;
+          price?: number;
+          quote_option_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'quote_option_products_quote_option_id_fkey';
+            columns: ['quote_option_id'];
+            isOneToOne: false;
+            referencedRelation: 'quote_option_masters';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       quotes: {
         Row: {
@@ -865,12 +900,11 @@ export type Database = {
       };
       update_quote_option_master: {
         Args: {
-          target_base_price: number;
           target_display_order: number;
           target_form_type: Database['public']['Enums']['quote_option_form_type'];
-          target_image_paths: string[];
           target_name: string;
           target_option_id: string;
+          target_products: Json;
         };
         Returns: undefined;
       };
