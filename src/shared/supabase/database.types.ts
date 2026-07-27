@@ -267,30 +267,45 @@ export type Database = {
       partners: {
         Row: {
           approval_status: Database['public']['Enums']['partner_approval_status'];
-          business_number: string | null;
+          business_number: string;
+          business_number_normalized: string | null;
+          business_registration_image_path: string | null;
           company_name: string;
+          contact_name: string;
+          contact_phone: string;
           created_at: string;
           id: string;
+          note: string | null;
           service_regions: string[];
           service_types: string[];
           updated_at: string;
         };
         Insert: {
           approval_status?: Database['public']['Enums']['partner_approval_status'];
-          business_number?: string | null;
+          business_number: string;
+          business_number_normalized?: string | null;
+          business_registration_image_path?: string | null;
           company_name: string;
+          contact_name: string;
+          contact_phone: string;
           created_at?: string;
           id?: string;
+          note?: string | null;
           service_regions?: string[];
           service_types?: string[];
           updated_at?: string;
         };
         Update: {
           approval_status?: Database['public']['Enums']['partner_approval_status'];
-          business_number?: string | null;
+          business_number?: string;
+          business_number_normalized?: string | null;
+          business_registration_image_path?: string | null;
           company_name?: string;
+          contact_name?: string;
+          contact_phone?: string;
           created_at?: string;
           id?: string;
+          note?: string | null;
           service_regions?: string[];
           service_types?: string[];
           updated_at?: string;

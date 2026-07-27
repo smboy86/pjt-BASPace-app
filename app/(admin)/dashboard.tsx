@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession, useLogout } from '@/features/auth';
 
@@ -9,6 +10,7 @@ interface IAdminMenuCardProps {
   icon: TIoniconName;
   title: string;
   description: string;
+  isAvailable?: boolean;
 }
 
 const ADMIN_MENU_ITEMS: IAdminMenuCardProps[] = [
@@ -25,7 +27,8 @@ const ADMIN_MENU_ITEMS: IAdminMenuCardProps[] = [
   {
     icon: 'business-outline',
     title: '업체 관리',
-    description: '참여 업체 관리 기능을 준비하고 있습니다.',
+    description: '등록 업체를 조회하고 새로운 업체를 추가합니다.',
+    isAvailable: true,
   },
   {
     icon: 'grid-outline',
@@ -110,21 +113,43 @@ export default function AdminDashboardScreen(): React.JSX.Element {
   );
 }
 
-function AdminMenuCard({ icon, title, description }: IAdminMenuCardProps): React.JSX.Element {
+function AdminMenuCard({
+  icon,
+  title,
+  description,
+  isAvailable = false,
+}: IAdminMenuCardProps): React.JSX.Element {
   return (
-    <View className="mb-3 flex-row items-center rounded-2xl border border-stone-100 bg-white p-4">
+    <Pressable
+      accessibilityRole={isAvailable ? 'button' : undefined}
+      accessibilityState={{ disabled: !isAvailable }}
+      className={`mb-3 flex-row items-center rounded-2xl border border-stone-100 bg-white p-4 ${
+        isAvailable ? 'active:bg-brand-100' : ''
+      }`}
+      disabled={!isAvailable}
+      onPress={isAvailable ? () => router.push('/(admin)/partners') : undefined}
+    >
       <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-100">
         <Ionicons name={icon} color="#176D62" size={24} />
       </View>
       <View className="ml-4 flex-1">
         <View className="flex-row items-center">
           <Text className="flex-1 text-base font-bold text-ink-900">{title}</Text>
-          <View className="rounded-full bg-sand-50 px-2.5 py-1">
-            <Text className="text-xs font-semibold text-ink-600">준비 중</Text>
+          <View
+            className={`rounded-full px-2.5 py-1 ${isAvailable ? 'bg-brand-100' : 'bg-sand-50'}`}
+          >
+            <Text
+              className={`text-xs font-semibold ${isAvailable ? 'text-brand-700' : 'text-ink-600'}`}
+            >
+              {isAvailable ? '사용 가능' : '준비 중'}
+            </Text>
           </View>
         </View>
         <Text className="mt-1 text-sm leading-5 text-ink-600">{description}</Text>
       </View>
-    </View>
+      {isAvailable ? (
+        <Ionicons className="ml-2" name="chevron-forward" color="#62706D" size={20} />
+      ) : null}
+    </Pressable>
   );
 }

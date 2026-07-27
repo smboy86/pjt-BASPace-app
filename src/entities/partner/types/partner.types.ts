@@ -13,7 +13,11 @@ export enum ERequestPartnerStatus {
 export interface IPartner {
   id: string;
   companyName: string;
+  businessNumber: string;
+  businessRegistrationImagePath: string | null;
   contactName: string;
+  contactPhone: string;
+  note: string | null;
   serviceRegions: string[];
   serviceTypes: string[];
   approvalStatus: EPartnerApprovalStatus;
