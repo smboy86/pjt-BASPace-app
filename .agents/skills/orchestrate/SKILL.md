@@ -13,13 +13,17 @@ description: BASpace 앱의 사전 범위 확정부터 기획, 스펙, 디자인
 
 1. 모든 작업은 `AGENTS.md`를 우선한다.
 2. 각 단계 시작 전에 `_workspace/spec.md`와 이전 단계 산출물을 읽는다.
-3. 생성 역할과 검증 역할을 분리한다.
-4. 구현 단계마다 `npm run typecheck`와 `npm run lint`를 실행한다.
-5. 실패한 검증은 우회하지 않고 수정 후 다시 실행한다.
-6. 사용자 승인이나 외부 권한이 필요한 작업은 상태를 기록하고 필요한 입력만 요청한다.
-7. 단계가 끝날 때 `_workspace/pipeline-status.md`를 갱신한다.
+3. 화면에 영향을 주는 모든 단계는 `docs/screen-definition.md`를 읽고
+   `maintain-screen-definition` 절차로 동기화한다.
+4. 생성 역할과 검증 역할을 분리한다.
+5. 구현 단계마다 `npm run typecheck`와 `npm run lint`를 실행한다.
+6. 실패한 검증은 우회하지 않고 수정 후 다시 실행한다.
+7. 사용자 승인이나 외부 권한이 필요한 작업은 상태를 기록하고 필요한 입력만 요청한다.
+8. 단계가 끝날 때 `_workspace/pipeline-status.md`를 갱신한다.
 
 ## Workspace
+
+장기 정본인 `docs/screen-definition.md`는 아래 단계별 handoff 산출물보다 우선한다.
 
 ```text
 _workspace/
@@ -118,6 +122,8 @@ PRD 필수 항목:
 - 획득·활성·유지 KPI와 산정 데이터
 - 보안·개인정보 경계
 
+화면·역할·액션·상태 결정은 같은 단계에서 `docs/screen-definition.md`에 통합한다.
+
 ## Phase 2.5 — Spec Planning
 
 담당: `spec-planner`
@@ -144,6 +150,8 @@ PRD의 기능을 `docs/specs/{NN}-{feature}/` 아래 phase/task로 분해한다.
 - 필요한 theme/UI 파일
 
 디자인 작업 전 NativeWind 설정을 확인한다. 모든 화면은 Safe Area, 로딩, 빈 상태, 오류 상태, 접근성을 고려한다.
+`screen-layouts.md`는 디자인 handoff이며 화면 기능의 정본이 아니다. 기능이나 화면 동작이
+바뀌면 `docs/screen-definition.md`도 같은 변경에서 갱신한다.
 
 ## Phase 4 — Implementation
 
@@ -180,6 +188,7 @@ Phase 4는 의존성 순서대로 진행한다.
 - repository와 상태 배선
 
 각 하위 단계 시작 전에 `_workspace/implementation/sprint-contract-4{x}.md`를 작성한다.
+화면 관련 구현은 sprint contract에 영향 화면 ID를 기록한다.
 
 ```markdown
 # Sprint Contract
@@ -230,6 +239,11 @@ npm run lint
 - 기존 기능 회귀
 
 두 검증이 모두 PASS여야 다음 단계로 이동한다.
+추가로 다음 화면정의 검증이 통과해야 한다.
+
+```bash
+node .agents/skills/maintain-screen-definition/scripts/validate-screen-definition.mjs
+```
 
 ## Phase 6 — Fix Loop
 

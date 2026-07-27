@@ -2,7 +2,7 @@ import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from 'rea
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useDemoSessionStore } from '@/features/demo-session';
+import { useAuthSession, useLogout } from '@/features/auth';
 
 type TIoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -15,8 +15,8 @@ interface ISettingRowProps {
 }
 
 export default function SettingsScreen(): React.JSX.Element {
-  const user = useDemoSessionStore((state) => state.user);
-  const signOut = useDemoSessionStore((state) => state.signOut);
+  const { user } = useAuthSession();
+  const logoutMutation = useLogout();
 
   const logout = (): void => {
     Alert.alert('로그아웃', '현재 계정에서 로그아웃할까요?', [
@@ -25,8 +25,12 @@ export default function SettingsScreen(): React.JSX.Element {
         text: '로그아웃',
         style: 'destructive',
         onPress: () => {
-          signOut();
-          router.replace('/(auth)/login');
+          void logoutMutation
+            .mutateAsync()
+            .then(() => router.replace('/(auth)/login'))
+            .catch(() => {
+              Alert.alert('로그아웃할 수 없어요', '네트워크 상태를 확인하고 다시 시도해 주세요.');
+            });
         },
       },
     ]);
@@ -53,7 +57,7 @@ export default function SettingsScreen(): React.JSX.Element {
           <SettingRow
             icon="person-outline"
             label="로그인 정보"
-            description={`${user?.name ?? '사용자'} · ${user?.companyName ?? '고객 계정'}`}
+            description={`${user?.name ?? '고객'} · ${user?.email ?? ''}`}
           />
           <SettingRow
             icon="megaphone-outline"

@@ -3,7 +3,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useDemoSessionStore } from '@/features/demo-session';
+import { useAuthSession } from '@/features/auth';
 import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
 import { ERemodelRequestStatus, useRemodelRequestStore } from '@/entities/remodel-request';
 import {
@@ -13,7 +13,7 @@ import {
 
 export default function RequestDetailScreen(): React.JSX.Element {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
-  const user = useDemoSessionStore((state) => state.user);
+  const { user } = useAuthSession();
   const request = useRemodelRequestStore((state) =>
     state.requests.find((item) => item.id === requestId),
   );
@@ -47,21 +47,16 @@ export default function RequestDetailScreen(): React.JSX.Element {
     );
   }
 
-  const role = user?.role ?? 'customer';
   const sendMessage = (): void => {
     const trimmed = message.trim();
     if (!trimmed) return;
     addMessage({
       requestId: request.id,
-      authorId: user?.id ?? 'customer-1',
-      messageType:
-        role === 'customer'
-          ? EConsultationMessageType.REVISION_REQUEST
-          : EConsultationMessageType.GENERAL,
+      authorId: user?.id ?? request.customerId,
+      messageType: EConsultationMessageType.REVISION_REQUEST,
       body: trimmed,
     });
-    if (role === 'customer')
-      updateRequest(request.id, { status: ERemodelRequestStatus.IN_CONSULTATION });
+    updateRequest(request.id, { status: ERemodelRequestStatus.IN_CONSULTATION });
     setMessage('');
   };
 
@@ -71,7 +66,7 @@ export default function RequestDetailScreen(): React.JSX.Element {
     updateRequest(request.id, { status: ERemodelRequestStatus.CONFIRMED });
     addMessage({
       requestId: request.id,
-      authorId: 'customer-1',
+      authorId: user?.id ?? request.customerId,
       messageType: EConsultationMessageType.FINAL_CONFIRMED,
       quoteId: latestQuote.id,
       body: '최종 견적을 확인했습니다. 다음 상담 절차를 안내해주세요.',
@@ -131,7 +126,7 @@ export default function RequestDetailScreen(): React.JSX.Element {
                     유효기간 {quote.validUntil} ·{' '}
                     {quote.taxIncluded ? '부가세 포함' : '부가세 별도'}
                   </Text>
-                  {role === 'customer' && quote.status !== EQuoteStatus.CONFIRMED && (
+                  {quote.status !== EQuoteStatus.CONFIRMED && (
                     <Pressable
                       className="mt-4 min-h-11 items-center justify-center rounded-xl bg-brand-900"
                       onPress={handleConfirm}
@@ -167,11 +162,7 @@ export default function RequestDetailScreen(): React.JSX.Element {
           <TextInput
             className="min-h-20 px-2 text-base text-ink-900"
             multiline
-            placeholder={
-              role === 'customer'
-                ? '변경하고 싶은 조건이나 질문을 남겨주세요.'
-                : '고객에게 안내할 내용을 남겨주세요.'
-            }
+            placeholder="변경하고 싶은 조건이나 질문을 남겨주세요."
             placeholderTextColor="#84908D"
             value={message}
             onChangeText={setMessage}

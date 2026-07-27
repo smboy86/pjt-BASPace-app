@@ -1,5 +1,8 @@
 # 바스페이스 구현 현황
 
+> 역할별 화면 기능과 현재 구현 수준은 `docs/screen-definition.md`를 정본으로 사용한다.
+> 이 문서는 feature task 진행률 대시보드로만 관리한다.
+
 | # | Feature | MVP | Status |
 |---|---|---|---|
 | 01 | 역할 세션 및 네비게이션 | 3/5 | 🟡 UI prototype |

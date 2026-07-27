@@ -15,12 +15,14 @@ description: "구현된 앱의 기능, UX, 디자인을 종합 검수하는 스�
 ## Input
 - PRD: `_workspace/02_product_plan.md`
 - 디자인 시스템: `_workspace/03_design_system.md`
+- 통합 기획 및 화면정의서: `docs/screen-definition.md`
 - 구현 코드: `src/`, `app/`
 
 ## Steps
 
 ### Step 1: 기능 완성도 검수
 - PRD의 유저 스토리를 체크리스트로 변환
+- 통합 화면정의서의 화면 ID별 버튼·상태·권한·이동 경로를 체크리스트로 변환
 - 각 유저 스토리에 해당하는 코드 파일 매핑
 - 구현 여부 확인 (PASS/FAIL/PARTIAL)
 - API 타입과 UI 타입의 경계면 교차 비교
@@ -28,6 +30,7 @@ description: "구현된 앱의 기능, UX, 디자인을 종합 검수하는 스�
 ### Step 2: UX 흐름 검증
 - `app/` 디렉토리의 라우트 구조 분석
 - 화면 간 네비게이션 연결 확인
+- 구현 파일이 통합 화면정의서에 추적되고 구현 상태가 실제 연동 수준과 일치하는지 확인
 - 에러 상태, 로딩 상태, 빈 상태 처리 확인
 - 키보드 회피(KeyboardAvoidingView) 확인
 
@@ -52,6 +55,7 @@ description: "구현된 앱의 기능, UX, 디자인을 종합 검수하는 스�
 - CRITICAL / WARNING / INFO 분류
 - 각 이슈에 파일:라인, 설명, 수정 방법 포함
 - `_workspace/05_inspection_report.md`에 저장
+- 검사 중 발견한 실제 화면 정의의 누락 또는 오기는 `docs/screen-definition.md`에 반영
 
 ## Agent Delegation
 | Step | Agent |

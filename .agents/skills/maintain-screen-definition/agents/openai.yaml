@@ -1,0 +1,4 @@
+interface:
+  display_name: "화면정의서 관리"
+  short_description: "화면 기능 변경 전후로 통합 화면정의서를 검토하고 갱신합니다"
+  default_prompt: "Use $maintain-screen-definition to review and update the BASpace screen definition for this feature change."

@@ -51,7 +51,7 @@ enable_signup = true
 enable_anonymous_sign_ins = false
 enable_manual_linking = false
 minimum_password_length = 8
-password_requirements = "lower_upper_letters_digits"
+password_requirements = ""
 
 [auth.email]
 enable_signup = true
