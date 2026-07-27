@@ -3,12 +3,16 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
-import { ERemodelRequestStatus, useRemodelRequestStore } from '@/entities/remodel-request';
+import {
+  ERemodelRequestStatus,
+  getRemodelBudgetLabel,
+  useRemodelRequestStore,
+} from '@/entities/remodel-request';
 import { useQuoteStore } from '@/entities/quote';
 
 const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.DRAFT]: '작성 중',
-  [ERemodelRequestStatus.SUBMITTED]: '매칭 대기',
+  [ERemodelRequestStatus.SUBMITTED]: '관리자 확인 대기',
   [ERemodelRequestStatus.MATCHED]: '업체 매칭 완료',
   [ERemodelRequestStatus.IN_CONSULTATION]: '견적 협의 중',
   [ERemodelRequestStatus.FINAL_QUOTE_SENT]: '최종 견적 도착',
@@ -89,7 +93,7 @@ export default function HomeScreen(): React.JSX.Element {
                       </Text>
                       <Text className="mt-1 text-sm text-ink-600">
                         {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
-                        {request.budgetRange}
+                        {getRemodelBudgetLabel(request.budgetRange)}
                       </Text>
                     </View>
                     <StatusBadge label={STATUS_LABELS[request.status]} status={request.status} />

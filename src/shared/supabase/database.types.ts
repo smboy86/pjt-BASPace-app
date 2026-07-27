@@ -630,6 +630,7 @@ export type Database = {
       };
       remodel_requests: {
         Row: {
+          address_detail: string;
           bathroom_type: string;
           budget_range: string;
           created_at: string;
@@ -650,6 +651,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          address_detail?: string;
           bathroom_type: string;
           budget_range: string;
           created_at?: string;
@@ -670,6 +672,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          address_detail?: string;
           bathroom_type?: string;
           budget_range?: string;
           created_at?: string;
@@ -897,6 +900,16 @@ export type Database = {
       mark_quote_final: {
         Args: { target_quote_id: string };
         Returns: undefined;
+      };
+      submit_customer_remodel_request: {
+        Args: {
+          target_address_detail: string;
+          target_budget_range: string;
+          target_notes: string;
+          target_region: string;
+          target_selections: Json;
+        };
+        Returns: string;
       };
       update_quote_option_master: {
         Args: {

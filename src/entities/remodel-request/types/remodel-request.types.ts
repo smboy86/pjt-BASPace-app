@@ -19,6 +19,23 @@ export enum ERemodelScope {
   FULL = 'full',
 }
 
+export enum ERemodelBudgetCode {
+  KRW_150_200 = 'KRW_150_200',
+  KRW_200_300 = 'KRW_200_300',
+  KRW_300_500 = 'KRW_300_500',
+  CONSULTATION = 'CONSULTATION',
+}
+
+export const REMODEL_BUDGET_OPTIONS = [
+  { code: ERemodelBudgetCode.KRW_150_200, label: '150~200만원' },
+  { code: ERemodelBudgetCode.KRW_200_300, label: '200~300만원' },
+  { code: ERemodelBudgetCode.KRW_300_500, label: '300~500만원' },
+  { code: ERemodelBudgetCode.CONSULTATION, label: '견적 협의' },
+] as const;
+
+export const getRemodelBudgetLabel = (code: ERemodelBudgetCode): string =>
+  REMODEL_BUDGET_OPTIONS.find((option) => option.code === code)?.label ?? code;
+
 export interface IRequestPhoto {
   id: string;
   localUri: string;
@@ -43,13 +60,14 @@ export interface IRemodelRequest {
   customerId: string;
   status: ERemodelRequestStatus;
   region: string;
+  addressDetail: string;
   housingType: string;
   bathroomType: string;
   estimatedSize?: string;
   hasBathtub?: boolean;
   requiresDemolition?: boolean;
   specialStructureNote?: string;
-  budgetRange: string;
+  budgetRange: ERemodelBudgetCode;
   desiredSchedule: string;
   scope: ERemodelScope;
   priorities: string[];

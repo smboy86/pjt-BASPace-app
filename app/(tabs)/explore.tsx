@@ -1,16 +1,40 @@
-import { useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  LayoutAnimation,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
+import { AddressSearchModal } from '@/features/address-search';
+import { useSubmitRemodelRequest } from '@/features/create-remodel-request';
+import { useCustomerQuoteOptions } from '@/features/select-quote-options';
 import {
-  ERemodelRequestStatus,
-  ERemodelScope,
-  ESelectionDecision,
-  useRemodelRequestStore,
+  ERemodelBudgetCode,
+  REMODEL_BUDGET_OPTIONS,
+  type IRequestPhoto,
 } from '@/entities/remodel-request';
+import type { IQuoteOption, IQuoteOptionProduct } from '@/entities/quote-option';
+
+interface IFormErrors {
+  address?: string;
+  budget?: string;
+  options?: Record<string, string>;
+  submission?: string;
+}
+
+const EMPTY_QUOTE_OPTIONS: IQuoteOption[] = [];
+const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
 
 export default function ActionScreen(): React.JSX.Element {
   return <CustomerRequestScreen />;
@@ -18,18 +42,36 @@ export default function ActionScreen(): React.JSX.Element {
 
 function CustomerRequestScreen(): React.JSX.Element {
   const router = useRouter();
-  const { user } = useAuthSession();
-  const createRequest = useRemodelRequestStore((state) => state.createRequest);
-  const updateRequest = useRemodelRequestStore((state) => state.updateRequest);
-  const [region, setRegion] = useState('서울 성동구');
-  const [budgetRange, setBudgetRange] = useState('300~500만원');
+  const { isAuthenticated, user } = useAuthSession();
+  const quoteOptionsQuery = useCustomerQuoteOptions(isAuthenticated);
+  const submitMutation = useSubmitRemodelRequest();
+  const [region, setRegion] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
+  const [budgetCode, setBudgetCode] = useState<ERemodelBudgetCode | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
-  const [toiletDecision, setToiletDecision] = useState<ESelectionDecision>(
-    ESelectionDecision.CONSULTATION_REQUIRED,
+  const [checkedOptionIds, setCheckedOptionIds] = useState<string[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<Record<string, string | undefined>>(
+    {},
   );
-  const [tileDecision, setTileDecision] = useState<ESelectionDecision>(ESelectionDecision.SELECTED);
+  const [errors, setErrors] = useState<IFormErrors>({});
+  const [isAddressSearchVisible, setIsAddressSearchVisible] = useState(false);
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+
+  const quoteOptions = quoteOptionsQuery.data ?? EMPTY_QUOTE_OPTIONS;
+  const selectedProducts = useMemo(
+    () =>
+      quoteOptions.flatMap((option) => {
+        if (!checkedOptionIds.includes(option.id)) return [];
+        const product = option.products.find((item) => item.id === selectedProductIds[option.id]);
+        return product ? [{ option, product }] : [];
+      }),
+    [checkedOptionIds, quoteOptions, selectedProductIds],
+  );
+  const selectedTotal = useMemo(
+    () => selectedProducts.reduce((total, item) => total + item.product.price, 0),
+    [selectedProducts],
+  );
 
   const selectPhoto = async (): Promise<void> => {
     if (photos.length >= 5) {
@@ -45,92 +87,213 @@ function CustomerRequestScreen(): React.JSX.Element {
       );
       return;
     }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: 5 - photos.length,
       quality: 0.7,
     });
+
     if (!result.canceled) {
       setPhotos((current) => [...current, ...result.assets].slice(0, 5));
     }
   };
 
-  const submitRequest = (): void => {
+  const toggleOption = (option: IQuoteOption): void => {
+    if (option.products.length === 0) return;
+
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const isChecked = checkedOptionIds.includes(option.id);
+    setCheckedOptionIds((current) =>
+      isChecked ? current.filter((id) => id !== option.id) : [...current, option.id],
+    );
+
+    if (isChecked) {
+      setSelectedProductIds((current) => ({ ...current, [option.id]: undefined }));
+    }
+
+    setErrors((current) => {
+      if (!current.options?.[option.id]) return current;
+      const nextOptionErrors = { ...current.options };
+      delete nextOptionErrors[option.id];
+      return {
+        ...current,
+        options: Object.keys(nextOptionErrors).length > 0 ? nextOptionErrors : undefined,
+      };
+    });
+  };
+
+  const selectProduct = (optionId: string, productId: string): void => {
+    setSelectedProductIds((current) => ({ ...current, [optionId]: productId }));
+    setErrors((current) => {
+      if (!current.options?.[optionId]) return current;
+      const nextOptionErrors = { ...current.options };
+      delete nextOptionErrors[optionId];
+      return {
+        ...current,
+        options: Object.keys(nextOptionErrors).length > 0 ? nextOptionErrors : undefined,
+      };
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const optionErrors = checkedOptionIds.reduce<Record<string, string>>((result, optionId) => {
+      if (!selectedProductIds[optionId]) {
+        result[optionId] = '이 옵션에서 제품을 하나 선택해 주세요.';
+      }
+      return result;
+    }, {});
+    const nextErrors: IFormErrors = {
+      address: region.trim() ? undefined : '주소를 검색해 기본 주소를 입력해 주세요.',
+      budget: budgetCode ? undefined : '희망 예산을 선택해 주세요.',
+      options: Object.keys(optionErrors).length > 0 ? optionErrors : undefined,
+    };
+
+    setErrors(nextErrors);
+    return !nextErrors.address && !nextErrors.budget && !nextErrors.options;
+  };
+
+  const submitRequest = async (): Promise<void> => {
     if (!user) {
       Alert.alert('로그인이 필요해요', '다시 로그인한 뒤 요청을 등록해 주세요.');
       router.replace('/(auth)/login');
       return;
     }
+    if (!validateForm() || !budgetCode) return;
+    if (quoteOptionsQuery.isPending || quoteOptionsQuery.isError) {
+      setErrors((current) => ({
+        ...current,
+        submission: '견적 옵션을 불러온 뒤 다시 시도해 주세요.',
+      }));
+      return;
+    }
 
-    const request = createRequest({
-      customerId: user.id,
-      region,
-      housingType: '아파트',
-      bathroomType: '공용 욕실',
-      estimatedSize: '약 3㎡',
-      hasBathtub: false,
-      requiresDemolition: true,
-      budgetRange,
-      desiredSchedule: '2개월 이내',
-      scope: ERemodelScope.FULL,
-      priorities: ['디자인', '청소 편의'],
-      notes: notes || '상담 후 세부 조건을 결정하고 싶습니다.',
-      photos: photos.map((photo, index) => ({
-        id: `local-photo-${index}`,
-        localUri: photo.uri,
-        category: '욕실 사진',
-        sortOrder: index,
-        createdAt: new Date().toISOString(),
-      })),
-      selections: [
-        {
-          id: 'new-toilet',
-          category: '변기',
-          itemName:
-            toiletDecision === ESelectionDecision.SELECTED
-              ? '스마트 일체형 양변기'
-              : '상담 후 결정',
-          selectedOptionIds: [],
-          selectedOptionNames: [],
-          decisionStatus: toiletDecision,
-        },
-        {
-          id: 'new-tile',
-          category: '벽·바닥',
-          itemName: tileDecision === ESelectionDecision.SELECTED ? '웜 스톤 패널' : '상담 후 결정',
-          selectedOptionIds: [],
-          selectedOptionNames: [],
-          basePriceSnapshot: tileDecision === ESelectionDecision.SELECTED ? 420000 : undefined,
-          decisionStatus: tileDecision,
-        },
-      ],
-    });
-    updateRequest(request.id, {
-      status: ERemodelRequestStatus.SUBMITTED,
-      submittedAt: new Date().toISOString(),
-    });
-    setNotes('');
-    setPhotos([]);
-    setIsConfirmationVisible(true);
+    const requestPhotos: IRequestPhoto[] = photos.map((photo, index) => ({
+      id: `local-photo-${index}`,
+      localUri: photo.uri,
+      category: '욕실 사진',
+      sortOrder: index,
+      createdAt: new Date().toISOString(),
+    }));
+
+    try {
+      await submitMutation.mutateAsync({
+        customerId: user.id,
+        region: region.trim(),
+        addressDetail: addressDetail.trim(),
+        budgetCode,
+        notes: notes.trim(),
+        photos: requestPhotos,
+        selections: selectedProducts.map(({ option, product }) => ({
+          optionCode: option.code,
+          optionId: option.id,
+          optionName: option.name,
+          productId: product.id,
+          productName: product.name,
+          price: product.price,
+        })),
+      });
+      setRegion('');
+      setAddressDetail('');
+      setBudgetCode(null);
+      setNotes('');
+      setPhotos([]);
+      setCheckedOptionIds([]);
+      setSelectedProductIds({});
+      setErrors({});
+      setIsConfirmationVisible(true);
+    } catch {
+      setErrors((current) => ({
+        ...current,
+        submission:
+          '견적 요청을 저장하지 못했어요. 네트워크와 선택한 제품을 확인한 뒤 다시 시도해 주세요.',
+      }));
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand-50" edges={['top']}>
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
+      <ScrollView contentContainerClassName="px-5 pb-10 pt-4" keyboardShouldPersistTaps="handled">
         <Text className="text-2xl font-bold text-ink-900">새 욕실 견적 요청</Text>
         <Text className="mt-2 text-sm leading-5 text-ink-600">
-          조건과 사진을 남기면, 상담에 필요한 내용을 한 번에 전달할 수 있어요.
+          조건과 제품을 선택하면 예상 선택 금액을 바로 확인할 수 있어요.
         </Text>
 
-        <Section title="기본 조건">
-          <Field label="공사 지역" value={region} onChangeText={setRegion} />
-          <ChoiceGroup
-            label="희망 예산"
-            value={budgetRange}
-            options={['200~300만원', '300~500만원', '500만원 이상']}
-            onChange={setBudgetRange}
-          />
+        <Section
+          error={errors.address || errors.budget ? '필수 기본 조건을 확인해 주세요.' : undefined}
+          title="기본 조건"
+        >
+          <View>
+            <Text className="mb-2 text-sm font-semibold text-ink-900">공사 지역</Text>
+            <View className="flex-row gap-2">
+              <TextInput
+                accessibilityLabel="기본 주소"
+                className={`min-h-12 flex-1 rounded-xl border bg-stone-50 px-4 text-sm text-ink-900 ${
+                  errors.address ? 'border-red-500' : 'border-stone-100'
+                }`}
+                editable={false}
+                placeholder="주소 입력 버튼으로 검색"
+                placeholderTextColor="#84908D"
+                value={region}
+              />
+              <Pressable
+                accessibilityLabel="주소 입력"
+                className="min-h-12 min-w-24 items-center justify-center rounded-xl bg-brand-900 px-4 active:opacity-80"
+                onPress={() => setIsAddressSearchVisible(true)}
+              >
+                <Text className="font-bold text-white">주소 입력</Text>
+              </Pressable>
+            </View>
+            <TextInput
+              accessibilityLabel="상세 주소"
+              className="mt-2 min-h-12 rounded-xl border border-stone-100 bg-white px-4 text-base text-ink-900"
+              maxLength={200}
+              onChangeText={setAddressDetail}
+              placeholder="상세 주소를 입력해 주세요. (선택)"
+              placeholderTextColor="#84908D"
+              value={addressDetail}
+            />
+            {errors.address && (
+              <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-600">
+                {errors.address}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <Text className="text-sm font-semibold text-ink-900">희망 예산</Text>
+            <View className="mt-2 flex-row flex-wrap gap-2">
+              {REMODEL_BUDGET_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.code}
+                  accessibilityLabel={`희망 예산 ${option.label}`}
+                  className={`min-h-10 justify-center rounded-full px-4 ${
+                    budgetCode === option.code
+                      ? 'bg-brand-900'
+                      : `border bg-white ${errors.budget ? 'border-red-500' : 'border-stone-100'}`
+                  }`}
+                  onPress={() => {
+                    setBudgetCode(option.code);
+                    setErrors((current) => ({ ...current, budget: undefined }));
+                  }}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      budgetCode === option.code ? 'text-white' : 'text-ink-600'
+                    }`}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {errors.budget && (
+              <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-600">
+                {errors.budget}
+              </Text>
+            )}
+          </View>
         </Section>
 
         <Section title="욕실 사진 · 선택">
@@ -159,7 +322,7 @@ function CustomerRequestScreen(): React.JSX.Element {
                       )
                     }
                   >
-                    <Ionicons name="close" color="#FFFFFF" size={18} />
+                    <Ionicons color="#FFFFFF" name="close" size={18} />
                   </Pressable>
                 </View>
               ))}
@@ -170,48 +333,113 @@ function CustomerRequestScreen(): React.JSX.Element {
             className="mt-4 min-h-28 items-center justify-center rounded-2xl border border-dashed border-brand-700 bg-brand-100 active:opacity-80"
             onPress={selectPhoto}
           >
-            <Ionicons name="images-outline" color="#176D62" size={26} />
+            <Ionicons color="#176D62" name="images-outline" size={26} />
             <Text className="mt-2 font-bold text-brand-900">사진 선택하기</Text>
             <Text className="mt-1 text-xs text-ink-600">{photos.length}/5장 선택됨</Text>
           </Pressable>
         </Section>
 
-        <Section title="중요 항목 선택">
-          <DecisionGroup
-            label="변기"
-            value={toiletDecision}
-            onChange={setToiletDecision}
-            selectedLabel="스마트 일체형 양변기"
-          />
-          <DecisionGroup
-            label="벽·바닥"
-            value={tileDecision}
-            onChange={setTileDecision}
-            selectedLabel="웜 스톤 패널"
-          />
+        <Section
+          error={errors.options ? '체크한 항목마다 제품을 하나 선택해 주세요.' : undefined}
+          title="중요 선택 옵션"
+        >
+          <Text className="text-sm leading-5 text-ink-600">
+            필요한 항목만 체크하고, 펼쳐진 제품 중 하나를 선택해 주세요.
+          </Text>
+          {quoteOptionsQuery.isPending && (
+            <View className="items-center rounded-2xl bg-white py-8">
+              <ActivityIndicator color="#176D62" />
+              <Text className="mt-3 text-sm text-ink-600">견적 옵션을 불러오는 중이에요.</Text>
+            </View>
+          )}
+          {quoteOptionsQuery.isError && (
+            <View className="rounded-2xl border border-red-200 bg-red-50 p-4">
+              <Text className="text-sm leading-5 text-red-700">견적 옵션을 불러오지 못했어요.</Text>
+              <Pressable
+                accessibilityLabel="견적 옵션 다시 불러오기"
+                className="mt-3 min-h-10 items-center justify-center rounded-xl bg-white"
+                onPress={() => void quoteOptionsQuery.refetch()}
+              >
+                <Text className="font-bold text-red-700">다시 시도</Text>
+              </Pressable>
+            </View>
+          )}
+          {quoteOptions.map((option) => (
+            <QuoteOptionField
+              key={option.id}
+              error={errors.options?.[option.id]}
+              isChecked={checkedOptionIds.includes(option.id)}
+              onProductSelect={(productId) => selectProduct(option.id, productId)}
+              onToggle={() => toggleOption(option)}
+              option={option}
+              selectedProductId={selectedProductIds[option.id]}
+            />
+          ))}
         </Section>
 
         <Section title="추가 요청">
           <TextInput
             accessibilityLabel="추가 요청 사항"
-            className="mt-2 min-h-28 rounded-2xl border border-stone-100 bg-white p-4 text-base text-ink-900"
+            className="min-h-28 rounded-2xl border border-stone-100 bg-white p-4 text-base text-ink-900"
+            maxLength={2000}
             multiline
+            onChangeText={setNotes}
             placeholder="꼭 반영할 조건, 걱정되는 부분, 원하는 분위기를 적어주세요."
             placeholderTextColor="#84908D"
             textAlignVertical="top"
             value={notes}
-            onChangeText={setNotes}
           />
         </Section>
 
+        <View className="mt-7 rounded-3xl bg-brand-100 p-5">
+          <Text className="text-sm font-semibold text-brand-900">선택 옵션 예상 금액</Text>
+          <Text className="mt-2 text-3xl font-bold text-brand-900">
+            {formatPrice(selectedTotal)}
+          </Text>
+          <Text className="mt-2 text-xs leading-5 text-ink-600">
+            선택한 제품 단가의 합계이며, 최종 공사 견적은 관리자 확인 후 안내됩니다.
+          </Text>
+        </View>
+
+        {errors.submission && (
+          <Text accessibilityRole="alert" className="mt-4 text-sm font-semibold text-red-600">
+            {errors.submission}
+          </Text>
+        )}
         <Pressable
           accessibilityLabel="견적 요청 제출"
-          className="mt-2 min-h-14 items-center justify-center rounded-2xl bg-brand-900 active:opacity-80"
-          onPress={submitRequest}
+          className={`mt-5 min-h-14 items-center justify-center rounded-2xl ${
+            submitMutation.isPending || quoteOptionsQuery.isPending
+              ? 'bg-stone-100'
+              : 'bg-brand-900 active:opacity-80'
+          }`}
+          disabled={submitMutation.isPending || quoteOptionsQuery.isPending}
+          onPress={() => void submitRequest()}
         >
-          <Text className="text-base font-bold text-white">견적 요청 보내기</Text>
+          {submitMutation.isPending ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text
+              className={`text-base font-bold ${
+                quoteOptionsQuery.isPending ? 'text-ink-500' : 'text-white'
+              }`}
+            >
+              견적 요청 보내기
+            </Text>
+          )}
         </Pressable>
       </ScrollView>
+
+      <AddressSearchModal
+        onClose={() => setIsAddressSearchVisible(false)}
+        onConfirm={(address) => {
+          setRegion(address);
+          setErrors((current) => ({ ...current, address: undefined }));
+          setIsAddressSearchVisible(false);
+        }}
+        visible={isAddressSearchVisible}
+      />
+
       <Modal
         animationType="fade"
         onRequestClose={() => undefined}
@@ -220,9 +448,9 @@ function CustomerRequestScreen(): React.JSX.Element {
       >
         <View className="flex-1 items-center justify-center bg-black/50 px-6">
           <View accessibilityRole="alert" className="w-full max-w-md rounded-3xl bg-white p-6">
-            <Text className="text-xl font-bold text-ink-900">견적이 접수 되었습니다.</Text>
+            <Text className="text-xl font-bold text-ink-900">견적 요청이 완료되었습니다.</Text>
             <Text className="mt-3 text-sm leading-6 text-ink-600">
-              담당자가 배정되면 앱에서 견적과 상담 진행 상황을 확인할 수 있습니다.
+              요청 상태가 접수 완료로 변경되었습니다. 관리자의 확인과 담당자 배정을 기다려 주세요.
             </Text>
             <Pressable
               accessibilityLabel="견적 접수 확인"
@@ -243,120 +471,143 @@ function CustomerRequestScreen(): React.JSX.Element {
 
 function Section({
   title,
+  error,
   children,
 }: {
   title: string;
+  error?: string;
   children: React.ReactNode;
 }): React.JSX.Element {
   return (
     <View className="mt-7">
       <Text className="text-lg font-bold text-ink-900">{title}</Text>
+      {error && (
+        <Text accessibilityRole="alert" className="mt-1 text-sm font-semibold text-red-600">
+          {error}
+        </Text>
+      )}
       <View className="mt-3 gap-4">{children}</View>
     </View>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChangeText,
+function QuoteOptionField({
+  option,
+  isChecked,
+  selectedProductId,
+  error,
+  onToggle,
+  onProductSelect,
 }: {
-  label: string;
-  value: string;
-  onChangeText: (value: string) => void;
+  option: IQuoteOption;
+  isChecked: boolean;
+  selectedProductId?: string;
+  error?: string;
+  onToggle: () => void;
+  onProductSelect: (productId: string) => void;
 }): React.JSX.Element {
-  return (
-    <View>
-      <Text className="mb-2 text-sm font-semibold text-ink-900">{label}</Text>
-      <TextInput
-        className="min-h-12 rounded-xl border border-stone-100 bg-white px-4 text-base text-ink-900"
-        value={value}
-        onChangeText={onChangeText}
-      />
-    </View>
-  );
-}
+  const hasProducts = option.products.length > 0;
 
-function ChoiceGroup({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}): React.JSX.Element {
   return (
-    <View>
-      <Text className="text-sm font-semibold text-ink-900">{label}</Text>
-      <View className="mt-2 flex-row flex-wrap gap-2">
-        {options.map((option) => (
-          <Pressable
-            key={option}
-            className={`min-h-10 justify-center rounded-full px-4 ${value === option ? 'bg-brand-900' : 'bg-white border border-stone-100'}`}
-            onPress={() => onChange(option)}
+    <View
+      className={`overflow-hidden rounded-2xl border bg-white ${
+        error ? 'border-red-500' : 'border-stone-100'
+      }`}
+    >
+      <Pressable
+        accessibilityLabel={`${option.name} 옵션 ${isChecked ? '선택 해제' : '선택'}`}
+        className="min-h-14 flex-row items-center px-4 active:bg-stone-50"
+        disabled={!hasProducts}
+        onPress={onToggle}
+      >
+        <Ionicons
+          color={isChecked ? '#176D62' : hasProducts ? '#84908D' : '#C9CECC'}
+          name={isChecked ? 'checkbox' : 'square-outline'}
+          size={24}
+        />
+        <View className="ml-3 flex-1">
+          <Text className={`font-bold ${hasProducts ? 'text-ink-900' : 'text-ink-500'}`}>
+            {option.name}
+          </Text>
+          {!hasProducts && <Text className="mt-1 text-xs text-ink-500">등록된 제품이 없어요.</Text>}
+        </View>
+        {isChecked && <Ionicons color="#84908D" name="chevron-up" size={20} />}
+      </Pressable>
+
+      {isChecked && (
+        <View className="border-t border-stone-100 pb-4 pt-3">
+          <ScrollView
+            contentContainerClassName="gap-3 px-4"
+            horizontal
+            showsHorizontalScrollIndicator={false}
           >
+            {option.products.map((product) => (
+              <ProductCard
+                key={product.id}
+                isSelected={selectedProductId === product.id}
+                onPress={() => onProductSelect(product.id)}
+                product={product}
+              />
+            ))}
+          </ScrollView>
+          {error && (
             <Text
-              className={`text-sm font-semibold ${value === option ? 'text-white' : 'text-ink-600'}`}
+              accessibilityRole="alert"
+              className="mt-3 px-4 text-xs font-semibold text-red-600"
             >
-              {option}
+              {error}
             </Text>
-          </Pressable>
-        ))}
-      </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
 
-function DecisionGroup({
-  label,
-  value,
-  onChange,
-  selectedLabel,
-}: {
-  label: string;
-  value: ESelectionDecision;
-  onChange: (value: ESelectionDecision) => void;
-  selectedLabel: string;
-}): React.JSX.Element {
-  return (
-    <View>
-      <Text className="text-sm font-semibold text-ink-900">{label}</Text>
-      <View className="mt-2 flex-row flex-wrap gap-2">
-        <DecisionChip
-          label={selectedLabel}
-          selected={value === ESelectionDecision.SELECTED}
-          onPress={() => onChange(ESelectionDecision.SELECTED)}
-        />
-        <DecisionChip
-          label="상담 후 결정"
-          selected={value === ESelectionDecision.CONSULTATION_REQUIRED}
-          onPress={() => onChange(ESelectionDecision.CONSULTATION_REQUIRED)}
-        />
-      </View>
-    </View>
-  );
-}
-
-function DecisionChip({
-  label,
-  selected,
+function ProductCard({
+  product,
+  isSelected,
   onPress,
 }: {
-  label: string;
-  selected: boolean;
+  product: IQuoteOptionProduct;
+  isSelected: boolean;
   onPress: () => void;
 }): React.JSX.Element {
   return (
     <Pressable
-      className={`min-h-10 justify-center rounded-full px-4 ${selected ? 'bg-brand-900' : 'border border-stone-100 bg-white'}`}
+      accessibilityLabel={`${product.name} ${formatPrice(product.price)} 선택`}
+      className={`w-44 overflow-hidden rounded-2xl border ${
+        isSelected ? 'border-2 border-brand-700 bg-brand-100' : 'border-stone-100 bg-white'
+      }`}
       onPress={onPress}
     >
-      <Text className={`text-sm font-semibold ${selected ? 'text-white' : 'text-ink-600'}`}>
-        {label}
-      </Text>
+      {product.url ? (
+        <Image
+          accessibilityLabel={`${product.name} 제품 이미지`}
+          className="h-28 w-full"
+          resizeMode="cover"
+          source={{ uri: product.url }}
+        />
+      ) : (
+        <View className="h-28 w-full items-center justify-center bg-stone-50">
+          <Ionicons color="#84908D" name="image-outline" size={28} />
+        </View>
+      )}
+      <View className="p-3">
+        <View className="flex-row items-start justify-between gap-2">
+          <Text className="flex-1 text-sm font-bold text-ink-900" numberOfLines={2}>
+            {product.name}
+          </Text>
+          <Ionicons
+            color={isSelected ? '#176D62' : '#C9CECC'}
+            name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+            size={20}
+          />
+        </View>
+        <Text className="mt-2 text-sm font-semibold text-brand-900">
+          + {formatPrice(product.price)}
+        </Text>
+      </View>
     </Pressable>
   );
 }

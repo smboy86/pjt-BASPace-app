@@ -8,6 +8,7 @@ import {
 
 interface IRemodelRequestState {
   requests: IRemodelRequest[];
+  addRequest: (request: IRemodelRequest) => void;
   createRequest: (input: TCreateRemodelRequestInput) => IRemodelRequest;
   updateRequest: (requestId: string, input: TUpdateRemodelRequestInput) => void;
   setStatus: (requestId: string, status: ERemodelRequestStatus) => void;
@@ -18,6 +19,11 @@ const createId = () => `request-${Date.now()}-${Math.random().toString(36).slice
 
 export const useRemodelRequestStore = create<IRemodelRequestState>((set, get) => ({
   requests: [],
+  addRequest: (request) => {
+    set((state) => ({
+      requests: [...state.requests.filter((item) => item.id !== request.id), request],
+    }));
+  },
   createRequest: (input) => {
     const now = new Date().toISOString();
     const request: IRemodelRequest = {

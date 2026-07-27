@@ -5,7 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
 import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
-import { ERemodelRequestStatus, useRemodelRequestStore } from '@/entities/remodel-request';
+import {
+  ERemodelRequestStatus,
+  getRemodelBudgetLabel,
+  useRemodelRequestStore,
+} from '@/entities/remodel-request';
 import {
   EConsultationMessageType,
   useRequestConsultationStore,
@@ -85,8 +89,8 @@ export default function RequestDetailScreen(): React.JSX.Element {
           {request.region} · {request.bathroomType}
         </Text>
         <Text className="mt-2 text-sm text-ink-600">
-          {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} · {request.budgetRange} ·{' '}
-          {request.desiredSchedule}
+          {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
+          {getRemodelBudgetLabel(request.budgetRange)} · {request.desiredSchedule}
         </Text>
 
         <View className="mt-6 rounded-3xl bg-white p-5">
