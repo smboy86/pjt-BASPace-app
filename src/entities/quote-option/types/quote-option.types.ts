@@ -9,6 +9,7 @@ export interface IQuoteOptionProduct {
   price: number;
   storagePath: string;
   url: string;
+  createdAt: string;
 }
 
 export interface IQuoteOption {

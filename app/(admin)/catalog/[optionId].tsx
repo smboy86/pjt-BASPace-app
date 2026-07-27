@@ -37,7 +37,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
     if (!option) return;
     reset({ name: option.name, displayOrder: String(option.displayOrder), formType: option.formType });
     setProducts(option.products.map((product) => ({
-      id: product.id, key: product.id, name: product.name, price: product.price, priceText: formatPriceInput(String(product.price)),
+      id: product.id, key: product.id, name: product.name, price: product.price, priceText: formatPriceInput(String(product.price)), createdAt: product.createdAt,
       image: product.storagePath ? { key: product.id, kind: 'stored', storagePath: product.storagePath, uri: product.url } : null,
     })));
     setProductsDirty(false);
@@ -45,7 +45,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
 
   const addProduct = (): void => {
     setSaveSuccess(false); setProductError(null); setProductsDirty(true);
-    setProducts((current) => [...current, { key: `new-${Date.now()}`, name: '', price: 0, priceText: '', image: null }]);
+    setProducts((current) => [...current, { key: `new-${Date.now()}`, name: '', price: 0, priceText: '', createdAt: new Date().toISOString(), image: null }]);
   };
   const changeProduct = (key: string, patch: Partial<TEditableProduct>): void => {
     setSaveSuccess(false); setProductError(null); setProductsDirty(true);

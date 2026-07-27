@@ -61,6 +61,7 @@ const createInput = (assets: ImagePickerAsset[]) => ({
     key: `new-${index}`,
     name: `제품 ${index + 1}`,
     price: 0,
+    createdAt: `2026-07-27T00:00:0${index}.000Z`,
     image: { key: `new-image-${index}`, kind: 'new' as const, asset, uri: asset.uri },
   })),
 });

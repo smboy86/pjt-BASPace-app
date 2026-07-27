@@ -20,6 +20,7 @@ export interface IQuoteOptionEditableProduct {
   key: string;
   name: string;
   price: number;
+  createdAt: string;
   image: TQuoteOptionEditableProductImage | null;
 }
 
