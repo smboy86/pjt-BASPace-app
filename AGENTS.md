@@ -570,11 +570,14 @@ For store deployment key paths, package ID rules, localized app names, privacy/s
 
 ## Branch Strategy
 
-```text
-main       <- production
-devel      <- development
-feature/*  <- feature work
-```
+Use `main` as the default working and publishing branch.
+
+- Unless the user explicitly requests another branch or pull request, work directly on `main`.
+- Before starting Git work, switch to `main` and run `git pull --ff-only origin main`.
+- Commit intended changes on `main` and push directly with `git push origin main`.
+- Do not create `devel`, `feature/*`, or `agent/*` branches by default.
+- If `main` cannot be updated with a fast-forward pull or the push is rejected, stop and inspect the
+  divergence. Do not force-push or rewrite history without explicit user approval.
 
 ## Common Commands
 
