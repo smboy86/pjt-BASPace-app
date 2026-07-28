@@ -1,0 +1,298 @@
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
+import dayjs from 'dayjs';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ERemodelRequestStatus, getRemodelBudgetLabel } from '@/entities/remodel-request';
+import {
+  ADMIN_REQUEST_TABS,
+  getAdminRequestTabId,
+  type IAdminRemodelRequestListItem,
+  type TAdminRequestTabId,
+  useAdminRemodelRequests,
+} from '@/features/admin-request-management';
+
+interface IStatusPresentation {
+  label: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = {
+  [ERemodelRequestStatus.DRAFT]: {
+    label: '작성 중',
+    backgroundColor: '#EEEAE1',
+    textColor: '#62706D',
+  },
+  [ERemodelRequestStatus.SUBMITTED]: {
+    label: '매칭 대기',
+    backgroundColor: '#F7E7D3',
+    textColor: '#8A4A12',
+  },
+  [ERemodelRequestStatus.MATCHED]: {
+    label: '업체 매칭 완료',
+    backgroundColor: '#DCEFEA',
+    textColor: '#176D62',
+  },
+  [ERemodelRequestStatus.IN_CONSULTATION]: {
+    label: '견적 협의 중',
+    backgroundColor: '#DCEFEA',
+    textColor: '#176D62',
+  },
+  [ERemodelRequestStatus.FINAL_QUOTE_SENT]: {
+    label: '최종 견적 도착',
+    backgroundColor: '#F7E7D3',
+    textColor: '#8A4A12',
+  },
+  [ERemodelRequestStatus.CONFIRMED]: {
+    label: '최종 컨펌',
+    backgroundColor: '#E1F0E8',
+    textColor: '#277A57',
+  },
+  [ERemodelRequestStatus.CLOSED]: {
+    label: '상담 종료',
+    backgroundColor: '#EEEAE1',
+    textColor: '#62706D',
+  },
+};
+
+export default function AdminRequestListScreen(): React.JSX.Element {
+  const [activeTab, setActiveTab] = useState<TAdminRequestTabId>('new');
+  const requestsQuery = useAdminRemodelRequests();
+  const requests = useMemo(() => requestsQuery.data ?? [], [requestsQuery.data]);
+  const visibleRequests = useMemo(
+    () => requests.filter((request) => getAdminRequestTabId(request.status) === activeTab),
+    [activeTab, requests],
+  );
+  const activeTabLabel =
+    ADMIN_REQUEST_TABS.find((tab) => tab.id === activeTab)?.label ?? '견적 요청';
+
+  return (
+    <SafeAreaView className="flex-1 bg-sand-50">
+      <View className="flex-row items-center px-4 py-2">
+        <Pressable
+          accessibilityLabel="관리자 홈으로 돌아가기"
+          accessibilityRole="button"
+          className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" color="#1D2725" size={24} />
+        </Pressable>
+        <Text className="ml-1 flex-1 text-xl font-bold text-ink-900">견적 관리</Text>
+      </View>
+
+      <View className="px-5 pb-4 pt-3">
+        <Text className="text-sm leading-6 text-ink-600">
+          고객이 신청한 견적을 확인하고 업체와 담당자를 배정하세요.
+        </Text>
+      </View>
+
+      <AdminRequestTabs activeTab={activeTab} requests={requests} onSelect={setActiveTab} />
+
+      {requestsQuery.isLoading ? (
+        <AdminRequestListLoading />
+      ) : requestsQuery.isError && !requestsQuery.data ? (
+        <AdminRequestListError onRetry={() => void requestsQuery.refetch()} />
+      ) : (
+        <>
+          {requestsQuery.isError ? (
+            <View
+              accessibilityRole="alert"
+              className="mx-5 mb-3 flex-row items-center rounded-xl bg-red-50 px-4 py-3"
+            >
+              <Ionicons name="alert-circle-outline" color="#B7433D" size={18} />
+              <Text className="ml-2 flex-1 text-xs font-semibold text-red-700">
+                최신 정보를 불러오지 못해 이전 목록을 표시하고 있어요.
+              </Text>
+            </View>
+          ) : null}
+          <View className="flex-row items-center justify-between px-5 pb-3 pt-4">
+            <View>
+              <Text className="text-xs font-semibold text-brand-700">현재 목록</Text>
+              <Text className="mt-0.5 text-lg font-bold text-ink-900">{activeTabLabel}</Text>
+            </View>
+            <Text className="text-sm font-bold text-ink-600">{visibleRequests.length}건</Text>
+          </View>
+          <FlashList
+            contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 20 }}
+            data={visibleRequests}
+            keyExtractor={(request) => request.id}
+            refreshControl={
+              <RefreshControl
+                refreshing={requestsQuery.isRefetching}
+                tintColor="#176D62"
+                onRefresh={() => void requestsQuery.refetch()}
+              />
+            }
+            renderItem={({ item }) => <AdminRequestCard request={item} />}
+            ListEmptyComponent={<AdminRequestListEmpty tabLabel={activeTabLabel} />}
+          />
+        </>
+      )}
+    </SafeAreaView>
+  );
+}
+
+function AdminRequestTabs({
+  activeTab,
+  requests,
+  onSelect,
+}: {
+  activeTab: TAdminRequestTabId;
+  requests: IAdminRemodelRequestListItem[];
+  onSelect: (tab: TAdminRequestTabId) => void;
+}): React.JSX.Element {
+  return (
+    <View className="w-full flex-row border-y border-stone-100 bg-white">
+      {ADMIN_REQUEST_TABS.map((tab, index) => {
+        const isSelected = activeTab === tab.id;
+        const count = requests.filter((request) => tab.statuses.includes(request.status)).length;
+
+        return (
+          <Pressable
+            key={tab.id}
+            accessibilityLabel={`${tab.label}, ${count}건`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isSelected }}
+            className={`min-h-16 flex-1 items-center justify-center border-b-2 px-1 ${
+              isSelected
+                ? 'border-b-brand-700 bg-brand-100'
+                : 'border-b-transparent bg-white active:bg-sand-50'
+            } ${index > 0 ? 'border-l border-l-stone-100' : ''}`}
+            onPress={() => onSelect(tab.id)}
+          >
+            <Text
+              className={`text-xs font-bold ${isSelected ? 'text-brand-900' : 'text-ink-600'}`}
+              numberOfLines={1}
+            >
+              {tab.label}
+            </Text>
+            <Text
+              className={`mt-1 text-xs font-semibold ${
+                isSelected ? 'text-brand-700' : 'text-ink-600'
+              }`}
+            >
+              {count}건
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function AdminRequestListLoading(): React.JSX.Element {
+  return (
+    <View className="flex-1 items-center justify-center px-6">
+      <ActivityIndicator color="#176D62" size="large" />
+      <Text className="mt-4 text-sm font-semibold text-ink-600">고객 견적을 불러오고 있어요.</Text>
+    </View>
+  );
+}
+
+function AdminRequestListError({ onRetry }: { onRetry: () => void }): React.JSX.Element {
+  return (
+    <View className="flex-1 items-center justify-center px-5">
+      <View
+        accessibilityRole="alert"
+        className="w-full items-center rounded-3xl border border-stone-100 bg-white p-6"
+      >
+        <Ionicons name="cloud-offline-outline" color="#B7433D" size={34} />
+        <Text className="mt-4 text-lg font-bold text-ink-900">고객 견적을 불러오지 못했어요.</Text>
+        <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
+          관리자 로그인과 네트워크 상태를 확인한 뒤 다시 시도해 주세요.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          className="mt-5 min-h-11 items-center justify-center rounded-xl bg-brand-900 px-6 active:opacity-80"
+          onPress={onRetry}
+        >
+          <Text className="font-bold text-white">다시 시도</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function AdminRequestListEmpty({ tabLabel }: { tabLabel: string }): React.JSX.Element {
+  return (
+    <View className="mt-16 items-center rounded-3xl border border-stone-100 bg-white p-7">
+      <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">
+        <Ionicons name="document-text-outline" color="#176D62" size={28} />
+      </View>
+      <Text className="mt-4 text-lg font-bold text-ink-900">{tabLabel}이 없어요.</Text>
+      <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
+        다른 상태 탭을 확인하거나 목록을 아래로 당겨 새로고침해 주세요.
+      </Text>
+    </View>
+  );
+}
+
+function AdminRequestCard({
+  request,
+}: {
+  request: IAdminRemodelRequestListItem;
+}): React.JSX.Element {
+  const status = STATUS_PRESENTATION[request.status];
+  const submittedAt = request.submittedAt ?? request.createdAt;
+  const partnerSummary =
+    request.assignedPartnerNames.length > 0
+      ? request.assignedPartnerNames.join(', ')
+      : '배정 업체 없음';
+
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${request.customerName}, ${status.label}, ${request.region}, ${getRemodelBudgetLabel(request.budgetRange)}`}
+      className="mb-3 rounded-2xl border border-stone-100 bg-white p-4"
+    >
+      <View className="flex-row items-start">
+        <View className="flex-1 pr-3">
+          <Text className="text-base font-bold text-ink-900" numberOfLines={1}>
+            {request.customerName}
+          </Text>
+          <Text className="mt-1 text-xs font-semibold text-brand-700">
+            접수 {dayjs(submittedAt).format('YYYY.MM.DD')}
+          </Text>
+        </View>
+        <View
+          className="rounded-full px-2.5 py-1"
+          style={{ backgroundColor: status.backgroundColor }}
+        >
+          <Text className="text-xs font-bold" style={{ color: status.textColor }}>
+            {status.label}
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-4 border-t border-stone-100 pt-3">
+        <RequestInfoRow
+          icon="location-outline"
+          label={`${request.region} ${request.addressDetail}`.trim()}
+        />
+        <RequestInfoRow icon="wallet-outline" label={getRemodelBudgetLabel(request.budgetRange)} />
+        <RequestInfoRow icon="calendar-outline" label={`희망 일정 ${request.desiredSchedule}`} />
+        <RequestInfoRow icon="business-outline" label={partnerSummary} />
+      </View>
+    </View>
+  );
+}
+
+function RequestInfoRow({
+  icon,
+  label,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+}): React.JSX.Element {
+  return (
+    <View className="mb-2 flex-row items-center">
+      <Ionicons name={icon} color="#84908D" size={16} />
+      <Text className="ml-2 flex-1 text-sm text-ink-600" numberOfLines={2}>
+        {label}
+      </Text>
+    </View>
+  );
+}

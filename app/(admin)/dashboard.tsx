@@ -27,7 +27,8 @@ const ADMIN_MENU_SECTIONS: IAdminMenuSection[] = [
       {
         icon: 'document-text-outline',
         title: '견적 관리',
-        description: '전체 견적 요청 조회 기능을 준비하고 있습니다.',
+        description: '전체 고객 견적을 상태별로 확인합니다.',
+        destination: '/(admin)/requests',
       },
       {
         icon: 'business-outline',
