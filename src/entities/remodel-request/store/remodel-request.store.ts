@@ -8,6 +8,8 @@ import {
 
 interface IRemodelRequestState {
   requests: IRemodelRequest[];
+  hydrateRequests: (requests: IRemodelRequest[]) => void;
+  clearRequests: () => void;
   addRequest: (request: IRemodelRequest) => void;
   createRequest: (input: TCreateRemodelRequestInput) => IRemodelRequest;
   updateRequest: (requestId: string, input: TUpdateRemodelRequestInput) => void;
@@ -19,6 +21,25 @@ const createId = () => `request-${Date.now()}-${Math.random().toString(36).slice
 
 export const useRemodelRequestStore = create<IRemodelRequestState>((set, get) => ({
   requests: [],
+  hydrateRequests: (requests) => {
+    set((state) => {
+      const localPhotosByRequestId = new Map(
+        state.requests
+          .filter((request) => request.photos.length > 0)
+          .map((request) => [request.id, request.photos] as const),
+      );
+
+      return {
+        requests: requests.map((request) => ({
+          ...request,
+          photos: localPhotosByRequestId.get(request.id) ?? request.photos,
+        })),
+      };
+    });
+  },
+  clearRequests: () => {
+    set({ requests: [] });
+  },
   addRequest: (request) => {
     set((state) => ({
       requests: [...state.requests.filter((item) => item.id !== request.id), request],

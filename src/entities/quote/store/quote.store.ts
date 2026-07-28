@@ -3,6 +3,7 @@ import { EQuoteStatus, IQuote, TCreateQuoteInput } from '../types';
 
 interface IQuoteState {
   quotes: IQuote[];
+  clearQuotes: () => void;
   createQuote: (input: TCreateQuoteInput) => IQuote;
   sendQuote: (quoteId: string, isFinal: boolean) => void;
   confirmQuote: (quoteId: string) => void;
@@ -13,6 +14,7 @@ const createId = () => `quote-${Date.now()}-${Math.random().toString(36).slice(2
 
 export const useQuoteStore = create<IQuoteState>((set, get) => ({
   quotes: [],
+  clearQuotes: () => set({ quotes: [] }),
   createQuote: (input) => {
     const now = new Date().toISOString();
     const subtotal = input.lineItems.reduce((sum, lineItem) => sum + lineItem.amount, 0);

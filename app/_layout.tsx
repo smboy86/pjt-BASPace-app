@@ -4,16 +4,30 @@ import { Stack, router, useRootNavigationState, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { QueryProvider, ThemeProvider } from '@core/providers';
 import { toastConfig, ErrorBoundary } from '@shared/ui';
+import { useQuoteStore } from '@/entities/quote';
+import { useRemodelRequestStore } from '@/entities/remodel-request';
 import { useAuthSession } from '@/features/auth';
+import { useRequestConsultationStore } from '@/features/request-consultation';
 import '../global.css';
 
 function AuthenticatedNavigator(): React.JSX.Element {
   const segments = useSegments();
   const navigationState = useRootNavigationState();
-  const { user, isAuthenticated, isLoading, error, retry } = useAuthSession();
+  const queryClient = useQueryClient();
+  const { user, status, isAuthenticated, isLoading, error, retry } = useAuthSession();
+
+  useEffect(() => {
+    if (status !== 'unauthenticated') return;
+
+    queryClient.clear();
+    useRemodelRequestStore.getState().clearRequests();
+    useQuoteStore.getState().clearQuotes();
+    useRequestConsultationStore.getState().clearMessages();
+  }, [queryClient, status]);
 
   useEffect(() => {
     if (!navigationState?.key || isLoading || error) return;

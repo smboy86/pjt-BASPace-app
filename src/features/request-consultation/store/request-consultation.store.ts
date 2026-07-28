@@ -3,12 +3,14 @@ import { IConsultationMessage, ICreateConsultationMessageInput } from '../types'
 
 interface IRequestConsultationState {
   messages: IConsultationMessage[];
+  clearMessages: () => void;
   addMessage: (input: ICreateConsultationMessageInput) => IConsultationMessage;
   getMessagesByRequestId: (requestId: string) => IConsultationMessage[];
 }
 
 export const useRequestConsultationStore = create<IRequestConsultationState>((set, get) => ({
   messages: [],
+  clearMessages: () => set({ messages: [] }),
   addMessage: (input) => {
     const message: IConsultationMessage = {
       ...input,

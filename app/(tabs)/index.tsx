@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import {
   useRemodelRequestStore,
 } from '@/entities/remodel-request';
 import { useQuoteStore } from '@/entities/quote';
+import { useCustomerRemodelRequests } from '@/features/view-remodel-requests';
 
 const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.DRAFT]: '작성 중',
@@ -24,8 +25,12 @@ export default function HomeScreen(): React.JSX.Element {
   const { user } = useAuthSession();
   const requests = useRemodelRequestStore((state) => state.requests);
   const quotes = useQuoteStore((state) => state.quotes);
+  const requestsQuery = useCustomerRemodelRequests(user?.id ?? '');
 
-  const visibleRequests = user ? requests.filter((request) => request.customerId === user.id) : [];
+  const requestSource = requestsQuery.data ?? requests;
+  const visibleRequests = user
+    ? requestSource.filter((request) => request.customerId === user.id)
+    : [];
 
   const openAction = (): void => {
     router.navigate('/(tabs)/explore');
@@ -67,7 +72,30 @@ export default function HomeScreen(): React.JSX.Element {
         </View>
 
         <View className="mt-4 gap-3">
-          {visibleRequests.length === 0 ? (
+          {requestsQuery.isPending ? (
+            <View className="items-center rounded-2xl border border-stone-100 bg-white p-6">
+              <ActivityIndicator color="#176D62" />
+              <Text className="mt-3 text-sm font-semibold text-ink-600">
+                저장된 견적 요청을 불러오고 있어요.
+              </Text>
+            </View>
+          ) : requestsQuery.isError && !requestsQuery.data ? (
+            <View className="rounded-2xl border border-red-200 bg-white p-6">
+              <Text accessibilityRole="alert" className="text-base font-bold text-ink-900">
+                견적 요청을 불러오지 못했어요.
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ink-600">
+                네트워크 연결을 확인한 뒤 다시 시도해 주세요.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                className="mt-4 min-h-11 items-center justify-center rounded-xl bg-brand-900"
+                onPress={() => void requestsQuery.refetch()}
+              >
+                <Text className="font-bold text-white">다시 시도</Text>
+              </Pressable>
+            </View>
+          ) : visibleRequests.length === 0 ? (
             <View className="rounded-2xl border border-dashed border-stone-100 bg-white p-6">
               <Text className="text-base font-bold text-ink-900">아직 요청이 없어요.</Text>
               <Text className="mt-1 text-sm leading-5 text-ink-600">

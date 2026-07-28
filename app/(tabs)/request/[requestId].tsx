@@ -1,5 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,13 +22,16 @@ import {
   EConsultationMessageType,
   useRequestConsultationStore,
 } from '@/features/request-consultation';
+import { useCustomerRemodelRequests } from '@/features/view-remodel-requests';
 
 export default function RequestDetailScreen(): React.JSX.Element {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { user } = useAuthSession();
-  const request = useRemodelRequestStore((state) =>
-    state.requests.find((item) => item.id === requestId),
+  const requestsQuery = useCustomerRemodelRequests(user?.id ?? '');
+  const localRequest = useRemodelRequestStore((state) =>
+    state.requests.find((item) => item.id === requestId && item.customerId === user?.id),
   );
+  const request = localRequest ?? requestsQuery.data?.find((item) => item.id === requestId);
   const updateRequest = useRemodelRequestStore((state) => state.updateRequest);
   const allQuotes = useQuoteStore((state) => state.quotes);
   const confirmQuote = useQuoteStore((state) => state.confirmQuote);
@@ -39,6 +50,37 @@ export default function RequestDetailScreen(): React.JSX.Element {
     () => [...quotes].sort((first, second) => second.version - first.version)[0],
     [quotes],
   );
+
+  if (requestsQuery.isPending && !request) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-sand-50 px-6">
+        <ActivityIndicator color="#176D62" size="large" />
+        <Text className="mt-4 text-sm font-semibold text-ink-600">
+          견적 요청을 불러오고 있어요.
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (requestsQuery.isError && !request) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-sand-50 px-6">
+        <Text accessibilityRole="alert" className="text-lg font-bold text-ink-900">
+          견적 요청을 불러오지 못했어요.
+        </Text>
+        <Text className="mt-2 text-center text-sm leading-5 text-ink-600">
+          네트워크 연결을 확인한 뒤 다시 시도해 주세요.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          className="mt-4 min-h-11 items-center justify-center rounded-xl bg-brand-900 px-5"
+          onPress={() => void requestsQuery.refetch()}
+        >
+          <Text className="font-bold text-white">다시 시도</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
   if (!request) {
     return (
