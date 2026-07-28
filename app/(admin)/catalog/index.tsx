@@ -93,7 +93,7 @@ function QuoteOptionListEmpty(): React.JSX.Element {
     <View className="flex-1 items-center justify-center">
       <View className="w-full items-center rounded-3xl border border-stone-100 bg-white p-7">
         <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">
-          <Ionicons name="options-outline" color="#176D62" size={28} />
+          <Ionicons name="grid-outline" color="#176D62" size={28} />
         </View>
         <Text className="mt-4 text-lg font-bold text-ink-900">등록된 견적 옵션이 없어요.</Text>
       </View>
@@ -106,9 +106,10 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
 
   return (
     <Pressable
+      accessibilityLabel={`${option.name}, ${option.code}, ${typeLabel}, 등록 제품 ${option.products.length}개`}
       accessibilityHint="견적 옵션 상세 수정 화면으로 이동합니다."
       accessibilityRole="button"
-      className="mb-3 rounded-2xl border border-stone-100 bg-white p-4 active:bg-brand-100"
+      className="mb-3 min-h-16 justify-center rounded-2xl border border-stone-100 bg-white px-4 py-3 active:bg-brand-100"
       onPress={() =>
         router.push({
           pathname: '/(admin)/catalog/[optionId]',
@@ -116,30 +117,21 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
         })
       }
     >
-      <View className="flex-row items-start">
-        <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-100">
-          <Ionicons name="options" color="#176D62" size={22} />
+      <View className="flex-row items-center">
+        <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
+          <Ionicons name="grid-outline" color="#176D62" size={20} />
         </View>
-        <View className="ml-3 flex-1">
-          <View className="flex-row items-center">
-            <Text className="flex-1 text-base font-bold text-ink-900">{option.name}</Text>
-            <View className="rounded-full bg-sand-50 px-2.5 py-1">
-              <Text className="text-xs font-semibold text-ink-600">{typeLabel}</Text>
-            </View>
-          </View>
-          <Text className="mt-1 text-xs font-semibold text-brand-700">{option.code}</Text>
+        <Text className="ml-3 flex-1 text-sm font-bold text-ink-900" numberOfLines={1}>
+          {option.name}
+          <Text className="text-xs font-semibold text-brand-700"> · {option.code}</Text>
+        </Text>
+        <View className="ml-2 rounded-full bg-sand-50 px-2.5 py-1">
+          <Text className="text-xs font-semibold text-ink-600">{typeLabel}</Text>
         </View>
-        <Ionicons className="ml-2" name="chevron-forward" color="#84908D" size={20} />
-      </View>
-      <View className="mt-4 flex-row border-t border-stone-100 pt-3">
-        <View className="flex-1">
-          <Text className="text-xs text-ink-600">표시 순서</Text>
-          <Text className="mt-1 text-sm font-bold text-ink-900">{option.displayOrder}</Text>
-        </View>
-        <View className="flex-1">
-          <Text className="text-xs text-ink-600">등록 제품</Text>
-          <Text className="mt-1 text-sm font-bold text-ink-900">{option.products.length}개</Text>
-        </View>
+        <Text className="ml-2 text-xs font-semibold text-ink-600">
+          제품 {option.products.length}개
+        </Text>
+        <Ionicons className="ml-1.5" name="chevron-forward" color="#84908D" size={18} />
       </View>
     </Pressable>
   );
