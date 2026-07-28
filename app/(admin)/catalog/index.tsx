@@ -102,7 +102,8 @@ function QuoteOptionListEmpty(): React.JSX.Element {
 }
 
 function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.Element {
-  const typeLabel = option.formType === EQuoteOptionFormType.ADVANCED ? '고급형' : '단순형';
+  const isAdvanced = option.formType === EQuoteOptionFormType.ADVANCED;
+  const typeLabel = isAdvanced ? '고급형' : '단순형';
 
   return (
     <Pressable
@@ -125,8 +126,16 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
           {option.name}
           <Text className="text-xs font-semibold text-brand-700"> · {option.code}</Text>
         </Text>
-        <View className="ml-2 rounded-full bg-sand-50 px-2.5 py-1">
-          <Text className="text-xs font-semibold text-ink-600">{typeLabel}</Text>
+        <View
+          className={`ml-2 rounded-full px-2.5 py-1 ${
+            isAdvanced ? 'bg-brand-100' : 'bg-stone-100'
+          }`}
+        >
+          <Text
+            className={`text-xs font-semibold ${isAdvanced ? 'text-brand-700' : 'text-ink-600'}`}
+          >
+            {typeLabel}
+          </Text>
         </View>
         <Text className="ml-2 text-xs font-semibold text-ink-600">
           제품 {option.products.length}개
