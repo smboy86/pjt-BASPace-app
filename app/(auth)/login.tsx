@@ -14,6 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLogin } from '@/features/auth';
 
+const TEMP_LOGIN_ACCOUNTS = [
+  { label: '고객', email: 'smboy86@gmail.com', password: 'Qwer1234$' },
+  { label: '업체', email: 'aaa@aaa.aaa', password: 'qwer1234$' },
+  { label: '관리자', email: 'smboy86@naver.com', password: 'qwer1234' },
+] as const;
+
 export default function LoginScreen(): React.JSX.Element {
   const login = useLogin();
   const [email, setEmail] = useState('');
@@ -28,6 +34,13 @@ export default function LoginScreen(): React.JSX.Element {
 
   const updatePassword = (value: string): void => {
     setPassword(value);
+    setValidationError('');
+    login.reset();
+  };
+
+  const fillTempAccount = (account: (typeof TEMP_LOGIN_ACCOUNTS)[number]): void => {
+    setEmail(account.email);
+    setPassword(account.password);
     setValidationError('');
     login.reset();
   };
@@ -77,7 +90,29 @@ export default function LoginScreen(): React.JSX.Element {
           </View>
 
           <View className="rounded-3xl border border-stone-100 bg-white p-5">
-            <Text className="text-sm font-semibold text-ink-900">이메일</Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm font-semibold text-ink-900">이메일</Text>
+              {__DEV__ ? (
+                <View className="flex-row gap-1">
+                  {TEMP_LOGIN_ACCOUNTS.map((account) => (
+                    <Pressable
+                      key={account.label}
+                      accessibilityHint="선택한 임시 계정의 이메일과 비밀번호를 입력합니다."
+                      accessibilityLabel={`${account.label} 임시 계정 입력`}
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: login.isPending }}
+                      className={`h-11 items-center justify-center rounded-full border border-brand-700 bg-brand-100 px-3 ${
+                        login.isPending ? 'opacity-50' : 'active:opacity-70'
+                      }`}
+                      disabled={login.isPending}
+                      onPress={() => fillTempAccount(account)}
+                    >
+                      <Text className="text-xs font-bold text-brand-900">{account.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </View>
             <TextInput
               accessibilityLabel="로그인 이메일"
               autoCapitalize="none"
