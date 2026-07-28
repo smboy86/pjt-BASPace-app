@@ -29,26 +29,28 @@ export default function TabLayout(): React.JSX.Element {
       }}
     >
       <Tabs.Screen
+        name="explore"
+        options={{
+          title: '견적요청',
+          tabBarIcon: ({ color, size }) => <TabIcon name="add-circle" color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: '내 요청',
+          title: '나의견적',
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="document-text" color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="notifications"
         options={{
-          title: '새 요청',
-          tabBarIcon: ({ color, size }) => <TabIcon name="add-circle" color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: '내 정보',
-          tabBarIcon: ({ color, size }) => <TabIcon name="person" color={color} size={size} />,
+          title: '알림',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="notifications" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
