@@ -74,7 +74,7 @@ export default function VerifyEmailScreen(): React.JSX.Element {
       <View className="pb-6">
         <Pressable
           accessibilityRole="button"
-          className="min-h-13 items-center justify-center rounded-xl bg-brand-900"
+          className="h-12 items-center justify-center rounded-xl bg-brand-900"
           onPress={() => router.replace('/(auth)/login')}
         >
           <Text className="text-base font-bold text-white">로그인으로 이동</Text>
