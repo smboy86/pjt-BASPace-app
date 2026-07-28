@@ -7,6 +7,7 @@ export interface IQuoteOptionProduct {
   id: string;
   name: string;
   price: number;
+  displayOrder: number;
   storagePath: string;
   url: string;
   createdAt: string;

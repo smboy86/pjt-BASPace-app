@@ -19,6 +19,7 @@ const createSignedProduct = async (
       id: product.id,
       name: product.name,
       price: product.price,
+      displayOrder: product.display_order,
       storagePath: '',
       url: '',
       createdAt: product.created_at,
@@ -35,6 +36,7 @@ const createSignedProduct = async (
     id: product.id,
     name: product.name,
     price: product.price,
+    displayOrder: product.display_order,
     storagePath: product.image_path,
     url: data.signedUrl,
     createdAt: product.created_at,
@@ -66,7 +68,12 @@ export const fetchCustomerQuoteOptions = async (): Promise<IQuoteOption[]> => {
         .eq('is_active', true)
         .order('display_order')
         .order('name'),
-      supabase.from('quote_option_products').select('*').order('created_at').order('id'),
+      supabase
+        .from('quote_option_products')
+        .select('*')
+        .order('display_order')
+        .order('created_at')
+        .order('id'),
     ]);
 
   if (optionsError) throw optionsError;

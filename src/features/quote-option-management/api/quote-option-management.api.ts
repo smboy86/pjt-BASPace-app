@@ -73,10 +73,10 @@ const detectImageMimeType = (buffer: ArrayBuffer): string | null => {
 const createSignedProducts = async (rows: TQuoteOptionProductRow[]): Promise<IQuoteOptionProduct[]> => {
   const storage = getSupabaseClient().storage.from(QUOTE_OPTION_IMAGES_BUCKET);
   return Promise.all(rows.map(async (product) => {
-    if (!product.image_path) return { id: product.id, name: product.name, price: product.price, storagePath: '', url: '', createdAt: product.created_at };
+    if (!product.image_path) return { id: product.id, name: product.name, price: product.price, displayOrder: product.display_order, storagePath: '', url: '', createdAt: product.created_at };
     const { data, error } = await storage.createSignedUrl(product.image_path, SIGNED_URL_SECONDS);
     if (error) throw error;
-    return { id: product.id, name: product.name, price: product.price, storagePath: product.image_path, url: data.signedUrl, createdAt: product.created_at };
+    return { id: product.id, name: product.name, price: product.price, displayOrder: product.display_order, storagePath: product.image_path, url: data.signedUrl, createdAt: product.created_at };
   }));
 };
 
@@ -115,14 +115,14 @@ export const fetchQuoteOptions = async (): Promise<IQuoteOption[]> => {
   const supabase = getSupabaseClient();
   const [{ data: options, error: optionsError }, { data: products, error: productsError }] = await Promise.all([
     supabase.from('quote_option_masters').select('*').order('display_order').order('name'),
-    supabase.from('quote_option_products').select('*').order('created_at').order('id'),
+    supabase.from('quote_option_products').select('*').order('display_order').order('created_at').order('id'),
   ]);
   if (optionsError) throw optionsError;
   if (productsError) throw productsError;
   const productsByOption = new Map<string, IQuoteOptionProduct[]>();
   for (const product of products) {
     const current = productsByOption.get(product.quote_option_id) ?? [];
-    current.push({ id: product.id, name: product.name, price: product.price, storagePath: product.image_path ?? '', url: '', createdAt: product.created_at });
+    current.push({ id: product.id, name: product.name, price: product.price, displayOrder: product.display_order, storagePath: product.image_path ?? '', url: '', createdAt: product.created_at });
     productsByOption.set(product.quote_option_id, current);
   }
   return options.map((row) => mapQuoteOption(row, productsByOption.get(row.id) ?? []));
@@ -132,7 +132,7 @@ export const fetchQuoteOption = async (optionId: string): Promise<IQuoteOption> 
   const supabase = getSupabaseClient();
   const [{ data: option, error: optionError }, { data: products, error: productsError }] = await Promise.all([
     supabase.from('quote_option_masters').select('*').eq('id', optionId).single(),
-    supabase.from('quote_option_products').select('*').eq('quote_option_id', optionId).order('created_at').order('id'),
+    supabase.from('quote_option_products').select('*').eq('quote_option_id', optionId).order('display_order').order('created_at').order('id'),
   ]);
   if (optionError) throw optionError;
   if (productsError) throw productsError;
@@ -154,7 +154,7 @@ export const updateQuoteOption = async (input: IUpdateQuoteOptionInput): Promise
         ? product.image.storagePath
         : await uploadImage(input.optionId, product.image.asset);
       if (product.image.kind === 'new') uploadedPaths.push(imagePath);
-      products.push({ id: product.id ?? null, name: product.name.trim(), price: product.price, image_path: imagePath, created_at: product.createdAt });
+      products.push({ id: product.id ?? null, name: product.name.trim(), price: product.price, image_path: imagePath, created_at: product.createdAt, display_order: product.displayOrder });
     }
     const { error } = await supabase.rpc('update_quote_option_master', {
       target_option_id: input.optionId,

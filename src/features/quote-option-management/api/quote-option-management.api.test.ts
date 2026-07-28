@@ -61,6 +61,7 @@ const createInput = (assets: ImagePickerAsset[]) => ({
     key: `new-${index}`,
     name: `제품 ${index + 1}`,
     price: 0,
+    displayOrder: 2,
     createdAt: `2026-07-27T00:00:0${index}.000Z`,
     image: { key: `new-image-${index}`, kind: 'new' as const, asset, uri: asset.uri },
   })),
@@ -183,5 +184,24 @@ describe('updateQuoteOption image compensation', () => {
 
     expect(mocks.remove).toHaveBeenCalledTimes(2);
     expect(mocks.queueUpsert).toHaveBeenCalledOnce();
+  });
+
+  it('sends duplicate product display orders to the update RPC', async () => {
+    mocks.upload.mockResolvedValue({ error: null });
+    mocks.rpc.mockResolvedValue({ error: new Error('stop after payload inspection') });
+
+    await expect(
+      updateQuoteOption(createInput([createAsset('first'), createAsset('second')])),
+    ).rejects.toMatchObject({ code: 'unknown' });
+
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'update_quote_option_master',
+      expect.objectContaining({
+        target_products: [
+          expect.objectContaining({ display_order: 2 }),
+          expect.objectContaining({ display_order: 2 }),
+        ],
+      }),
+    );
   });
 });
