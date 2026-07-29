@@ -57,7 +57,7 @@ const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = 
     textColor: '#277A57',
   },
   [ERemodelRequestStatus.CLOSED]: {
-    label: '상담 종료',
+    label: '시공 완료',
     backgroundColor: '#EEEAE1',
     textColor: '#62706D',
   },
@@ -126,7 +126,6 @@ export default function AdminRequestListScreen(): React.JSX.Element {
           ) : null}
           <View className="flex-row items-center justify-between px-5 pb-3 pt-4">
             <View>
-              <Text className="text-xs font-semibold text-brand-700">현재 목록</Text>
               <Text className="mt-0.5 text-lg font-bold text-ink-900">{activeTabLabel}</Text>
             </View>
             <Text className="text-sm font-bold text-ink-600">{visibleRequests.length}건</Text>

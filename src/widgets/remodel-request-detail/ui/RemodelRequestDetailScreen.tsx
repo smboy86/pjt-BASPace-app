@@ -30,6 +30,7 @@ import {
   useAssignRemodelRequestPartner,
 } from '@/features/assign-remodel-request-partner';
 import { useAuthSession } from '@/features/auth';
+import { useCompleteRemodelRequest } from '@/features/complete-remodel-request';
 import { useRespondToPartnerRequest } from '@/features/partner-request-management';
 import {
   EConsultationMessageType,
@@ -87,13 +88,13 @@ export function RemodelRequestDetailScreen({
   const confirmAdjustmentMutation = useConfirmAdjustedRemodelRequestQuote();
   const partnerResponseMutation = useRespondToPartnerRequest();
   const resetPartnerResponseMutation = partnerResponseMutation.reset;
+  const completeRequestMutation = useCompleteRemodelRequest();
+  const resetCompleteRequestMutation = completeRequestMutation.reset;
   const [message, setMessage] = useState('');
   const [adjustedAmountInput, setAdjustedAmountInput] = useState('');
   const [assignmentModalVisible, setAssignmentModalVisible] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<IAssignablePartner | null>(null);
-  const assignablePartnersQuery = useAssignablePartners(
-    role === 'admin' && assignmentModalVisible,
-  );
+  const assignablePartnersQuery = useAssignablePartners(role === 'admin' && assignmentModalVisible);
   const assignPartnerMutation = useAssignRemodelRequestPartner();
 
   const quotes = useMemo(
@@ -132,7 +133,8 @@ export function RemodelRequestDetailScreen({
 
   useEffect(() => {
     resetPartnerResponseMutation();
-  }, [request?.id, resetPartnerResponseMutation]);
+    resetCompleteRequestMutation();
+  }, [request?.id, resetCompleteRequestMutation, resetPartnerResponseMutation]);
 
   if (isLoading && !request) {
     return (
@@ -188,8 +190,7 @@ export function RemodelRequestDetailScreen({
       : parsedAdjustedAmount === null || parsedAdjustedAmount > MAX_ESTIMATE_AMOUNT
         ? '0원 이상 1조 원 이하의 금액을 입력해 주세요.'
         : null;
-  const canAdjust =
-    role === 'admin' && request.status === ERemodelRequestStatus.SUBMITTED;
+  const canAdjust = role === 'admin' && request.status === ERemodelRequestStatus.SUBMITTED;
   const adjustmentLockedMessage = request.adjustmentConfirmedAt
     ? '고객이 확인한 견적은 수정할 수 없습니다.'
     : request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT
@@ -200,6 +201,18 @@ export function RemodelRequestDetailScreen({
     assignmentStatus === ERequestPartnerStatus.ASSIGNED &&
     (request.status === ERemodelRequestStatus.MATCHED ||
       request.status === ERemodelRequestStatus.IN_CONSULTATION);
+  const isConstructionInProgress =
+    request.status === ERemodelRequestStatus.IN_CONSULTATION ||
+    request.status === ERemodelRequestStatus.FINAL_QUOTE_SENT;
+  const canCompleteConstruction =
+    isConstructionInProgress &&
+    (role === 'admin' ||
+      (role === 'partner' && assignmentStatus === ERequestPartnerStatus.ACCEPTED));
+  const showCompletionSection =
+    canCompleteConstruction ||
+    ((role === 'admin' || role === 'partner') &&
+      completeRequestMutation.variables === request.id &&
+      (completeRequestMutation.isError || completeRequestMutation.isSuccess));
   const canAssignPartner =
     role === 'admin' &&
     (request.status === ERemodelRequestStatus.SUBMITTED ||
@@ -309,6 +322,16 @@ export function RemodelRequestDetailScreen({
         onPress: () => void respondToPartnerRequest('decline'),
       },
     ]);
+  };
+
+  const handleCompleteConstruction = async (): Promise<void> => {
+    if (!canCompleteConstruction || completeRequestMutation.isPending) return;
+
+    try {
+      await completeRequestMutation.mutateAsync(request.id);
+    } catch {
+      // The mutation error is displayed inline while the completion action remains available.
+    }
   };
 
   return (
@@ -505,8 +528,7 @@ export function RemodelRequestDetailScreen({
                   accessibilityRole="button"
                   accessibilityState={{
                     busy: adjustMutation.isPending,
-                    disabled:
-                      !canAdjust || Boolean(amountError) || adjustMutation.isPending,
+                    disabled: !canAdjust || Boolean(amountError) || adjustMutation.isPending,
                   }}
                   className={`mt-4 min-h-12 items-center justify-center rounded-xl ${
                     !canAdjust || amountError || adjustMutation.isPending
@@ -627,6 +649,56 @@ export function RemodelRequestDetailScreen({
                       ? '종료된 견적에는 더 이상 응답할 수 없습니다.'
                       : '현재 배정 상태를 확인할 수 없습니다.'}
               </Text>
+            )}
+          </View>
+        ) : null}
+
+        {showCompletionSection ? (
+          <View className="mt-5 rounded-3xl border border-stone-100 bg-white p-5">
+            <Text className="text-sm font-semibold text-brand-700">시공 상태</Text>
+            <Text className="mt-2 text-sm leading-6 text-ink-600">
+              시공이 모두 끝났다면 견적을 완료 상태로 변경해 주세요.
+            </Text>
+
+            {completeRequestMutation.isSuccess ? (
+              <View
+                accessibilityRole="alert"
+                className="mt-4 flex-row items-center rounded-xl bg-green-50 px-4 py-3"
+              >
+                <Ionicons name="checkmark-circle" color="#277A57" size={20} />
+                <Text className="ml-2 flex-1 text-sm font-bold text-green-700">
+                  시공 완료 처리를 저장했어요.
+                </Text>
+              </View>
+            ) : (
+              <>
+                {completeRequestMutation.isError ? (
+                  <Text
+                    accessibilityRole="alert"
+                    className="mt-3 text-sm font-semibold text-red-700"
+                  >
+                    시공 완료 처리를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.
+                  </Text>
+                ) : null}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    busy: completeRequestMutation.isPending,
+                    disabled: completeRequestMutation.isPending,
+                  }}
+                  className={`mt-4 min-h-12 items-center justify-center rounded-xl bg-brand-900 ${
+                    completeRequestMutation.isPending ? 'opacity-60' : 'active:opacity-80'
+                  }`}
+                  disabled={completeRequestMutation.isPending}
+                  onPress={() => void handleCompleteConstruction()}
+                >
+                  {completeRequestMutation.isPending ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text className="font-bold text-white">시공 완료</Text>
+                  )}
+                </Pressable>
+              </>
             )}
           </View>
         ) : null}
@@ -764,17 +836,12 @@ function PartnerAssignmentModal({
       visible={visible}
     >
       <View className="flex-1 justify-end bg-black/50">
-        <SafeAreaView
-          className="max-h-[82%] rounded-t-3xl bg-sand-50"
-          edges={['bottom']}
-        >
+        <SafeAreaView className="max-h-[82%] rounded-t-3xl bg-sand-50" edges={['bottom']}>
           <View className="flex-row items-center border-b border-stone-100 px-5 py-4">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
               <Ionicons name="business-outline" color="#176D62" size={21} />
             </View>
-            <Text className="ml-3 flex-1 text-xl font-bold text-ink-900">
-              등록업체 리스트
-            </Text>
+            <Text className="ml-3 flex-1 text-xl font-bold text-ink-900">등록업체 리스트</Text>
             <Pressable
               accessibilityLabel="업체 배정 모달 닫기"
               accessibilityRole="button"
@@ -798,10 +865,7 @@ function PartnerAssignmentModal({
               </View>
 
               {assignError ? (
-                <Text
-                  accessibilityRole="alert"
-                  className="mt-3 text-sm font-semibold text-red-700"
-                >
+                <Text accessibilityRole="alert" className="mt-3 text-sm font-semibold text-red-700">
                   업체 배정을 저장하지 못했어요. 견적 상태를 확인하고 다시 시도해 주세요.
                 </Text>
               ) : null}
@@ -875,9 +939,7 @@ function PartnerAssignmentModal({
                   className="min-h-20 rounded-2xl border border-stone-100 bg-white px-5 py-4 active:bg-brand-100"
                   onPress={() => onSelect(partner)}
                 >
-                  <Text className="text-base font-bold text-ink-900">
-                    {partner.companyName}
-                  </Text>
+                  <Text className="text-base font-bold text-ink-900">{partner.companyName}</Text>
                   <Text className="mt-1 text-sm text-ink-600">
                     {partner.representativeName}({partner.representativeEmail})
                   </Text>

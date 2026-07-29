@@ -94,12 +94,6 @@ export default function AdminPartnerDetailScreen(): React.JSX.Element {
               {partnerQuery.data.note || '입력된 비고가 없어요.'}
             </Text>
           </DetailSection>
-
-          <View className="mt-5 rounded-2xl bg-stone-100 p-4">
-            <Text className="text-center text-xs leading-5 text-ink-600">
-              업체 정보 수정 기능은 아직 준비 중입니다.
-            </Text>
-          </View>
         </ScrollView>
       )}
     </SafeAreaView>

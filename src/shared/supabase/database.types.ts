@@ -979,6 +979,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      complete_remodel_request: {
+        Args: { target_request_id: string };
+        Returns: Database['public']['Enums']['remodel_request_status'];
+      };
       mark_quote_final: {
         Args: { target_quote_id: string };
         Returns: undefined;

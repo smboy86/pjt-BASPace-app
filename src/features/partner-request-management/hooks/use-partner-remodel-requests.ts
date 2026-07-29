@@ -5,6 +5,14 @@ import {
   fetchPartnerRemodelRequests,
   respondToPartnerRequest,
 } from '../api';
+import {
+  applyPartnerResponseToDetailCache,
+  applyPartnerResponseToListCache,
+} from '../model';
+import type {
+  IPartnerRemodelRequestDetail,
+  IPartnerRemodelRequestListItem,
+} from '../types';
 
 export const usePartnerRemodelRequests = () =>
   useQuery({
@@ -24,17 +32,18 @@ export const useRespondToPartnerRequest = () => {
 
   return useMutation({
     mutationFn: respondToPartnerRequest,
-    onSuccess: async (_assignmentStatus, input) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: remodelRequestQueryKeys.partner }),
-        queryClient.invalidateQueries({
-          queryKey: remodelRequestQueryKeys.partnerDetail(input.requestId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: remodelRequestQueryKeys.detail(input.requestId),
-        }),
-        queryClient.invalidateQueries({ queryKey: remodelRequestQueryKeys.admin }),
-      ]);
+    onSuccess: (assignmentStatus, input) => {
+      queryClient.setQueryData<IPartnerRemodelRequestListItem[]>(
+        remodelRequestQueryKeys.partner,
+        (current) =>
+          applyPartnerResponseToListCache(current, input.requestId, assignmentStatus),
+      );
+      queryClient.setQueryData<IPartnerRemodelRequestDetail>(
+        remodelRequestQueryKeys.partnerDetail(input.requestId),
+        (current) => applyPartnerResponseToDetailCache(current, assignmentStatus),
+      );
+
+      void queryClient.invalidateQueries({ queryKey: remodelRequestQueryKeys.all });
     },
   });
 };

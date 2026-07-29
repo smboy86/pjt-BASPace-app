@@ -1,12 +1,5 @@
 import { useCallback } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +20,7 @@ const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.IN_CONSULTATION]: '견적 협의 중',
   [ERemodelRequestStatus.FINAL_QUOTE_SENT]: '최종 견적 도착',
   [ERemodelRequestStatus.CONFIRMED]: '최종 컨펌',
-  [ERemodelRequestStatus.CLOSED]: '상담 종료',
+  [ERemodelRequestStatus.CLOSED]: '시공 완료',
   [ERemodelRequestStatus.CANCELLED]: '취소',
 };
 

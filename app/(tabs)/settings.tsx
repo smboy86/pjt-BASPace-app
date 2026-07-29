@@ -58,6 +58,7 @@ export default function SettingsScreen(): React.JSX.Element {
             icon="person-outline"
             label="로그인 정보"
             description={`${user?.name ?? '고객'} · ${user?.email ?? ''}`}
+            onPress={() => router.push('/(tabs)/account')}
           />
           <SettingRow
             icon="megaphone-outline"

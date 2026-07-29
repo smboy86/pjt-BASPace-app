@@ -4,6 +4,7 @@ import type { IAuthSession, IAuthState, IAuthUser } from '../types';
 interface IAuthStore extends IAuthState {
   beginLoading: () => void;
   setAuthenticated: (session: IAuthSession, user: IAuthUser) => void;
+  setUserName: (name: string) => void;
   setUnauthenticated: () => void;
   setError: (message: string) => void;
 }
@@ -25,6 +26,10 @@ export const useAuthStore = create<IAuthStore>((set) => ({
       user,
       error: null,
     }),
+  setUserName: (name) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, name } : null,
+    })),
   setUnauthenticated: () =>
     set({
       status: 'unauthenticated',
