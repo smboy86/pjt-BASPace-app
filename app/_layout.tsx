@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { QueryProvider, ThemeProvider } from '@core/providers';
 import { toastConfig, ErrorBoundary } from '@shared/ui';
+import { useExitAppOnDoubleBack } from '@shared/lib';
 import { useQuoteStore } from '@/entities/quote';
 import { useRemodelRequestStore } from '@/entities/remodel-request';
 import { useAuthSession } from '@/features/auth';
@@ -19,6 +20,8 @@ function AuthenticatedNavigator(): React.JSX.Element {
   const navigationState = useRootNavigationState();
   const queryClient = useQueryClient();
   const { user, status, isAuthenticated, isLoading, error, retry } = useAuthSession();
+
+  useExitAppOnDoubleBack(segments, isAuthenticated && !isLoading && !error);
 
   useEffect(() => {
     if (status !== 'unauthenticated') return;
