@@ -34,6 +34,8 @@ const mapStatus = (status: TRemodelRequestRow['status']): ERemodelRequestStatus 
       return ERemodelRequestStatus.CONFIRMED;
     case 'closed':
       return ERemodelRequestStatus.CLOSED;
+    case 'cancelled':
+      return ERemodelRequestStatus.CANCELLED;
   }
 };
 

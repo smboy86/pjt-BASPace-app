@@ -62,4 +62,16 @@ describe('remodel request mapper', () => {
     );
     expect(request.selections[0]?.basePriceSnapshot).toBe(1_250_000);
   });
+
+  it('maps a declined final assignment request to the cancelled domain status', () => {
+    const request = mapRemodelRequest(
+      {
+        ...REQUEST_ROW,
+        status: 'cancelled',
+      },
+      [],
+    );
+
+    expect(request.status).toBe(ERemodelRequestStatus.CANCELLED);
+  });
 });

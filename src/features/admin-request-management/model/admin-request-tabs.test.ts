@@ -4,6 +4,7 @@ import { ADMIN_REQUEST_TABS, getAdminRequestTabId } from './admin-request-tabs';
 
 vi.mock('@/entities/remodel-request', () => ({
   ERemodelRequestStatus: {
+    CANCELLED: 'cancelled',
     CLOSED: 'closed',
     CONFIRMED: 'confirmed',
     DRAFT: 'draft',
@@ -24,6 +25,7 @@ describe('admin request tabs', () => {
     expect(getAdminRequestTabId(ERemodelRequestStatus.FINAL_QUOTE_SENT)).toBe('in_progress');
     expect(getAdminRequestTabId(ERemodelRequestStatus.CONFIRMED)).toBe('done');
     expect(getAdminRequestTabId(ERemodelRequestStatus.CLOSED)).toBe('done');
+    expect(getAdminRequestTabId(ERemodelRequestStatus.CANCELLED)).toBe('done');
   });
 
   it('excludes draft requests and keeps the approved tab order', () => {

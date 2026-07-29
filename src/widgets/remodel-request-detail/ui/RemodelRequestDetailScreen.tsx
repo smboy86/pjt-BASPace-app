@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -11,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ERequestPartnerStatus } from '@/entities/partner';
 import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
 import {
   ERemodelRequestStatus,
@@ -22,7 +24,13 @@ import {
   useAdjustRemodelRequestQuote,
   useConfirmAdjustedRemodelRequestQuote,
 } from '@/features/adjust-remodel-request-quote';
+import {
+  type IAssignablePartner,
+  useAssignablePartners,
+  useAssignRemodelRequestPartner,
+} from '@/features/assign-remodel-request-partner';
 import { useAuthSession } from '@/features/auth';
+import { useRespondToPartnerRequest } from '@/features/partner-request-management';
 import {
   EConsultationMessageType,
   usePostRequestConsultationMessage,
@@ -30,12 +38,13 @@ import {
   useRequestConsultationStore,
 } from '@/features/request-consultation';
 
-type TRequestDetailRole = 'customer' | 'admin';
+type TRequestDetailRole = 'customer' | 'admin' | 'partner';
 
 interface IRemodelRequestDetailScreenProps {
   role: TRequestDetailRole;
   request?: IRemodelRequest;
   customerName?: string;
+  assignmentStatus?: ERequestPartnerStatus;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -60,6 +69,7 @@ export function RemodelRequestDetailScreen({
   role,
   request,
   customerName,
+  assignmentStatus,
   isLoading,
   isError,
   onRetry,
@@ -75,8 +85,16 @@ export function RemodelRequestDetailScreen({
   const adjustMutation = useAdjustRemodelRequestQuote();
   const resetAdjustMutation = adjustMutation.reset;
   const confirmAdjustmentMutation = useConfirmAdjustedRemodelRequestQuote();
+  const partnerResponseMutation = useRespondToPartnerRequest();
+  const resetPartnerResponseMutation = partnerResponseMutation.reset;
   const [message, setMessage] = useState('');
   const [adjustedAmountInput, setAdjustedAmountInput] = useState('');
+  const [assignmentModalVisible, setAssignmentModalVisible] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<IAssignablePartner | null>(null);
+  const assignablePartnersQuery = useAssignablePartners(
+    role === 'admin' && assignmentModalVisible,
+  );
+  const assignPartnerMutation = useAssignRemodelRequestPartner();
 
   const quotes = useMemo(
     () => allQuotes.filter((item) => item.requestId === request?.id),
@@ -84,9 +102,7 @@ export function RemodelRequestDetailScreen({
   );
   const messages = useMemo(() => {
     const messagesById = new Map(
-      allMessages
-        .filter((item) => item.requestId === request?.id)
-        .map((item) => [item.id, item]),
+      allMessages.filter((item) => item.requestId === request?.id).map((item) => [item.id, item]),
     );
 
     consultationMessagesQuery.data?.forEach((item) => messagesById.set(item.id, item));
@@ -113,6 +129,10 @@ export function RemodelRequestDetailScreen({
     );
     resetAdjustMutation();
   }, [request?.adjustedEstimateAmount, request?.id, resetAdjustMutation]);
+
+  useEffect(() => {
+    resetPartnerResponseMutation();
+  }, [request?.id, resetPartnerResponseMutation]);
 
   if (isLoading && !request) {
     return (
@@ -169,6 +189,18 @@ export function RemodelRequestDetailScreen({
         ? '0원 이상 1조 원 이하의 금액을 입력해 주세요.'
         : null;
   const canAdjust =
+    role === 'admin' && request.status === ERemodelRequestStatus.SUBMITTED;
+  const adjustmentLockedMessage = request.adjustmentConfirmedAt
+    ? '고객이 확인한 견적은 수정할 수 없습니다.'
+    : request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT
+      ? '고객에게 전달된 견적은 수정할 수 없습니다.'
+      : '신규 견적 상태에서만 견적 금액을 조정할 수 있습니다.';
+  const canRespondToPartnerRequest =
+    role === 'partner' &&
+    assignmentStatus === ERequestPartnerStatus.ASSIGNED &&
+    (request.status === ERemodelRequestStatus.MATCHED ||
+      request.status === ERemodelRequestStatus.IN_CONSULTATION);
+  const canAssignPartner =
     role === 'admin' &&
     (request.status === ERemodelRequestStatus.SUBMITTED ||
       request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT);
@@ -226,6 +258,59 @@ export function RemodelRequestDetailScreen({
     }
   };
 
+  const openAssignmentModal = (): void => {
+    if (!canAssignPartner) return;
+    setSelectedPartner(null);
+    assignPartnerMutation.reset();
+    setAssignmentModalVisible(true);
+  };
+
+  const closeAssignmentModal = (): void => {
+    if (assignPartnerMutation.isPending) return;
+    setAssignmentModalVisible(false);
+    setSelectedPartner(null);
+    assignPartnerMutation.reset();
+  };
+
+  const handleAssignPartner = async (): Promise<void> => {
+    if (!selectedPartner || !canAssignPartner) return;
+
+    try {
+      await assignPartnerMutation.mutateAsync({
+        requestId: request.id,
+        partnerId: selectedPartner.id,
+      });
+      setAssignmentModalVisible(false);
+      setSelectedPartner(null);
+      router.replace('/(admin)/requests');
+    } catch {
+      // The mutation error remains visible in the confirmation modal.
+    }
+  };
+
+  const respondToPartnerRequest = async (action: 'proceed' | 'decline'): Promise<void> => {
+    if (!canRespondToPartnerRequest || partnerResponseMutation.isPending) {
+      return;
+    }
+
+    try {
+      await partnerResponseMutation.mutateAsync({ requestId: request.id, action });
+    } catch {
+      // The mutation error is displayed inline while the assigned actions stay available.
+    }
+  };
+
+  const handleDeclinePartnerRequest = (): void => {
+    Alert.alert('견적을 진행하지 않으시겠습니까?', undefined, [
+      { text: '돌아가기', style: 'cancel' },
+      {
+        text: '진행 불가',
+        style: 'destructive',
+        onPress: () => void respondToPartnerRequest('decline'),
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand-50" edges={['top']}>
       <ScrollView contentContainerClassName="px-5 pb-10 pt-3">
@@ -239,7 +324,7 @@ export function RemodelRequestDetailScreen({
           <Text className="font-semibold text-brand-900">목록</Text>
         </Pressable>
 
-        {role === 'admin' ? (
+        {role === 'admin' || role === 'partner' ? (
           <Text className="mb-2 text-sm font-semibold text-brand-700">{customerName} 고객</Text>
         ) : null}
         <Text className="text-2xl font-bold text-ink-900">
@@ -319,9 +404,7 @@ export function RemodelRequestDetailScreen({
           {consultationMessagesQuery.isPending && messages.length === 0 ? (
             <View className="items-center rounded-2xl bg-white p-5">
               <ActivityIndicator color="#176D62" />
-              <Text className="mt-3 text-sm text-ink-600">
-                상담 내용을 불러오고 있어요.
-              </Text>
+              <Text className="mt-3 text-sm text-ink-600">상담 내용을 불러오고 있어요.</Text>
             </View>
           ) : consultationMessagesQuery.isError && messages.length === 0 ? (
             <View className="rounded-2xl border border-red-200 bg-white p-5">
@@ -363,7 +446,7 @@ export function RemodelRequestDetailScreen({
           )}
         </View>
 
-        {role === 'admin' ? (
+        {role === 'admin' || role === 'partner' ? (
           <View className="mt-8 rounded-3xl bg-brand-900 p-5">
             <Text className="text-sm font-semibold text-brand-100">현재 견적 금액</Text>
             <Text className="mt-2 text-3xl font-bold text-white">
@@ -375,13 +458,18 @@ export function RemodelRequestDetailScreen({
               </Text>
             ) : null}
 
-            {canAdjust ? (
+            {role === 'admin' ? (
               <View className="mt-6 border-t border-brand-700 pt-5">
                 <Text className="text-sm font-bold text-white">수정 견적</Text>
-                <View className="mt-2 flex-row items-center rounded-xl bg-white px-4">
+                <View
+                  className={`mt-2 flex-row items-center rounded-xl bg-white px-4 ${
+                    canAdjust ? '' : 'opacity-60'
+                  }`}
+                >
                   <TextInput
                     accessibilityLabel="수정 견적 금액"
                     className="min-h-12 flex-1 text-right text-lg font-bold text-ink-900"
+                    editable={canAdjust && !adjustMutation.isPending}
                     keyboardType="number-pad"
                     placeholder="금액 입력"
                     placeholderTextColor="#84908D"
@@ -393,7 +481,11 @@ export function RemodelRequestDetailScreen({
                   />
                   <Text className="ml-2 font-bold text-ink-600">원</Text>
                 </View>
-                {amountError ? (
+                {!canAdjust ? (
+                  <Text className="mt-2 text-xs font-semibold text-brand-100">
+                    {adjustmentLockedMessage}
+                  </Text>
+                ) : amountError ? (
                   <Text
                     accessibilityRole="alert"
                     className="mt-2 text-xs font-semibold text-red-200"
@@ -413,28 +505,127 @@ export function RemodelRequestDetailScreen({
                   accessibilityRole="button"
                   accessibilityState={{
                     busy: adjustMutation.isPending,
-                    disabled: Boolean(amountError) || adjustMutation.isPending,
+                    disabled:
+                      !canAdjust || Boolean(amountError) || adjustMutation.isPending,
                   }}
                   className={`mt-4 min-h-12 items-center justify-center rounded-xl ${
-                    amountError || adjustMutation.isPending
+                    !canAdjust || amountError || adjustMutation.isPending
                       ? 'bg-stone-100 opacity-60'
                       : 'bg-brand-700 active:opacity-80'
                   }`}
-                  disabled={Boolean(amountError) || adjustMutation.isPending}
+                  disabled={!canAdjust || Boolean(amountError) || adjustMutation.isPending}
                   onPress={() => void handleAdjustQuote()}
                 >
                   {adjustMutation.isPending ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text className={`font-bold ${amountError ? 'text-ink-600' : 'text-white'}`}>
+                    <Text
+                      className={`font-bold ${
+                        !canAdjust || amountError ? 'text-ink-600' : 'text-white'
+                      }`}
+                    >
                       견적 조정
                     </Text>
                   )}
                 </Pressable>
               </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {role === 'admin' ? (
+          <View className="mt-5 rounded-3xl border border-stone-100 bg-white p-5">
+            <Text className="text-sm font-semibold text-brand-700">업체 배정</Text>
+            <Text className="mt-2 text-sm leading-6 text-ink-600">
+              등록된 업체와 대표 담당자를 확인한 뒤 이 견적을 배정합니다.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canAssignPartner }}
+              className={`mt-4 min-h-12 items-center justify-center rounded-xl ${
+                canAssignPartner ? 'bg-brand-900 active:opacity-80' : 'bg-stone-100'
+              }`}
+              disabled={!canAssignPartner}
+              onPress={openAssignmentModal}
+            >
+              <Text className={`font-bold ${canAssignPartner ? 'text-white' : 'text-ink-600'}`}>
+                {canAssignPartner ? '업체 배정' : '업체 배정 완료'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {role === 'partner' ? (
+          <View className="mt-5 rounded-3xl border border-stone-100 bg-white p-5">
+            <Text className="text-sm font-semibold text-brand-700">배정 응답</Text>
+            {partnerResponseMutation.isSuccess ? (
+              <View
+                accessibilityRole="alert"
+                className="mt-3 flex-row items-center rounded-xl bg-green-50 px-4 py-3"
+              >
+                <Ionicons name="checkmark-circle" color="#277A57" size={20} />
+                <Text className="ml-2 flex-1 text-sm font-bold text-green-700">
+                  {partnerResponseMutation.variables.action === 'proceed'
+                    ? '견적 진행 의사를 저장했어요.'
+                    : '진행 불가 응답을 저장했어요.'}
+                </Text>
+              </View>
+            ) : partnerResponseMutation.isError ? (
+              <Text accessibilityRole="alert" className="mt-3 text-sm font-semibold text-red-700">
+                응답을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.
+              </Text>
+            ) : null}
+
+            {canRespondToPartnerRequest ? (
+              <View className="mt-4 gap-3">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    busy: partnerResponseMutation.isPending,
+                    disabled: partnerResponseMutation.isPending,
+                  }}
+                  className={`min-h-12 items-center justify-center rounded-xl bg-brand-900 ${
+                    partnerResponseMutation.isPending ? 'opacity-60' : 'active:opacity-80'
+                  }`}
+                  disabled={partnerResponseMutation.isPending}
+                  onPress={() => void respondToPartnerRequest('proceed')}
+                >
+                  {partnerResponseMutation.isPending &&
+                  partnerResponseMutation.variables?.action === 'proceed' ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text className="font-bold text-white">견적 확인 및 진행</Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    busy: partnerResponseMutation.isPending,
+                    disabled: partnerResponseMutation.isPending,
+                  }}
+                  className={`min-h-12 items-center justify-center rounded-xl border border-red-200 bg-white ${
+                    partnerResponseMutation.isPending ? 'opacity-60' : 'active:bg-red-50'
+                  }`}
+                  disabled={partnerResponseMutation.isPending}
+                  onPress={handleDeclinePartnerRequest}
+                >
+                  {partnerResponseMutation.isPending &&
+                  partnerResponseMutation.variables?.action === 'decline' ? (
+                    <ActivityIndicator color="#B7433D" />
+                  ) : (
+                    <Text className="font-bold text-red-700">진행 불가</Text>
+                  )}
+                </Pressable>
+              </View>
             ) : (
-              <Text className="mt-4 text-sm leading-5 text-brand-100">
-                현재 단계에서는 견적 금액을 조정할 수 없습니다.
+              <Text className="mt-3 text-sm leading-6 text-ink-600">
+                {assignmentStatus === ERequestPartnerStatus.ACCEPTED
+                  ? '견적 진행 의사를 전달했습니다.'
+                  : assignmentStatus === ERequestPartnerStatus.DECLINED
+                    ? '진행 불가로 응답한 견적입니다.'
+                    : assignmentStatus === ERequestPartnerStatus.ASSIGNED
+                      ? '종료된 견적에는 더 이상 응답할 수 없습니다.'
+                      : '현재 배정 상태를 확인할 수 없습니다.'}
               </Text>
             )}
           </View>
@@ -521,6 +712,181 @@ export function RemodelRequestDetailScreen({
           </View>
         ) : null}
       </ScrollView>
+
+      <PartnerAssignmentModal
+        assignError={assignPartnerMutation.isError}
+        assigning={assignPartnerMutation.isPending}
+        isError={assignablePartnersQuery.isError}
+        isLoading={assignablePartnersQuery.isPending}
+        partners={assignablePartnersQuery.data ?? []}
+        selectedPartner={selectedPartner}
+        visible={assignmentModalVisible}
+        onAssign={() => void handleAssignPartner()}
+        onClose={closeAssignmentModal}
+        onRetry={() => void assignablePartnersQuery.refetch()}
+        onSelect={setSelectedPartner}
+      />
     </SafeAreaView>
+  );
+}
+
+function PartnerAssignmentModal({
+  visible,
+  partners,
+  selectedPartner,
+  isLoading,
+  isError,
+  assigning,
+  assignError,
+  onSelect,
+  onRetry,
+  onClose,
+  onAssign,
+}: {
+  visible: boolean;
+  partners: IAssignablePartner[];
+  selectedPartner: IAssignablePartner | null;
+  isLoading: boolean;
+  isError: boolean;
+  assigning: boolean;
+  assignError: boolean;
+  onSelect: (partner: IAssignablePartner) => void;
+  onRetry: () => void;
+  onClose: () => void;
+  onAssign: () => void;
+}): React.JSX.Element {
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      presentationStyle="overFullScreen"
+      transparent
+      visible={visible}
+    >
+      <View className="flex-1 justify-end bg-black/50">
+        <SafeAreaView
+          className="max-h-[82%] rounded-t-3xl bg-sand-50"
+          edges={['bottom']}
+        >
+          <View className="flex-row items-center border-b border-stone-100 px-5 py-4">
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
+              <Ionicons name="business-outline" color="#176D62" size={21} />
+            </View>
+            <Text className="ml-3 flex-1 text-xl font-bold text-ink-900">
+              등록업체 리스트
+            </Text>
+            <Pressable
+              accessibilityLabel="업체 배정 모달 닫기"
+              accessibilityRole="button"
+              className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
+              disabled={assigning}
+              onPress={onClose}
+            >
+              <Ionicons name="close" color="#1D2725" size={24} />
+            </Pressable>
+          </View>
+
+          {selectedPartner ? (
+            <View className="px-5 pb-6 pt-6">
+              <View className="rounded-3xl border border-stone-100 bg-white p-5">
+                <Text className="text-lg font-bold leading-7 text-ink-900">
+                  {`"${selectedPartner.companyName}" 업체에 견적을 배정하시겠습니까?`}
+                </Text>
+                <Text className="mt-3 text-sm leading-6 text-ink-600">
+                  {selectedPartner.representativeName}({selectedPartner.representativeEmail})
+                </Text>
+              </View>
+
+              {assignError ? (
+                <Text
+                  accessibilityRole="alert"
+                  className="mt-3 text-sm font-semibold text-red-700"
+                >
+                  업체 배정을 저장하지 못했어요. 견적 상태를 확인하고 다시 시도해 주세요.
+                </Text>
+              ) : null}
+
+              <View className="mt-5 flex-row gap-3">
+                <Pressable
+                  accessibilityRole="button"
+                  className={`min-h-12 flex-1 items-center justify-center rounded-xl border border-stone-100 bg-white ${
+                    assigning ? 'opacity-50' : 'active:bg-stone-100'
+                  }`}
+                  disabled={assigning}
+                  onPress={onClose}
+                >
+                  <Text className="font-bold text-ink-900">취소</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ busy: assigning, disabled: assigning }}
+                  className={`min-h-12 flex-1 items-center justify-center rounded-xl bg-brand-900 ${
+                    assigning ? 'opacity-60' : 'active:opacity-80'
+                  }`}
+                  disabled={assigning}
+                  onPress={onAssign}
+                >
+                  {assigning ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text className="font-bold text-white">확인</Text>
+                  )}
+                </Pressable>
+              </View>
+            </View>
+          ) : isLoading ? (
+            <View className="items-center px-5 py-12">
+              <ActivityIndicator color="#176D62" size="large" />
+              <Text className="mt-4 text-sm font-semibold text-ink-600">
+                등록 업체를 불러오고 있어요.
+              </Text>
+            </View>
+          ) : isError ? (
+            <View className="items-center px-5 py-10">
+              <Text accessibilityRole="alert" className="text-base font-bold text-ink-900">
+                등록 업체를 불러오지 못했어요.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                className="mt-4 min-h-11 items-center justify-center rounded-xl bg-brand-900 px-6"
+                onPress={onRetry}
+              >
+                <Text className="font-bold text-white">다시 시도</Text>
+              </Pressable>
+            </View>
+          ) : partners.length === 0 ? (
+            <View className="items-center px-5 py-10">
+              <Ionicons name="business-outline" color="#84908D" size={32} />
+              <Text className="mt-3 text-base font-bold text-ink-900">
+                배정 가능한 등록 업체가 없어요.
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
+                승인된 업체와 활성 대표 담당자 계정을 먼저 등록해 주세요.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView contentContainerClassName="gap-3 px-5 pb-7 pt-4">
+              {partners.map((partner) => (
+                <Pressable
+                  key={partner.id}
+                  accessibilityLabel={`${partner.companyName}, ${partner.representativeName}, ${partner.representativeEmail}`}
+                  accessibilityHint="선택한 업체의 견적 배정 확인 화면을 엽니다."
+                  accessibilityRole="button"
+                  className="min-h-20 rounded-2xl border border-stone-100 bg-white px-5 py-4 active:bg-brand-100"
+                  onPress={() => onSelect(partner)}
+                >
+                  <Text className="text-base font-bold text-ink-900">
+                    {partner.companyName}
+                  </Text>
+                  <Text className="mt-1 text-sm text-ink-600">
+                    {partner.representativeName}({partner.representativeEmail})
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+        </SafeAreaView>
+      </View>
+    </Modal>
   );
 }

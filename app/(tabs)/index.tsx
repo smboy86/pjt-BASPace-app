@@ -28,6 +28,7 @@ const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.FINAL_QUOTE_SENT]: '최종 견적 도착',
   [ERemodelRequestStatus.CONFIRMED]: '최종 컨펌',
   [ERemodelRequestStatus.CLOSED]: '상담 종료',
+  [ERemodelRequestStatus.CANCELLED]: '취소',
 };
 
 export default function HomeScreen(): React.JSX.Element {

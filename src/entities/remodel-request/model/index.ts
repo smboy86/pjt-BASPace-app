@@ -1,2 +1,6 @@
 export { remodelRequestQueryKeys } from './query-keys';
-export { mapRemodelRequest, mapSelectionSnapshot } from './remodel-request.mapper';
+export {
+  mapRemodelRequest,
+  mapRemodelRequestStatus,
+  mapSelectionSnapshot,
+} from './remodel-request.mapper';

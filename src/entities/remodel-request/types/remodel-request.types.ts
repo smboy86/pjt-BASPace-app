@@ -7,6 +7,7 @@ export enum ERemodelRequestStatus {
   FINAL_QUOTE_SENT = 'final_quote_sent',
   CONFIRMED = 'confirmed',
   CLOSED = 'closed',
+  CANCELLED = 'cancelled',
 }
 
 export enum ESelectionDecision {

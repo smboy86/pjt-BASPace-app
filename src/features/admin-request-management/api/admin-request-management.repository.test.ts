@@ -14,6 +14,7 @@ const remodelRequestTypes = vi.hoisted(() => ({
     KRW_300_500: 'KRW_300_500',
   },
   ERemodelRequestStatus: {
+    CANCELLED: 'cancelled',
     CLOSED: 'closed',
     CONFIRMED: 'confirmed',
     DRAFT: 'draft',

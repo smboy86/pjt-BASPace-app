@@ -886,6 +886,10 @@ export type Database = {
         Args: { target_amount: number; target_request_id: string };
         Returns: undefined;
       };
+      assign_remodel_request_partner: {
+        Args: { target_partner_id: string; target_request_id: string };
+        Returns: string;
+      };
       confirm_adjusted_request_quote: {
         Args: { target_request_id: string };
         Returns: undefined;
@@ -893,6 +897,54 @@ export type Database = {
       confirm_final_quote: {
         Args: { target_quote_id: string };
         Returns: undefined;
+      };
+      get_partner_assigned_remodel_request: {
+        Args: { target_request_id: string };
+        Returns: {
+          address_detail: string;
+          adjusted_at: string | null;
+          adjusted_by: string | null;
+          adjusted_estimate_amount: number | null;
+          adjustment_confirmed_at: string | null;
+          assignment_id: string;
+          assignment_status: Database['public']['Enums']['assignment_status'];
+          bathroom_type: string;
+          budget_range: string;
+          created_at: string;
+          customer_id: string;
+          customer_name: string;
+          desired_schedule: string;
+          estimated_size: string | null;
+          has_bathtub: boolean | null;
+          housing_type: string;
+          id: string;
+          notes: string;
+          priorities: string[];
+          region: string;
+          request_status: Database['public']['Enums']['remodel_request_status'];
+          requires_demolition: boolean | null;
+          scope: Database['public']['Enums']['remodel_scope'];
+          selection_rows: Json;
+          special_structure_note: string | null;
+          submitted_at: string | null;
+          updated_at: string;
+        }[];
+      };
+      list_partner_assigned_remodel_requests: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          address_detail: string;
+          assignment_id: string;
+          assignment_status: Database['public']['Enums']['assignment_status'];
+          budget_range: string;
+          created_at: string;
+          customer_name: string;
+          desired_schedule: string;
+          region: string;
+          request_id: string;
+          request_status: Database['public']['Enums']['remodel_request_status'];
+          submitted_at: string | null;
+        }[];
       };
       create_partner_with_representative: {
         Args: {
@@ -930,6 +982,10 @@ export type Database = {
       mark_quote_final: {
         Args: { target_quote_id: string };
         Returns: undefined;
+      };
+      respond_to_partner_request: {
+        Args: { target_action: string; target_request_id: string };
+        Returns: Database['public']['Enums']['assignment_status'];
       };
       submit_customer_remodel_request: {
         Args: {
@@ -975,7 +1031,8 @@ export type Database = {
         | 'in_consultation'
         | 'final_quote_sent'
         | 'confirmed'
-        | 'closed';
+        | 'closed'
+        | 'cancelled';
       remodel_scope: 'partial' | 'full';
       selection_decision: 'not_selected' | 'consultation_required' | 'selected';
     };
@@ -1127,6 +1184,7 @@ export const Constants = {
         'final_quote_sent',
         'confirmed',
         'closed',
+        'cancelled',
       ],
       remodel_scope: ['partial', 'full'],
       selection_decision: ['not_selected', 'consultation_required', 'selected'],

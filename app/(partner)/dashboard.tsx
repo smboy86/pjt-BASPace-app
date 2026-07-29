@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession, useLogout } from '@/features/auth';
 import { useCurrentPartnerWorkspace } from '@/features/partner-management';
@@ -8,6 +9,15 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
   const { user } = useAuthSession();
   const workspaceQuery = useCurrentPartnerWorkspace();
   const logout = useLogout();
+  const canOpenRequests =
+    !workspaceQuery.isLoading && !workspaceQuery.isError && Boolean(workspaceQuery.data);
+  const requestMenuHint = workspaceQuery.isLoading
+    ? '업체 연결을 확인한 뒤 이용할 수 있어요.'
+    : workspaceQuery.isError
+      ? '업체 연결 정보를 다시 불러온 뒤 이용해 주세요.'
+      : !workspaceQuery.data
+        ? '업체 연결이 완료되면 이용할 수 있어요.'
+        : '배정된 고객 견적을 상태별로 확인하세요.';
 
   const handleLogout = async (): Promise<void> => {
     logout.reset();
@@ -74,22 +84,28 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
           )}
         </View>
 
-        <View className="mt-4 flex-row items-center rounded-2xl border border-stone-100 bg-white p-4">
+        <Pressable
+          accessibilityHint={requestMenuHint}
+          accessibilityLabel="배정 견적서 확인"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canOpenRequests }}
+          className={`mt-4 flex-row items-center rounded-2xl border border-stone-100 bg-white p-4 ${
+            canOpenRequests ? 'active:bg-brand-100' : 'opacity-60'
+          }`}
+          disabled={!canOpenRequests}
+          onPress={() => router.push('/(partner)/requests')}
+        >
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-100">
             <Ionicons name="document-text-outline" color="#176D62" size={24} />
           </View>
           <View className="ml-4 flex-1">
             <View className="flex-row items-center">
-              <Text className="flex-1 text-base font-bold text-ink-900">배정 요청</Text>
-              <View className="rounded-full bg-sand-50 px-2.5 py-1">
-                <Text className="text-xs font-semibold text-ink-600">준비 중</Text>
-              </View>
+              <Text className="flex-1 text-base font-bold text-ink-900">배정 견적서 확인</Text>
+              <Ionicons name="chevron-forward" color="#62706D" size={20} />
             </View>
-            <Text className="mt-1 text-sm leading-5 text-ink-600">
-              고객 요청 확인과 견적 작성 기능을 준비하고 있습니다.
-            </Text>
+            <Text className="mt-1 text-sm leading-5 text-ink-600">{requestMenuHint}</Text>
           </View>
-        </View>
+        </Pressable>
 
         {logout.error ? (
           <View

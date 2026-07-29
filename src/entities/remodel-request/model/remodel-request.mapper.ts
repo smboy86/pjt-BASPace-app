@@ -56,7 +56,9 @@ const mapSelectedOptions = (
   };
 };
 
-const mapStatus = (status: TRemodelRequestRow['status']): ERemodelRequestStatus => {
+export const mapRemodelRequestStatus = (
+  status: TRemodelRequestRow['status'],
+): ERemodelRequestStatus => {
   switch (status) {
     case 'draft':
       return ERemodelRequestStatus.DRAFT;
@@ -74,6 +76,8 @@ const mapStatus = (status: TRemodelRequestRow['status']): ERemodelRequestStatus 
       return ERemodelRequestStatus.CONFIRMED;
     case 'closed':
       return ERemodelRequestStatus.CLOSED;
+    case 'cancelled':
+      return ERemodelRequestStatus.CANCELLED;
   }
 };
 
@@ -130,7 +134,7 @@ export const mapRemodelRequest = (
 ): IRemodelRequest => ({
   id: row.id,
   customerId: row.customer_id,
-  status: mapStatus(row.status),
+  status: mapRemodelRequestStatus(row.status),
   region: row.region,
   addressDetail: row.address_detail,
   housingType: row.housing_type,

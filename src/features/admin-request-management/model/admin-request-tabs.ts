@@ -25,7 +25,11 @@ export const ADMIN_REQUEST_TABS: readonly IAdminRequestTab[] = [
   {
     id: 'done',
     label: '완료·종료',
-    statuses: [ERemodelRequestStatus.CONFIRMED, ERemodelRequestStatus.CLOSED],
+    statuses: [
+      ERemodelRequestStatus.CONFIRMED,
+      ERemodelRequestStatus.CLOSED,
+      ERemodelRequestStatus.CANCELLED,
+    ],
   },
 ] as const;
 
