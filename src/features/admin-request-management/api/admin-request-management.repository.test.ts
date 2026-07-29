@@ -20,6 +20,7 @@ const remodelRequestTypes = vi.hoisted(() => ({
     FINAL_QUOTE_SENT: 'final_quote_sent',
     IN_CONSULTATION: 'in_consultation',
     MATCHED: 'matched',
+    QUOTE_ADJUSTMENT: 'quote_adjustment',
     SUBMITTED: 'submitted',
   },
 }));
@@ -34,6 +35,7 @@ vi.mock('@/shared/supabase', () => ({
 
 const REQUEST_ROW = {
   address_detail: '101동 101호',
+  adjustment_confirmed_at: null,
   budget_range: 'KRW_300_500',
   created_at: '2026-07-28T08:49:58.000Z',
   customer_id: 'customer-1',

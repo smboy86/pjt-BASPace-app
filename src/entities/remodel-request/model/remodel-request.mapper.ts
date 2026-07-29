@@ -1,0 +1,156 @@
+import type { Database, TJson } from '@/shared/supabase';
+import {
+  ERemodelBudgetCode,
+  ERemodelRequestStatus,
+  ERemodelScope,
+  ESelectionDecision,
+  type IRemodelRequest,
+  type ISelectionSnapshot,
+} from '../types';
+
+type TRemodelRequestRow = Database['public']['Tables']['remodel_requests']['Row'];
+type TSelectionSnapshotRow = Database['public']['Tables']['selection_snapshots']['Row'];
+type TJsonObject = { [key: string]: TJson | undefined };
+
+const isJsonObject = (value: TJson): value is TJsonObject =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const findStringValue = (value: TJsonObject, keys: readonly string[]): string | undefined => {
+  for (const key of keys) {
+    const candidate = value[key];
+    if (typeof candidate === 'string') return candidate;
+  }
+
+  return undefined;
+};
+
+const mapSelectedOptions = (
+  selectedOptions: TJson,
+): Pick<ISelectionSnapshot, 'selectedOptionIds' | 'selectedOptionNames'> => {
+  if (!Array.isArray(selectedOptions)) {
+    return { selectedOptionIds: [], selectedOptionNames: [] };
+  }
+
+  const selectedOptionIds: string[] = [];
+  const selectedOptionNames: string[] = [];
+
+  selectedOptions.forEach((selectedOption) => {
+    if (typeof selectedOption === 'string') {
+      selectedOptionIds.push(selectedOption);
+      selectedOptionNames.push(selectedOption);
+      return;
+    }
+
+    if (!isJsonObject(selectedOption)) return;
+
+    const id = findStringValue(selectedOption, ['productId', 'optionId', 'id']);
+    const name = findStringValue(selectedOption, ['productName', 'optionName', 'name', 'label']);
+
+    if (id) selectedOptionIds.push(id);
+    if (name) selectedOptionNames.push(name);
+  });
+
+  return {
+    selectedOptionIds: [...new Set(selectedOptionIds)],
+    selectedOptionNames: [...new Set(selectedOptionNames)],
+  };
+};
+
+const mapStatus = (status: TRemodelRequestRow['status']): ERemodelRequestStatus => {
+  switch (status) {
+    case 'draft':
+      return ERemodelRequestStatus.DRAFT;
+    case 'submitted':
+      return ERemodelRequestStatus.SUBMITTED;
+    case 'quote_adjustment':
+      return ERemodelRequestStatus.QUOTE_ADJUSTMENT;
+    case 'matched':
+      return ERemodelRequestStatus.MATCHED;
+    case 'in_consultation':
+      return ERemodelRequestStatus.IN_CONSULTATION;
+    case 'final_quote_sent':
+      return ERemodelRequestStatus.FINAL_QUOTE_SENT;
+    case 'confirmed':
+      return ERemodelRequestStatus.CONFIRMED;
+    case 'closed':
+      return ERemodelRequestStatus.CLOSED;
+  }
+};
+
+const mapScope = (scope: TRemodelRequestRow['scope']): ERemodelScope => {
+  switch (scope) {
+    case 'partial':
+      return ERemodelScope.PARTIAL;
+    case 'full':
+      return ERemodelScope.FULL;
+  }
+};
+
+const mapBudgetRange = (budgetRange: string): ERemodelBudgetCode => {
+  switch (budgetRange) {
+    case ERemodelBudgetCode.KRW_150_200:
+      return ERemodelBudgetCode.KRW_150_200;
+    case ERemodelBudgetCode.KRW_200_300:
+      return ERemodelBudgetCode.KRW_200_300;
+    case ERemodelBudgetCode.KRW_300_500:
+      return ERemodelBudgetCode.KRW_300_500;
+    case ERemodelBudgetCode.CONSULTATION:
+      return ERemodelBudgetCode.CONSULTATION;
+    default:
+      throw new Error(`Unsupported remodel request budget range: ${budgetRange}`);
+  }
+};
+
+const mapDecisionStatus = (
+  decisionStatus: TSelectionSnapshotRow['decision_status'],
+): ESelectionDecision => {
+  switch (decisionStatus) {
+    case 'not_selected':
+      return ESelectionDecision.NOT_SELECTED;
+    case 'consultation_required':
+      return ESelectionDecision.CONSULTATION_REQUIRED;
+    case 'selected':
+      return ESelectionDecision.SELECTED;
+  }
+};
+
+export const mapSelectionSnapshot = (row: TSelectionSnapshotRow): ISelectionSnapshot => ({
+  id: row.id,
+  category: row.category,
+  catalogItemId: row.catalog_item_id ?? undefined,
+  itemName: row.item_name ?? undefined,
+  ...mapSelectedOptions(row.selected_options),
+  basePriceSnapshot: row.base_price_snapshot ?? undefined,
+  decisionStatus: mapDecisionStatus(row.decision_status),
+});
+
+export const mapRemodelRequest = (
+  row: TRemodelRequestRow,
+  selections: ISelectionSnapshot[],
+): IRemodelRequest => ({
+  id: row.id,
+  customerId: row.customer_id,
+  status: mapStatus(row.status),
+  region: row.region,
+  addressDetail: row.address_detail,
+  housingType: row.housing_type,
+  bathroomType: row.bathroom_type,
+  estimatedSize: row.estimated_size ?? undefined,
+  hasBathtub: row.has_bathtub ?? undefined,
+  requiresDemolition: row.requires_demolition ?? undefined,
+  specialStructureNote: row.special_structure_note ?? undefined,
+  budgetRange: mapBudgetRange(row.budget_range),
+  desiredSchedule: row.desired_schedule,
+  scope: mapScope(row.scope),
+  priorities: row.priorities,
+  notes: row.notes,
+  photos: [],
+  selections,
+  adjustedEstimateAmount: row.adjusted_estimate_amount ?? undefined,
+  adjustedBy: row.adjusted_by ?? undefined,
+  adjustedAt: row.adjusted_at ?? undefined,
+  adjustmentConfirmedAt: row.adjustment_confirmed_at ?? undefined,
+  submittedAt: row.submitted_at ?? undefined,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});

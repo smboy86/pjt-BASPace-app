@@ -10,6 +10,7 @@ export enum EConsultationMessageType {
 export interface IConsultationMessage {
   id: string;
   requestId: string;
+  assignmentId?: string;
   authorId: string;
   messageType: EConsultationMessageType;
   body: string;
@@ -23,4 +24,10 @@ export interface ICreateConsultationMessageInput {
   messageType: EConsultationMessageType;
   body: string;
   quoteId?: string;
+}
+
+export interface IPostRequestConsultationMessageInput {
+  requestId: string;
+  authorId: string;
+  body: string;
 }

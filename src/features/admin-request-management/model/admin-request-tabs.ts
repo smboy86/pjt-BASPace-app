@@ -8,6 +8,11 @@ export const ADMIN_REQUEST_TABS: readonly IAdminRequestTab[] = [
     statuses: [ERemodelRequestStatus.SUBMITTED],
   },
   {
+    id: 'adjustment',
+    label: '견적 조율',
+    statuses: [ERemodelRequestStatus.QUOTE_ADJUSTMENT],
+  },
+  {
     id: 'assigned',
     label: '배정 완료',
     statuses: [ERemodelRequestStatus.MATCHED],

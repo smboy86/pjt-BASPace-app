@@ -7,6 +7,7 @@ type TRemodelRequestRow = Pick<
   | 'id'
   | 'customer_id'
   | 'status'
+  | 'adjustment_confirmed_at'
   | 'region'
   | 'address_detail'
   | 'budget_range'
@@ -21,6 +22,8 @@ const mapStatus = (status: TRemodelRequestRow['status']): ERemodelRequestStatus 
       return ERemodelRequestStatus.DRAFT;
     case 'submitted':
       return ERemodelRequestStatus.SUBMITTED;
+    case 'quote_adjustment':
+      return ERemodelRequestStatus.QUOTE_ADJUSTMENT;
     case 'matched':
       return ERemodelRequestStatus.MATCHED;
     case 'in_consultation':
@@ -54,7 +57,7 @@ export const fetchAdminRemodelRequests = async (): Promise<IAdminRemodelRequestL
   const { data: requestRows, error: requestError } = await supabase
     .from('remodel_requests')
     .select(
-      'id, customer_id, status, region, address_detail, budget_range, desired_schedule, submitted_at, created_at',
+      'id, customer_id, status, adjustment_confirmed_at, region, address_detail, budget_range, desired_schedule, submitted_at, created_at',
     )
     .neq('status', 'draft')
     .order('created_at', { ascending: false })
@@ -112,6 +115,7 @@ export const fetchAdminRemodelRequests = async (): Promise<IAdminRemodelRequestL
     customerId: request.customer_id,
     customerName: customerNamesById.get(request.customer_id) ?? '고객 정보 없음',
     status: mapStatus(request.status),
+    adjustmentConfirmedAt: request.adjustment_confirmed_at ?? undefined,
     region: request.region,
     addressDetail: request.address_detail,
     budgetRange: mapBudgetRange(request.budget_range),

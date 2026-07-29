@@ -1,5 +1,13 @@
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
@@ -14,6 +22,7 @@ import { useCustomerRemodelRequests } from '@/features/view-remodel-requests';
 const STATUS_LABELS: Record<ERemodelRequestStatus, string> = {
   [ERemodelRequestStatus.DRAFT]: '작성 중',
   [ERemodelRequestStatus.SUBMITTED]: '관리자 확인 대기',
+  [ERemodelRequestStatus.QUOTE_ADJUSTMENT]: '견적 조율',
   [ERemodelRequestStatus.MATCHED]: '업체 매칭 완료',
   [ERemodelRequestStatus.IN_CONSULTATION]: '견적 협의 중',
   [ERemodelRequestStatus.FINAL_QUOTE_SENT]: '최종 견적 도착',
@@ -26,6 +35,14 @@ export default function HomeScreen(): React.JSX.Element {
   const requests = useRemodelRequestStore((state) => state.requests);
   const quotes = useQuoteStore((state) => state.quotes);
   const requestsQuery = useCustomerRemodelRequests(user?.id ?? '');
+  const refetchRequests = requestsQuery.refetch;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      void refetchRequests();
+    }, [refetchRequests, user?.id]),
+  );
 
   const requestSource = requestsQuery.data ?? requests;
   const visibleRequests = user
@@ -38,7 +55,16 @@ export default function HomeScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView className="flex-1 bg-sand-50" edges={['top']}>
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
+      <ScrollView
+        contentContainerClassName="px-5 pb-10 pt-4"
+        refreshControl={
+          <RefreshControl
+            refreshing={requestsQuery.isRefetching}
+            tintColor="#176D62"
+            onRefresh={() => void refetchRequests()}
+          />
+        }
+      >
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-sm font-semibold text-brand-700">나의 욕실 프로젝트</Text>

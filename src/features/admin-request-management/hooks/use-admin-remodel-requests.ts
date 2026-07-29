@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
+import { remodelRequestQueryKeys } from '@/entities/remodel-request';
 import { fetchAdminRemodelRequests } from '../api';
-
-const ADMIN_REMODEL_REQUESTS_QUERY_KEY = ['admin', 'remodel-requests'] as const;
 
 export const useAdminRemodelRequests = () =>
   useQuery({
-    queryKey: ADMIN_REMODEL_REQUESTS_QUERY_KEY,
+    queryKey: remodelRequestQueryKeys.admin,
     queryFn: fetchAdminRemodelRequests,
   });

@@ -5,32 +5,75 @@ const mocks = vi.hoisted(() => ({
   from: vi.fn(),
 }));
 
-const remodelRequestTypes = vi.hoisted(() => ({
-  ERemodelBudgetCode: {
+const remodelRequestTypes = vi.hoisted(() => {
+  const ERemodelBudgetCode = {
     CONSULTATION: 'CONSULTATION',
     KRW_150_200: 'KRW_150_200',
     KRW_200_300: 'KRW_200_300',
     KRW_300_500: 'KRW_300_500',
-  },
-  ERemodelRequestStatus: {
+  };
+  const ERemodelRequestStatus = {
     CLOSED: 'closed',
     CONFIRMED: 'confirmed',
     DRAFT: 'draft',
     FINAL_QUOTE_SENT: 'final_quote_sent',
     IN_CONSULTATION: 'in_consultation',
     MATCHED: 'matched',
+    QUOTE_ADJUSTMENT: 'quote_adjustment',
     SUBMITTED: 'submitted',
-  },
-  ERemodelScope: {
-    FULL: 'full',
-    PARTIAL: 'partial',
-  },
-  ESelectionDecision: {
-    CONSULTATION_REQUIRED: 'consultation_required',
-    NOT_SELECTED: 'not_selected',
-    SELECTED: 'selected',
-  },
-}));
+  };
+
+  return {
+    ERemodelBudgetCode,
+    ERemodelRequestStatus,
+    ERemodelScope: {
+      FULL: 'full',
+      PARTIAL: 'partial',
+    },
+    ESelectionDecision: {
+      CONSULTATION_REQUIRED: 'consultation_required',
+      NOT_SELECTED: 'not_selected',
+      SELECTED: 'selected',
+    },
+    mapSelectionSnapshot: (row: {
+      base_price_snapshot: number | null;
+      catalog_item_id: string | null;
+      category: string;
+      decision_status: string;
+      id: string;
+      item_name: string | null;
+      selected_options: readonly {
+        productId: string;
+        productName: string;
+      }[];
+    }) => ({
+      basePriceSnapshot: row.base_price_snapshot ?? undefined,
+      catalogItemId: row.catalog_item_id ?? undefined,
+      category: row.category,
+      decisionStatus: row.decision_status,
+      id: row.id,
+      itemName: row.item_name ?? undefined,
+      selectedOptionIds: row.selected_options.map((option) => option.productId),
+      selectedOptionNames: row.selected_options.map((option) => option.productName),
+    }),
+    mapRemodelRequest: (
+      row: {
+        budget_range: string;
+        customer_id: string;
+        id: string;
+        status: string;
+      },
+      selections: unknown[],
+    ) => ({
+      budgetRange: row.budget_range,
+      customerId: row.customer_id,
+      id: row.id,
+      photos: [],
+      selections,
+      status: row.status,
+    }),
+  };
+});
 
 vi.mock('@/entities/remodel-request', () => remodelRequestTypes);
 

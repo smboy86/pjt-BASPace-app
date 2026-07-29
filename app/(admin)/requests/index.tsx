@@ -31,6 +31,11 @@ const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = 
     backgroundColor: '#F7E7D3',
     textColor: '#8A4A12',
   },
+  [ERemodelRequestStatus.QUOTE_ADJUSTMENT]: {
+    label: '고객 확인 대기',
+    backgroundColor: '#F7E7D3',
+    textColor: '#8A4A12',
+  },
   [ERemodelRequestStatus.MATCHED]: {
     label: '업체 매칭 완료',
     backgroundColor: '#DCEFEA',
@@ -56,6 +61,12 @@ const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = 
     backgroundColor: '#EEEAE1',
     textColor: '#62706D',
   },
+};
+
+const ADJUSTMENT_CONFIRMED_PRESENTATION: IStatusPresentation = {
+  label: '고객 확인 완료',
+  backgroundColor: '#E1F0E8',
+  textColor: '#277A57',
 };
 
 export default function AdminRequestListScreen(): React.JSX.Element {
@@ -235,7 +246,10 @@ function AdminRequestCard({
 }: {
   request: IAdminRemodelRequestListItem;
 }): React.JSX.Element {
-  const status = STATUS_PRESENTATION[request.status];
+  const status =
+    request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT && request.adjustmentConfirmedAt
+      ? ADJUSTMENT_CONFIRMED_PRESENTATION
+      : STATUS_PRESENTATION[request.status];
   const submittedAt = request.submittedAt ?? request.createdAt;
   const partnerSummary =
     request.assignedPartnerNames.length > 0
@@ -243,10 +257,17 @@ function AdminRequestCard({
       : '배정 업체 없음';
 
   return (
-    <View
-      accessible
+    <Pressable
       accessibilityLabel={`${request.customerName}, ${status.label}, ${request.region}, ${getRemodelBudgetLabel(request.budgetRange)}`}
-      className="mb-3 rounded-2xl border border-stone-100 bg-white p-4"
+      accessibilityHint="견적 상세 화면으로 이동합니다."
+      accessibilityRole="button"
+      className="mb-3 rounded-2xl border border-stone-100 bg-white p-4 active:bg-brand-100"
+      onPress={() =>
+        router.push({
+          pathname: '/(admin)/requests/[requestId]',
+          params: { requestId: request.id },
+        })
+      }
     >
       <View className="flex-row items-start">
         <View className="flex-1 pr-3">
@@ -276,7 +297,7 @@ function AdminRequestCard({
         <RequestInfoRow icon="calendar-outline" label={`희망 일정 ${request.desiredSchedule}`} />
         <RequestInfoRow icon="business-outline" label={partnerSummary} />
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -129,7 +129,7 @@ export type Database = {
       };
       consultation_messages: {
         Row: {
-          assignment_id: string;
+          assignment_id: string | null;
           author_id: string;
           body: string;
           created_at: string;
@@ -139,7 +139,7 @@ export type Database = {
           request_id: string;
         };
         Insert: {
-          assignment_id: string;
+          assignment_id?: string | null;
           author_id: string;
           body?: string;
           created_at?: string;
@@ -149,7 +149,7 @@ export type Database = {
           request_id: string;
         };
         Update: {
-          assignment_id?: string;
+          assignment_id?: string | null;
           author_id?: string;
           body?: string;
           created_at?: string;
@@ -634,6 +634,10 @@ export type Database = {
       remodel_requests: {
         Row: {
           address_detail: string;
+          adjusted_at: string | null;
+          adjusted_by: string | null;
+          adjusted_estimate_amount: number | null;
+          adjustment_confirmed_at: string | null;
           bathroom_type: string;
           budget_range: string;
           created_at: string;
@@ -655,6 +659,10 @@ export type Database = {
         };
         Insert: {
           address_detail?: string;
+          adjusted_at?: string | null;
+          adjusted_by?: string | null;
+          adjusted_estimate_amount?: number | null;
+          adjustment_confirmed_at?: string | null;
           bathroom_type: string;
           budget_range: string;
           created_at?: string;
@@ -676,6 +684,10 @@ export type Database = {
         };
         Update: {
           address_detail?: string;
+          adjusted_at?: string | null;
+          adjusted_by?: string | null;
+          adjusted_estimate_amount?: number | null;
+          adjustment_confirmed_at?: string | null;
           bathroom_type?: string;
           budget_range?: string;
           created_at?: string;
@@ -696,6 +708,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'remodel_requests_adjusted_by_fkey';
+            columns: ['adjusted_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'remodel_requests_customer_id_fkey';
             columns: ['customer_id'];
@@ -863,6 +882,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      adjust_customer_request_quote: {
+        Args: { target_amount: number; target_request_id: string };
+        Returns: undefined;
+      };
+      confirm_adjusted_request_quote: {
+        Args: { target_request_id: string };
+        Returns: undefined;
+      };
       confirm_final_quote: {
         Args: { target_quote_id: string };
         Returns: undefined;
@@ -943,6 +970,7 @@ export type Database = {
       remodel_request_status:
         | 'draft'
         | 'submitted'
+        | 'quote_adjustment'
         | 'matched'
         | 'in_consultation'
         | 'final_quote_sent'
@@ -1093,6 +1121,7 @@ export const Constants = {
       remodel_request_status: [
         'draft',
         'submitted',
+        'quote_adjustment',
         'matched',
         'in_consultation',
         'final_quote_sent',

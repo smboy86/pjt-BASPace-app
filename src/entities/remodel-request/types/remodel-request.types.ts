@@ -1,6 +1,7 @@
 export enum ERemodelRequestStatus {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
+  QUOTE_ADJUSTMENT = 'quote_adjustment',
   MATCHED = 'matched',
   IN_CONSULTATION = 'in_consultation',
   FINAL_QUOTE_SENT = 'final_quote_sent',
@@ -74,6 +75,10 @@ export interface IRemodelRequest {
   notes: string;
   photos: IRequestPhoto[];
   selections: ISelectionSnapshot[];
+  adjustedEstimateAmount?: number;
+  adjustedBy?: string;
+  adjustedAt?: string;
+  adjustmentConfirmedAt?: string;
   submittedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -81,7 +86,15 @@ export interface IRemodelRequest {
 
 export type TCreateRemodelRequestInput = Omit<
   IRemodelRequest,
-  'id' | 'status' | 'submittedAt' | 'createdAt' | 'updatedAt'
+  | 'id'
+  | 'status'
+  | 'adjustedEstimateAmount'
+  | 'adjustedBy'
+  | 'adjustedAt'
+  | 'adjustmentConfirmedAt'
+  | 'submittedAt'
+  | 'createdAt'
+  | 'updatedAt'
 >;
 
 export type TUpdateRemodelRequestInput = Partial<
