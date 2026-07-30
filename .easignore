@@ -43,6 +43,9 @@ _workspace/
 *.key
 *.pem
 keys/
+.env
+.env.*
+!.env.example
 
 # OS files
 .DS_Store

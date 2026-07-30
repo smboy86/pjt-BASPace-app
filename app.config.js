@@ -26,6 +26,8 @@ module.exports = ({ config }) => {
     web: { bundler: 'metro', output: 'static' },
     updates: {
       url: 'https://u.expo.dev/bd03574d-0e8a-44dd-89aa-bbaaa3d3a687',
+      checkAutomatically: 'ON_LOAD',
+      fallbackToCacheTimeout: NODE_ENV === 'development' ? 5000 : 0,
     },
     runtimeVersion: { policy: 'appVersion' },
     ios: {

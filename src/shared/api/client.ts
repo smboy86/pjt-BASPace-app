@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import axios, { create, AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { env } from '@shared/config';
 import { clearAllSecure, getSecureItem, SECURE_KEYS, setSecureItem } from '@/shared/secure-storage';
 
@@ -63,7 +63,7 @@ const isPublicEndpoint = (url: string | undefined): boolean => {
   return PUBLIC_ENDPOINTS.some((endpoint) => url.includes(endpoint));
 };
 
-export const apiClient: AxiosInstance = axios.create({
+export const apiClient: AxiosInstance = create({
   baseURL: env.API_URL,
   timeout: 10000,
   headers: {
