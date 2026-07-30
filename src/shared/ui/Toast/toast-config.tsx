@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
   },
   info: {
     borderLeftColor: Colors.status.info,
+    backgroundColor: Colors.primary.light,
   },
   content: {
     paddingHorizontal: Spacing.lg,
