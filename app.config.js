@@ -3,7 +3,7 @@ module.exports = ({ config }) => {
   const NODE_ENV = process.env.NODE_ENV || 'development';
   const DEBUG = process.env.DEBUG === 'true';
   const LOG_LEVEL = process.env.LOG_LEVEL || 'debug';
-  const APP_VERSION = process.env.APP_VERSION || '1.0.0';
+  const APP_VERSION = process.env.APP_VERSION || '1.1.0';
   const ANDROID_BUILD_ARCHS = process.env.ANDROID_BUILD_ARCHS
     ? process.env.ANDROID_BUILD_ARCHS.split(',').map((arch) => arch.trim())
     : ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'];

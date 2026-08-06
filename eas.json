@@ -19,6 +19,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "environment": "development",
       "env": {
         "NODE_ENV": "development",
