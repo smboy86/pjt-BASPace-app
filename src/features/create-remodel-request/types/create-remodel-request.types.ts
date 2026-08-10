@@ -27,8 +27,10 @@ export interface ISubmitRemodelRequestInput {
   addressDetail: string;
   budgetCode: ERemodelBudgetCode;
   customerId: string;
+  desiredConstructionDate: string;
   notes: string;
   photos: IRequestPhoto[];
   region: string;
+  requiresDemolition: boolean;
   selections: ISelectedQuoteProductSubmission[];
 }

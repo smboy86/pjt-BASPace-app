@@ -21,8 +21,10 @@ export const submitRemodelRequest = async (
     {
       target_address_detail: input.addressDetail,
       target_budget_range: input.budgetCode,
+      target_desired_construction_date: input.desiredConstructionDate,
       target_notes: input.notes,
       target_region: input.region,
+      target_requires_demolition: input.requiresDemolition,
       target_selections: toSelectionPayload(input),
     },
   );
@@ -41,9 +43,9 @@ export const submitRemodelRequest = async (
     bathroomType: '공용 욕실',
     estimatedSize: '약 3㎡',
     hasBathtub: false,
-    requiresDemolition: true,
+    requiresDemolition: input.requiresDemolition,
     budgetRange: input.budgetCode,
-    desiredSchedule: '2개월 이내',
+    desiredSchedule: input.desiredConstructionDate,
     scope: ERemodelScope.FULL,
     priorities: [],
     notes: input.notes,

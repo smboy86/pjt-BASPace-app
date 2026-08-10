@@ -17,7 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
 import { AddressSearchModal } from '@/features/address-search';
-import { useSubmitRemodelRequest } from '@/features/create-remodel-request';
+import {
+  ConstructionRequirementsSection,
+  isFutureConstructionDate,
+  useSubmitRemodelRequest,
+} from '@/features/create-remodel-request';
 import { useCustomerQuoteOptions } from '@/features/select-quote-options';
 import {
   ERemodelBudgetCode,
@@ -29,6 +33,8 @@ import type { IQuoteOption, IQuoteOptionProduct } from '@/entities/quote-option'
 interface IFormErrors {
   address?: string;
   budget?: string;
+  constructionType?: string;
+  desiredConstructionDate?: string;
   options?: Record<string, string>;
   submission?: string;
 }
@@ -48,6 +54,8 @@ function CustomerRequestScreen(): React.JSX.Element {
   const [region, setRegion] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
   const [budgetCode, setBudgetCode] = useState<ERemodelBudgetCode | null>(null);
+  const [requiresDemolition, setRequiresDemolition] = useState<boolean | null>(null);
+  const [desiredConstructionDate, setDesiredConstructionDate] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [checkedOptionIds, setCheckedOptionIds] = useState<string[]>([]);
@@ -147,11 +155,23 @@ function CustomerRequestScreen(): React.JSX.Element {
     const nextErrors: IFormErrors = {
       address: region.trim() ? undefined : '주소를 검색해 기본 주소를 입력해 주세요.',
       budget: budgetCode ? undefined : '희망 예산을 선택해 주세요.',
+      constructionType:
+        requiresDemolition === null ? '철거 또는 덧방 중 하나를 선택해 주세요.' : undefined,
+      desiredConstructionDate:
+        desiredConstructionDate && isFutureConstructionDate(desiredConstructionDate)
+          ? undefined
+          : '내일 이후의 공사 희망 날짜를 선택해 주세요.',
       options: Object.keys(optionErrors).length > 0 ? optionErrors : undefined,
     };
 
     setErrors(nextErrors);
-    return !nextErrors.address && !nextErrors.budget && !nextErrors.options;
+    return (
+      !nextErrors.address &&
+      !nextErrors.budget &&
+      !nextErrors.constructionType &&
+      !nextErrors.desiredConstructionDate &&
+      !nextErrors.options
+    );
   };
 
   const submitRequest = async (): Promise<void> => {
@@ -160,7 +180,13 @@ function CustomerRequestScreen(): React.JSX.Element {
       router.replace('/(auth)/login');
       return;
     }
-    if (!validateForm() || !budgetCode) return;
+    if (
+      !validateForm() ||
+      !budgetCode ||
+      requiresDemolition === null ||
+      !desiredConstructionDate
+    )
+      return;
     if (quoteOptionsQuery.isPending || quoteOptionsQuery.isError) {
       setErrors((current) => ({
         ...current,
@@ -183,6 +209,7 @@ function CustomerRequestScreen(): React.JSX.Element {
         region: region.trim(),
         addressDetail: addressDetail.trim(),
         budgetCode,
+        desiredConstructionDate,
         notes: notes.trim(),
         photos: requestPhotos,
         selections: selectedProducts.map(({ option, product }) => ({
@@ -193,10 +220,13 @@ function CustomerRequestScreen(): React.JSX.Element {
           productName: product.name,
           price: product.price,
         })),
+        requiresDemolition,
       });
       setRegion('');
       setAddressDetail('');
       setBudgetCode(null);
+      setRequiresDemolition(null);
+      setDesiredConstructionDate(null);
       setNotes('');
       setPhotos([]);
       setCheckedOptionIds([]);
@@ -295,6 +325,21 @@ function CustomerRequestScreen(): React.JSX.Element {
             )}
           </View>
         </Section>
+
+        <ConstructionRequirementsSection
+          dateError={errors.desiredConstructionDate}
+          desiredConstructionDate={desiredConstructionDate}
+          onDateChange={(date) => {
+            setDesiredConstructionDate(date);
+            setErrors((current) => ({ ...current, desiredConstructionDate: undefined }));
+          }}
+          onRequiresDemolitionChange={(nextRequiresDemolition) => {
+            setRequiresDemolition(nextRequiresDemolition);
+            setErrors((current) => ({ ...current, constructionType: undefined }));
+          }}
+          requiresDemolition={requiresDemolition}
+          typeError={errors.constructionType}
+        />
 
         <Section title="욕실 사진 · 선택">
           <Text className="text-sm leading-5 text-ink-600">

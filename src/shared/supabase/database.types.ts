@@ -995,8 +995,10 @@ export type Database = {
         Args: {
           target_address_detail: string;
           target_budget_range: string;
+          target_desired_construction_date: string;
           target_notes: string;
           target_region: string;
+          target_requires_demolition: boolean;
           target_selections: Json;
         };
         Returns: string;
