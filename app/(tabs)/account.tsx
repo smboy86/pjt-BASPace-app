@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { usePreventRemove } from 'expo-router/react-navigation';
-import { goBackOrCustomerQuotes } from '@shared/lib';
+import { goBackOrCustomerHome } from '@shared/lib';
 import { useAuthSession, useAuthStore } from '@/features/auth';
 import {
   type ICustomerProfile,
@@ -269,7 +269,7 @@ function AccountHeader({ disabled }: IAccountHeaderProps): React.JSX.Element {
       accessibilityState={{ disabled }}
       className="min-h-11 self-start flex-row items-center pt-1"
       disabled={disabled}
-      onPress={goBackOrCustomerQuotes}
+      onPress={goBackOrCustomerHome}
     >
       <Ionicons name="chevron-back" color="#123F3B" size={22} />
       <Text className="font-semibold text-brand-900">설정</Text>

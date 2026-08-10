@@ -64,7 +64,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
 
     if (user.role === 'customer') {
       if (!isInCustomerGroup) {
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/home');
       }
       return;
     }

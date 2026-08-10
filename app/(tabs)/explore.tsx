@@ -457,7 +457,7 @@ function CustomerRequestScreen(): React.JSX.Element {
               className="mt-6 min-h-12 items-center justify-center rounded-2xl bg-brand-900 active:opacity-80"
               onPress={() => {
                 setIsConfirmationVisible(false);
-                router.replace('/(tabs)');
+                router.replace('/(tabs)/home');
               }}
             >
               <Text className="font-bold text-white">확인</Text>

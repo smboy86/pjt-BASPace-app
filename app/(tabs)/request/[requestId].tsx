@@ -4,7 +4,7 @@ import { useRemodelRequestStore } from '@/entities/remodel-request';
 import { useAuthSession } from '@/features/auth';
 import { useRemodelRequestDetail } from '@/features/view-remodel-request-detail';
 import { RemodelRequestDetailScreen } from '@/widgets/remodel-request-detail';
-import { goBackOrCustomerQuotes } from '@shared/lib';
+import { goBackOrCustomerHome } from '@shared/lib';
 
 export default function CustomerRequestDetailRoute(): React.JSX.Element {
   const params = useLocalSearchParams<{ requestId?: string | string[] }>();
@@ -33,7 +33,7 @@ export default function CustomerRequestDetailRoute(): React.JSX.Element {
       isLoading={detailQuery.isLoading}
       request={request}
       role="customer"
-      onBack={goBackOrCustomerQuotes}
+      onBack={goBackOrCustomerHome}
       onRetry={() => void detailQuery.refetch()}
     />
   );

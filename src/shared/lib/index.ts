@@ -1,7 +1,9 @@
 export {
+  isCustomerHomePath,
+  isCustomerPrimaryTabRootPath,
   isRoleRootPath,
   useAppState,
   useCustomerBackFallback,
   useExitAppOnDoubleBack,
 } from './hooks';
-export { goBackOrCustomerQuotes } from './navigation';
+export { CUSTOMER_HOME_PATH, goBackOrCustomerHome, goToCustomerHome } from './navigation';
