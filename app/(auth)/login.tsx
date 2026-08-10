@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  findNodeHandle,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -22,6 +24,10 @@ const TEMP_LOGIN_ACCOUNTS = [
 
 export default function LoginScreen(): React.JSX.Element {
   const login = useLogin();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const emailInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInput>(null);
+  const focusedInputRef = useRef<TextInput | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -66,6 +72,36 @@ export default function LoginScreen(): React.JSX.Element {
 
   const errorMessage = validationError || login.error?.message || '';
 
+  const scrollToInput = useCallback((input: TextInput | null): void => {
+    const inputHandle = findNodeHandle(input);
+    if (inputHandle === null) return;
+
+    requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollResponderScrollNativeHandleToKeyboard(inputHandle, 24, true);
+    });
+  }, []);
+
+  const handleInputFocus = useCallback(
+    (input: TextInput | null): void => {
+      focusedInputRef.current = input;
+
+      if (Platform.OS === 'ios' || Keyboard.isVisible()) {
+        scrollToInput(input);
+      }
+    },
+    [scrollToInput],
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      scrollToInput(focusedInputRef.current);
+    });
+
+    return () => subscription.remove();
+  }, [scrollToInput]);
+
   return (
     <SafeAreaView className="flex-1 bg-sand-50">
       <KeyboardAvoidingView
@@ -73,7 +109,10 @@ export default function LoginScreen(): React.JSX.Element {
         className="flex-1"
       >
         <ScrollView
+          ref={scrollViewRef}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           contentContainerClassName="flex-grow px-6 pb-10 pt-8"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
         >
           <View className="mb-8 mt-3">
@@ -114,6 +153,7 @@ export default function LoginScreen(): React.JSX.Element {
               ) : null}
             </View>
             <TextInput
+              ref={emailInputRef}
               accessibilityLabel="로그인 이메일"
               autoCapitalize="none"
               autoComplete="email"
@@ -126,10 +166,13 @@ export default function LoginScreen(): React.JSX.Element {
               textContentType="emailAddress"
               value={email}
               onChangeText={updateEmail}
+              onFocus={() => handleInputFocus(emailInputRef.current)}
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
             />
 
             <Text className="mt-4 text-sm font-semibold text-ink-900">비밀번호</Text>
             <TextInput
+              ref={passwordInputRef}
               accessibilityLabel="로그인 비밀번호"
               autoCapitalize="none"
               autoComplete="current-password"
@@ -142,6 +185,7 @@ export default function LoginScreen(): React.JSX.Element {
               textContentType="password"
               value={password}
               onChangeText={updatePassword}
+              onFocus={() => handleInputFocus(passwordInputRef.current)}
               onSubmitEditing={() => void submit()}
             />
 

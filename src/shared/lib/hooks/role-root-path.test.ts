@@ -5,9 +5,9 @@ describe('isRoleRootPath', () => {
   it.each([
     [['(tabs)'], true],
     [['(tabs)', 'index'], true],
-    [['(tabs)', 'explore'], true],
-    [['(tabs)', 'notifications'], true],
-    [['(tabs)', 'settings'], true],
+    [['(tabs)', 'explore'], false],
+    [['(tabs)', 'notifications'], false],
+    [['(tabs)', 'settings'], false],
     [['(partner)', 'dashboard'], true],
     [['(admin)', 'dashboard'], true],
     [['(tabs)', 'request', 'request-id'], false],

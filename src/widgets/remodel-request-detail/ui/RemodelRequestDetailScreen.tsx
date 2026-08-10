@@ -48,6 +48,7 @@ interface IRemodelRequestDetailScreenProps {
   assignmentStatus?: ERequestPartnerStatus;
   isLoading: boolean;
   isError: boolean;
+  onBack?: () => void;
   onRetry: () => void;
 }
 
@@ -73,6 +74,7 @@ export function RemodelRequestDetailScreen({
   assignmentStatus,
   isLoading,
   isError,
+  onBack = router.back,
   onRetry,
 }: IRemodelRequestDetailScreenProps): React.JSX.Element {
   const { user } = useAuthSession();
@@ -174,7 +176,7 @@ export function RemodelRequestDetailScreen({
         <Pressable
           accessibilityRole="button"
           className="mt-4 min-h-11 items-center justify-center rounded-xl bg-brand-900 px-4"
-          onPress={() => router.back()}
+          onPress={onBack}
         >
           <Text className="font-bold text-white">목록으로 돌아가기</Text>
         </Pressable>
@@ -341,7 +343,7 @@ export function RemodelRequestDetailScreen({
           accessibilityLabel="견적 목록으로 돌아가기"
           accessibilityRole="button"
           className="mb-4 min-h-10 flex-row items-center"
-          onPress={() => router.back()}
+          onPress={onBack}
         >
           <Ionicons name="chevron-back" color="#123F3B" size={22} />
           <Text className="font-semibold text-brand-900">목록</Text>
