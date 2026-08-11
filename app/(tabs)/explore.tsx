@@ -22,7 +22,7 @@ import {
   isFutureConstructionDate,
   useSubmitRemodelRequest,
 } from '@/features/create-remodel-request';
-import { useCustomerQuoteOptions } from '@/features/select-quote-options';
+import { ProductImagePreviewModal, useCustomerQuoteOptions } from '@/features/select-quote-options';
 import {
   ERemodelBudgetCode,
   REMODEL_BUDGET_OPTIONS,
@@ -65,6 +65,7 @@ function CustomerRequestScreen(): React.JSX.Element {
   const [errors, setErrors] = useState<IFormErrors>({});
   const [isAddressSearchVisible, setIsAddressSearchVisible] = useState(false);
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState<IQuoteOptionProduct | null>(null);
 
   const quoteOptions = quoteOptionsQuery.data ?? EMPTY_QUOTE_OPTIONS;
   const selectedProducts = useMemo(
@@ -180,12 +181,7 @@ function CustomerRequestScreen(): React.JSX.Element {
       router.replace('/(auth)/login');
       return;
     }
-    if (
-      !validateForm() ||
-      !budgetCode ||
-      requiresDemolition === null ||
-      !desiredConstructionDate
-    )
+    if (!validateForm() || !budgetCode || requiresDemolition === null || !desiredConstructionDate)
       return;
     if (quoteOptionsQuery.isPending || quoteOptionsQuery.isError) {
       setErrors((current) => ({
@@ -415,6 +411,7 @@ function CustomerRequestScreen(): React.JSX.Element {
               error={errors.options?.[option.id]}
               isChecked={checkedOptionIds.includes(option.id)}
               onProductSelect={(productId) => selectProduct(option.id, productId)}
+              onProductImagePreview={setPreviewProduct}
               onToggle={() => toggleOption(option)}
               option={option}
               selectedProductId={selectedProductIds[option.id]}
@@ -485,6 +482,8 @@ function CustomerRequestScreen(): React.JSX.Element {
         visible={isAddressSearchVisible}
       />
 
+      <ProductImagePreviewModal onClose={() => setPreviewProduct(null)} product={previewProduct} />
+
       <Modal
         animationType="fade"
         onRequestClose={() => undefined}
@@ -543,6 +542,7 @@ function QuoteOptionField({
   error,
   onToggle,
   onProductSelect,
+  onProductImagePreview,
 }: {
   option: IQuoteOption;
   isChecked: boolean;
@@ -550,6 +550,7 @@ function QuoteOptionField({
   error?: string;
   onToggle: () => void;
   onProductSelect: (productId: string) => void;
+  onProductImagePreview: (product: IQuoteOptionProduct) => void;
 }): React.JSX.Element {
   const hasProducts = option.products.length > 0;
 
@@ -590,6 +591,7 @@ function QuoteOptionField({
               <ProductCard
                 key={product.id}
                 isSelected={selectedProductId === product.id}
+                onImagePreview={() => onProductImagePreview(product)}
                 onPress={() => onProductSelect(product.id)}
                 product={product}
               />
@@ -613,46 +615,65 @@ function ProductCard({
   product,
   isSelected,
   onPress,
+  onImagePreview,
 }: {
   product: IQuoteOptionProduct;
   isSelected: boolean;
   onPress: () => void;
+  onImagePreview: () => void;
 }): React.JSX.Element {
   return (
-    <Pressable
-      accessibilityLabel={`${product.name} ${formatPrice(product.price)} 선택`}
+    <View
       className={`w-44 overflow-hidden rounded-2xl border ${
         isSelected ? 'border-2 border-brand-700 bg-brand-100' : 'border-stone-100 bg-white'
       }`}
-      onPress={onPress}
     >
-      {product.url ? (
-        <Image
-          accessibilityLabel={`${product.name} 제품 이미지`}
-          className="h-28 w-full"
-          resizeMode="cover"
-          source={{ uri: product.url }}
-        />
-      ) : (
-        <View className="h-28 w-full items-center justify-center bg-stone-50">
-          <Ionicons color="#84908D" name="image-outline" size={28} />
-        </View>
-      )}
-      <View className="p-3">
-        <View className="flex-row items-start justify-between gap-2">
-          <Text className="flex-1 text-sm font-bold text-ink-900" numberOfLines={2}>
-            {product.name}
-          </Text>
-          <Ionicons
-            color={isSelected ? '#176D62' : '#C9CECC'}
-            name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-            size={20}
+      <Pressable
+        accessibilityLabel={`${product.name} ${formatPrice(product.price)} 선택`}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: isSelected }}
+        className="active:opacity-80"
+        onPress={onPress}
+      >
+        {product.url ? (
+          <Image
+            accessibilityLabel={`${product.name} 제품 이미지`}
+            className="h-28 w-full"
+            resizeMode="cover"
+            source={{ uri: product.url }}
           />
+        ) : (
+          <View className="h-28 w-full items-center justify-center bg-stone-50">
+            <Ionicons color="#84908D" name="image-outline" size={28} />
+          </View>
+        )}
+        <View className="p-3">
+          <View className="flex-row items-start justify-between gap-2">
+            <Text className="flex-1 text-sm font-bold text-ink-900" numberOfLines={2}>
+              {product.name}
+            </Text>
+            <Ionicons
+              color={isSelected ? '#176D62' : '#C9CECC'}
+              name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+              size={20}
+            />
+          </View>
+          <Text className="mt-2 text-sm font-semibold text-brand-900">
+            + {formatPrice(product.price)}
+          </Text>
         </View>
-        <Text className="mt-2 text-sm font-semibold text-brand-900">
-          + {formatPrice(product.price)}
-        </Text>
-      </View>
-    </Pressable>
+      </Pressable>
+
+      {product.url && (
+        <Pressable
+          accessibilityLabel={`${product.name} 이미지 크게 보기`}
+          accessibilityRole="button"
+          className="absolute right-2 top-16 h-11 w-11 items-center justify-center rounded-full bg-ink-900/80 active:opacity-80"
+          onPress={onImagePreview}
+        >
+          <Ionicons color="#FFFFFF" name="expand-outline" size={23} />
+        </Pressable>
+      )}
+    </View>
   );
 }
