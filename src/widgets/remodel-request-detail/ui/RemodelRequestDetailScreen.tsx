@@ -10,12 +10,14 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ERequestPartnerStatus } from '@/entities/partner';
 import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
 import {
   ERemodelRequestStatus,
+  formatRemodelSchedule,
   getRemodelBudgetLabel,
   type IRemodelRequest,
   useRemodelRequestStore,
@@ -38,6 +40,8 @@ import {
   useRequestConsultationMessages,
   useRequestConsultationStore,
 } from '@/features/request-consultation';
+import { useUpdateRemodelRequestSchedule } from '@/features/update-remodel-request-schedule';
+import { ConstructionDatePickerModal } from '@/shared/ui';
 
 type TRequestDetailRole = 'customer' | 'admin' | 'partner';
 
@@ -91,11 +95,15 @@ export function RemodelRequestDetailScreen({
   const partnerResponseMutation = useRespondToPartnerRequest();
   const resetPartnerResponseMutation = partnerResponseMutation.reset;
   const completeRequestMutation = useCompleteRemodelRequest();
+  const updateScheduleMutation = useUpdateRemodelRequestSchedule();
+  const resetUpdateScheduleMutation = updateScheduleMutation.reset;
   const resetCompleteRequestMutation = completeRequestMutation.reset;
   const [message, setMessage] = useState('');
   const [adjustedAmountInput, setAdjustedAmountInput] = useState('');
   const [assignmentModalVisible, setAssignmentModalVisible] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<IAssignablePartner | null>(null);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
   const assignablePartnersQuery = useAssignablePartners(role === 'admin' && assignmentModalVisible);
   const assignPartnerMutation = useAssignRemodelRequestPartner();
 
@@ -137,6 +145,11 @@ export function RemodelRequestDetailScreen({
     resetPartnerResponseMutation();
     resetCompleteRequestMutation();
   }, [request?.id, resetCompleteRequestMutation, resetPartnerResponseMutation]);
+
+  useEffect(() => {
+    setSelectedSchedule(request?.desiredSchedule ?? null);
+    resetUpdateScheduleMutation();
+  }, [request?.desiredSchedule, request?.id, resetUpdateScheduleMutation]);
 
   if (isLoading && !request) {
     return (
@@ -219,6 +232,13 @@ export function RemodelRequestDetailScreen({
     role === 'admin' &&
     (request.status === ERemodelRequestStatus.SUBMITTED ||
       request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT);
+  const minimumScheduleDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  const displayedSchedule = selectedSchedule ?? request.desiredSchedule;
+  const canSaveSchedule =
+    role === 'admin' &&
+    displayedSchedule !== request.desiredSchedule &&
+    displayedSchedule >= minimumScheduleDate &&
+    !updateScheduleMutation.isPending;
 
   const sendMessage = async (): Promise<void> => {
     const trimmed = message.trim();
@@ -336,6 +356,19 @@ export function RemodelRequestDetailScreen({
     }
   };
 
+  const handleUpdateSchedule = async (): Promise<void> => {
+    if (!canSaveSchedule) return;
+
+    try {
+      await updateScheduleMutation.mutateAsync({
+        requestId: request.id,
+        desiredSchedule: displayedSchedule,
+      });
+    } catch {
+      // The mutation error is displayed inline and the selected date remains available to retry.
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand-50" edges={['top']}>
       <ScrollView contentContainerClassName="px-5 pb-10 pt-3">
@@ -359,6 +392,78 @@ export function RemodelRequestDetailScreen({
           {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
           {getRemodelBudgetLabel(request.budgetRange)} · {request.desiredSchedule}
         </Text>
+
+        <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-brand-700">공사 희망 날짜</Text>
+              <Text className="mt-2 text-xl font-bold text-ink-900">
+                {formatRemodelSchedule(displayedSchedule)}
+              </Text>
+            </View>
+            {role === 'admin' ? (
+              <Pressable
+                accessibilityLabel="공사 희망 날짜 변경"
+                accessibilityRole="button"
+                className="min-h-11 items-center justify-center rounded-xl border border-brand-700 px-4 active:bg-brand-100"
+                disabled={updateScheduleMutation.isPending}
+                onPress={() => setScheduleModalVisible(true)}
+              >
+                <Text className="text-sm font-bold text-brand-900">날짜 변경</Text>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {request.latestScheduleChange ? (
+            <View className="mt-4 rounded-2xl bg-amber-50 p-4">
+              <Text className="text-sm font-bold text-amber-900">
+                관리자가 공사 희망 날짜를 변경했어요.
+              </Text>
+              <Text className="mt-1 text-xs leading-5 text-amber-800">
+                이전 {formatRemodelSchedule(request.latestScheduleChange.previousSchedule)}
+                {' · '}
+                {dayjs(request.latestScheduleChange.changedAt).format('YYYY년 M월 D일 HH:mm')} 변경
+              </Text>
+            </View>
+          ) : null}
+
+          {role === 'admin' && displayedSchedule !== request.desiredSchedule ? (
+            <View className="mt-4">
+              <Text className="text-xs leading-5 text-ink-600">
+                저장하면 고객 화면에 변경된 날짜와 변경 안내가 표시됩니다.
+              </Text>
+              {updateScheduleMutation.isError ? (
+                <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-700">
+                  날짜를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.
+                </Text>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{
+                  busy: updateScheduleMutation.isPending,
+                  disabled: !canSaveSchedule,
+                }}
+                className={`mt-3 min-h-12 items-center justify-center rounded-xl ${
+                  canSaveSchedule ? 'bg-brand-900 active:opacity-80' : 'bg-stone-100 opacity-60'
+                }`}
+                disabled={!canSaveSchedule}
+                onPress={() => void handleUpdateSchedule()}
+              >
+                {updateScheduleMutation.isPending ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text className={`font-bold ${canSaveSchedule ? 'text-white' : 'text-ink-600'}`}>
+                    변경 저장
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          ) : updateScheduleMutation.isSuccess ? (
+            <Text accessibilityRole="alert" className="mt-3 text-xs font-semibold text-emerald-700">
+              공사 희망 날짜를 변경했어요.
+            </Text>
+          ) : null}
+        </View>
 
         <View className="mt-6 rounded-3xl bg-white p-5">
           <Text className="text-sm font-semibold text-brand-700">선택 리포트</Text>
@@ -786,6 +891,19 @@ export function RemodelRequestDetailScreen({
           </View>
         ) : null}
       </ScrollView>
+
+      <ConstructionDatePickerModal
+        minimumDate={minimumScheduleDate}
+        onClose={() => setScheduleModalVisible(false)}
+        onSelect={(date) => {
+          setSelectedSchedule(date);
+          resetUpdateScheduleMutation();
+          setScheduleModalVisible(false);
+        }}
+        selectedDate={displayedSchedule}
+        title="변경할 공사 희망 날짜"
+        visible={scheduleModalVisible}
+      />
 
       <PartnerAssignmentModal
         assignError={assignPartnerMutation.isError}

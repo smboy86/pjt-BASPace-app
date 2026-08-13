@@ -57,6 +57,15 @@ export interface ISelectionSnapshot {
   decisionStatus: ESelectionDecision;
 }
 
+export interface IRemodelRequestScheduleChange {
+  id: string;
+  requestId: string;
+  previousSchedule: string;
+  newSchedule: string;
+  changedBy: string;
+  changedAt: string;
+}
+
 export interface IRemodelRequest {
   id: string;
   customerId: string;
@@ -71,6 +80,7 @@ export interface IRemodelRequest {
   specialStructureNote?: string;
   budgetRange: ERemodelBudgetCode;
   desiredSchedule: string;
+  latestScheduleChange?: IRemodelRequestScheduleChange;
   scope: ERemodelScope;
   priorities: string[];
   notes: string;
@@ -93,6 +103,7 @@ export type TCreateRemodelRequestInput = Omit<
   | 'adjustedBy'
   | 'adjustedAt'
   | 'adjustmentConfirmedAt'
+  | 'latestScheduleChange'
   | 'submittedAt'
   | 'createdAt'
   | 'updatedAt'

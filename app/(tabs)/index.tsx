@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthSession } from '@/features/auth';
 import {
   ERemodelRequestStatus,
+  formatRemodelSchedule,
   getRemodelBudgetLabel,
   useRemodelRequestStore,
 } from '@/entities/remodel-request';
@@ -143,6 +144,14 @@ export default function HomeScreen(): React.JSX.Element {
                         {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
                         {getRemodelBudgetLabel(request.budgetRange)}
                       </Text>
+                      <Text className="mt-2 text-sm font-semibold text-ink-900">
+                        공사 희망일 {formatRemodelSchedule(request.desiredSchedule)}
+                      </Text>
+                      {request.latestScheduleChange ? (
+                        <Text className="mt-1 text-xs font-semibold text-amber-800">
+                          관리자가 일정을 변경했어요.
+                        </Text>
+                      ) : null}
                     </View>
                     <StatusBadge label={STATUS_LABELS[request.status]} status={request.status} />
                   </View>

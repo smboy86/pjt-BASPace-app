@@ -65,13 +65,30 @@ const remodelRequestTypes = vi.hoisted(() => {
         status: string;
       },
       selections: unknown[],
+      latestScheduleChange?: unknown,
     ) => ({
       budgetRange: row.budget_range,
       customerId: row.customer_id,
       id: row.id,
       photos: [],
       selections,
+      latestScheduleChange,
       status: row.status,
+    }),
+    mapRemodelRequestScheduleChange: (row: {
+      changed_at: string;
+      changed_by: string;
+      id: string;
+      new_schedule: string;
+      previous_schedule: string;
+      request_id: string;
+    }) => ({
+      changedAt: row.changed_at,
+      changedBy: row.changed_by,
+      id: row.id,
+      newSchedule: row.new_schedule,
+      previousSchedule: row.previous_schedule,
+      requestId: row.request_id,
     }),
   };
 });
@@ -124,12 +141,23 @@ const SELECTION_ROW = {
   ],
 } as const;
 
+const SCHEDULE_CHANGE_ROW = {
+  changed_at: '2026-08-11T00:00:00.000Z',
+  changed_by: 'admin-1',
+  id: 'schedule-change-1',
+  new_schedule: '2026-08-20',
+  previous_schedule: '2026-08-18',
+  request_id: REQUEST_ROW.id,
+} as const;
+
 const configureQueries = ({
   requests = [REQUEST_ROW],
   selections = [SELECTION_ROW],
+  scheduleChanges = [SCHEDULE_CHANGE_ROW],
 }: {
   requests?: readonly (typeof REQUEST_ROW)[];
   selections?: readonly (typeof SELECTION_ROW)[];
+  scheduleChanges?: readonly (typeof SCHEDULE_CHANGE_ROW)[];
 } = {}): void => {
   mocks.from.mockImplementation((table: string) => {
     if (table === 'remodel_requests') {
@@ -156,6 +184,18 @@ const configureQueries = ({
       };
     }
 
+    if (table === 'remodel_request_schedule_changes') {
+      return {
+        select: () => ({
+          in: () => ({
+            order: () => ({
+              order: () => Promise.resolve({ data: scheduleChanges, error: null }),
+            }),
+          }),
+        }),
+      };
+    }
+
     throw new Error(`Unexpected table: ${table}`);
   });
 };
@@ -173,6 +213,10 @@ describe('fetchCustomerRemodelRequests', () => {
         customerId: 'customer-1',
         id: 'request-1',
         photos: [],
+        latestScheduleChange: expect.objectContaining({
+          id: 'schedule-change-1',
+          previousSchedule: '2026-08-18',
+        }),
         status: remodelRequestTypes.ERemodelRequestStatus.SUBMITTED,
         selections: [
           expect.objectContaining({
@@ -186,6 +230,7 @@ describe('fetchCustomerRemodelRequests', () => {
 
     expect(mocks.from).toHaveBeenNthCalledWith(1, 'remodel_requests');
     expect(mocks.from).toHaveBeenNthCalledWith(2, 'selection_snapshots');
+    expect(mocks.from).toHaveBeenNthCalledWith(3, 'remodel_request_schedule_changes');
   });
 
   it('returns an empty list without querying snapshots when the customer has no requests', async () => {

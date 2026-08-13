@@ -5,11 +5,13 @@ import {
   ERemodelScope,
   ESelectionDecision,
   type IRemodelRequest,
+  type IRemodelRequestScheduleChange,
   type ISelectionSnapshot,
 } from '../types';
 
 type TRemodelRequestRow = Database['public']['Tables']['remodel_requests']['Row'];
 type TSelectionSnapshotRow = Database['public']['Tables']['selection_snapshots']['Row'];
+type TScheduleChangeRow = Database['public']['Tables']['remodel_request_schedule_changes']['Row'];
 type TJsonObject = { [key: string]: TJson | undefined };
 
 const isJsonObject = (value: TJson): value is TJsonObject =>
@@ -128,9 +130,21 @@ export const mapSelectionSnapshot = (row: TSelectionSnapshotRow): ISelectionSnap
   decisionStatus: mapDecisionStatus(row.decision_status),
 });
 
+export const mapRemodelRequestScheduleChange = (
+  row: TScheduleChangeRow,
+): IRemodelRequestScheduleChange => ({
+  id: row.id,
+  requestId: row.request_id,
+  previousSchedule: row.previous_schedule,
+  newSchedule: row.new_schedule,
+  changedBy: row.changed_by,
+  changedAt: row.changed_at,
+});
+
 export const mapRemodelRequest = (
   row: TRemodelRequestRow,
   selections: ISelectionSnapshot[],
+  latestScheduleChange?: IRemodelRequestScheduleChange,
 ): IRemodelRequest => ({
   id: row.id,
   customerId: row.customer_id,
@@ -145,6 +159,7 @@ export const mapRemodelRequest = (
   specialStructureNote: row.special_structure_note ?? undefined,
   budgetRange: mapBudgetRange(row.budget_range),
   desiredSchedule: row.desired_schedule,
+  latestScheduleChange,
   scope: mapScope(row.scope),
   priorities: row.priorities,
   notes: row.notes,

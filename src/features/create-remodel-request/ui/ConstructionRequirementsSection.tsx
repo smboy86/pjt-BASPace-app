@@ -1,15 +1,9 @@
-import { useMemo, useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import dayjs, { type Dayjs } from 'dayjs';
-import { CONSTRUCTION_DATE_FORMAT, getMinimumConstructionDate } from '../model';
-
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
-
-interface ICalendarDay {
-  date: string;
-  day: number;
-}
+import dayjs from 'dayjs';
+import { ConstructionDatePickerModal } from '@/shared/ui';
+import { getMinimumConstructionDate } from '../model';
 
 interface IConstructionRequirementsSectionProps {
   dateError?: string;
@@ -19,24 +13,6 @@ interface IConstructionRequirementsSectionProps {
   requiresDemolition: boolean | null;
   typeError?: string;
 }
-
-const getCalendarDays = (month: Dayjs): (ICalendarDay | null)[] => {
-  const leadingEmptyDays: null[] = Array.from(
-    { length: month.startOf('month').day() },
-    () => null,
-  );
-  const days = Array.from({ length: month.daysInMonth() }, (_, index) => {
-    const date = month.date(index + 1);
-    return {
-      date: date.format(CONSTRUCTION_DATE_FORMAT),
-      day: index + 1,
-    };
-  });
-  const cells: (ICalendarDay | null)[] = [...leadingEmptyDays, ...days];
-
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
-};
 
 export function ConstructionRequirementsSection({
   dateError,
@@ -48,20 +24,11 @@ export function ConstructionRequirementsSection({
 }: IConstructionRequirementsSectionProps): React.JSX.Element {
   const minimumDate = getMinimumConstructionDate();
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(() =>
-    dayjs(desiredConstructionDate ?? minimumDate).startOf('month'),
-  );
-  const calendarDays = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
-  const canMoveToPreviousMonth = !visibleMonth
-    .subtract(1, 'month')
-    .endOf('month')
-    .isBefore(dayjs(minimumDate), 'day');
   const formattedDate = desiredConstructionDate
     ? dayjs(desiredConstructionDate).format('YYYY년 M월 D일')
     : '날짜를 선택해 주세요.';
 
   const openCalendar = (): void => {
-    setVisibleMonth(dayjs(desiredConstructionDate ?? minimumDate).startOf('month'));
     setIsCalendarVisible(true);
   };
 
@@ -135,90 +102,16 @@ export function ConstructionRequirementsSection({
         </View>
       </View>
 
-      <Modal
-        animationType="fade"
-        onRequestClose={() => setIsCalendarVisible(false)}
-        transparent
+      <ConstructionDatePickerModal
+        minimumDate={minimumDate}
+        onClose={() => setIsCalendarVisible(false)}
+        onSelect={(date) => {
+          onDateChange(date);
+          setIsCalendarVisible(false);
+        }}
+        selectedDate={desiredConstructionDate}
         visible={isCalendarVisible}
-      >
-        <View className="flex-1 items-center justify-center bg-black/50 px-5">
-          <View className="w-full max-w-md rounded-3xl bg-white p-5">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-ink-900">공사 희망 날짜</Text>
-              <Pressable
-                accessibilityLabel="날짜 선택 닫기"
-                className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-50"
-                onPress={() => setIsCalendarVisible(false)}
-              >
-                <Ionicons color="#253330" name="close" size={24} />
-              </Pressable>
-            </View>
-
-            <View className="mt-3 flex-row items-center justify-between">
-              <Pressable
-                accessibilityLabel="이전 달"
-                className={`h-11 w-11 items-center justify-center rounded-full ${
-                  canMoveToPreviousMonth ? 'active:bg-stone-50' : 'opacity-30'
-                }`}
-                disabled={!canMoveToPreviousMonth}
-                onPress={() => setVisibleMonth((current) => current.subtract(1, 'month'))}
-              >
-                <Ionicons color="#253330" name="chevron-back" size={22} />
-              </Pressable>
-              <Text accessibilityRole="header" className="text-base font-bold text-ink-900">
-                {visibleMonth.format('YYYY년 M월')}
-              </Text>
-              <Pressable
-                accessibilityLabel="다음 달"
-                className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-50"
-                onPress={() => setVisibleMonth((current) => current.add(1, 'month'))}
-              >
-                <Ionicons color="#253330" name="chevron-forward" size={22} />
-              </Pressable>
-            </View>
-
-            <View className="mt-3 flex-row flex-wrap">
-              {WEEKDAYS.map((weekday) => (
-                <View key={weekday} className="w-[14.2857%] items-center py-2">
-                  <Text className="text-xs font-semibold text-ink-500">{weekday}</Text>
-                </View>
-              ))}
-              {calendarDays.map((calendarDay, index) => {
-                if (!calendarDay) {
-                  return <View key={`empty-${index}`} className="h-12 w-[14.2857%]" />;
-                }
-
-                const isDisabled = calendarDay.date < minimumDate;
-                const isSelected = calendarDay.date === desiredConstructionDate;
-                return (
-                  <View key={calendarDay.date} className="h-12 w-[14.2857%] items-center">
-                    <Pressable
-                      accessibilityLabel={`${dayjs(calendarDay.date).format('YYYY년 M월 D일')} 선택`}
-                      accessibilityState={{ disabled: isDisabled, selected: isSelected }}
-                      className={`h-11 w-11 items-center justify-center rounded-full ${
-                        isSelected ? 'bg-brand-900' : isDisabled ? 'opacity-30' : 'active:bg-brand-100'
-                      }`}
-                      disabled={isDisabled}
-                      onPress={() => {
-                        onDateChange(calendarDay.date);
-                        setIsCalendarVisible(false);
-                      }}
-                    >
-                      <Text
-                        className={`text-sm font-semibold ${
-                          isSelected ? 'text-white' : 'text-ink-900'
-                        }`}
-                      >
-                        {calendarDay.day}
-                      </Text>
-                    </Pressable>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      />
     </View>
   );
 }

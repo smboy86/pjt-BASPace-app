@@ -631,6 +631,48 @@ export type Database = {
           },
         ];
       };
+      remodel_request_schedule_changes: {
+        Row: {
+          changed_at: string;
+          changed_by: string;
+          id: string;
+          new_schedule: string;
+          previous_schedule: string;
+          request_id: string;
+        };
+        Insert: {
+          changed_at?: string;
+          changed_by: string;
+          id?: string;
+          new_schedule: string;
+          previous_schedule: string;
+          request_id: string;
+        };
+        Update: {
+          changed_at?: string;
+          changed_by?: string;
+          id?: string;
+          new_schedule?: string;
+          previous_schedule?: string;
+          request_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'remodel_request_schedule_changes_changed_by_fkey';
+            columns: ['changed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'remodel_request_schedule_changes_request_id_fkey';
+            columns: ['request_id'];
+            isOneToOne: false;
+            referencedRelation: 'remodel_requests';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       remodel_requests: {
         Row: {
           address_detail: string;
@@ -1002,6 +1044,10 @@ export type Database = {
           target_selections: Json;
         };
         Returns: string;
+      };
+      update_remodel_request_schedule: {
+        Args: { target_date: string; target_request_id: string };
+        Returns: undefined;
       };
       update_quote_option_master: {
         Args: {
