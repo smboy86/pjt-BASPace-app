@@ -83,7 +83,7 @@ function SettingRow({
   const content = (
     <>
       <View className="h-10 w-10 items-center justify-center rounded-full bg-sand-50">
-        <Ionicons name={icon} color={destructive ? '#DC2626' : '#123F3B'} size={21} />
+        <Ionicons name={icon} color={destructive ? '#DC2626' : '#0B1F3A'} size={21} />
       </View>
       <View className="ml-3 flex-1">
         <Text
@@ -93,7 +93,7 @@ function SettingRow({
         </Text>
         {description && <Text className="mt-1 text-sm text-ink-600">{description}</Text>}
       </View>
-      {onPress && <Ionicons name="chevron-forward" color="#84908D" size={18} />}
+      {onPress && <Ionicons name="chevron-forward" color="#667085" size={18} />}
     </>
   );
 

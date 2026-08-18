@@ -7,7 +7,7 @@ export default function AssignmentScreen(): React.JSX.Element {
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-sand-50 px-6">
       <View className="h-16 w-16 items-center justify-center rounded-3xl bg-stone-100">
-        <Ionicons name="lock-closed-outline" color="#62706D" size={28} />
+        <Ionicons name="lock-closed-outline" color="#667085" size={28} />
       </View>
       <Text className="mt-5 text-xl font-bold text-ink-900">접근할 수 없는 화면이에요.</Text>
       <Text className="mt-2 text-center text-sm leading-5 text-ink-600">

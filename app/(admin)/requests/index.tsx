@@ -23,8 +23,8 @@ interface IStatusPresentation {
 const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = {
   [ERemodelRequestStatus.DRAFT]: {
     label: '작성 중',
-    backgroundColor: '#EEEAE1',
-    textColor: '#62706D',
+    backgroundColor: '#D8E1EC',
+    textColor: '#667085',
   },
   [ERemodelRequestStatus.SUBMITTED]: {
     label: '매칭 대기',
@@ -38,13 +38,13 @@ const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = 
   },
   [ERemodelRequestStatus.MATCHED]: {
     label: '업체 매칭 완료',
-    backgroundColor: '#DCEFEA',
-    textColor: '#176D62',
+    backgroundColor: '#E8EEF6',
+    textColor: '#163A63',
   },
   [ERemodelRequestStatus.IN_CONSULTATION]: {
     label: '견적 협의 중',
-    backgroundColor: '#DCEFEA',
-    textColor: '#176D62',
+    backgroundColor: '#E8EEF6',
+    textColor: '#163A63',
   },
   [ERemodelRequestStatus.FINAL_QUOTE_SENT]: {
     label: '최종 견적 도착',
@@ -58,8 +58,8 @@ const STATUS_PRESENTATION: Record<ERemodelRequestStatus, IStatusPresentation> = 
   },
   [ERemodelRequestStatus.CLOSED]: {
     label: '시공 완료',
-    backgroundColor: '#EEEAE1',
-    textColor: '#62706D',
+    backgroundColor: '#D8E1EC',
+    textColor: '#667085',
   },
   [ERemodelRequestStatus.CANCELLED]: {
     label: '취소',
@@ -94,7 +94,7 @@ export default function AdminRequestListScreen(): React.JSX.Element {
           className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" color="#1D2725" size={24} />
+          <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
         </Pressable>
         <Text className="ml-1 flex-1 text-xl font-bold text-ink-900">견적 관리</Text>
       </View>
@@ -137,7 +137,7 @@ export default function AdminRequestListScreen(): React.JSX.Element {
             refreshControl={
               <RefreshControl
                 refreshing={requestsQuery.isRefetching}
-                tintColor="#176D62"
+                tintColor="#163A63"
                 onRefresh={() => void requestsQuery.refetch()}
               />
             }
@@ -201,7 +201,7 @@ function AdminRequestTabs({
 function AdminRequestListLoading(): React.JSX.Element {
   return (
     <View className="flex-1 items-center justify-center px-6">
-      <ActivityIndicator color="#176D62" size="large" />
+      <ActivityIndicator color="#163A63" size="large" />
       <Text className="mt-4 text-sm font-semibold text-ink-600">고객 견적을 불러오고 있어요.</Text>
     </View>
   );
@@ -235,7 +235,7 @@ function AdminRequestListEmpty({ tabLabel }: { tabLabel: string }): React.JSX.El
   return (
     <View className="mt-16 items-center rounded-3xl border border-stone-100 bg-white p-7">
       <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">
-        <Ionicons name="document-text-outline" color="#176D62" size={28} />
+        <Ionicons name="document-text-outline" color="#163A63" size={28} />
       </View>
       <Text className="mt-4 text-lg font-bold text-ink-900">{tabLabel}이 없어요.</Text>
       <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
@@ -314,7 +314,7 @@ function RequestInfoRow({
 }): React.JSX.Element {
   return (
     <View className="mb-2 flex-row items-center">
-      <Ionicons name={icon} color="#84908D" size={16} />
+      <Ionicons name={icon} color="#667085" size={16} />
       <Text className="ml-2 flex-1 text-sm text-ink-600" numberOfLines={2}>
         {label}
       </Text>

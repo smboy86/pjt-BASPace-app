@@ -48,7 +48,7 @@ export function AddressSearchModal({
             className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-50"
             onPress={onClose}
           >
-            <Ionicons color="#25302E" name="close" size={24} />
+            <Ionicons color="#0B1F3A" name="close" size={24} />
           </Pressable>
           <Text className="text-lg font-bold text-ink-900">주소 입력</Text>
           <View className="h-11 w-11" />

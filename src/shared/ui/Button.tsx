@@ -31,15 +31,15 @@ export function Button({
   const getVariantStyle = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-primary dark:bg-primary-dark';
+        return 'bg-brand-700';
       case 'secondary':
-        return 'bg-surface dark:bg-surface-dark';
+        return 'border border-stone-100 bg-white';
       case 'outline':
-        return 'bg-transparent border border-primary dark:border-primary-dark';
+        return 'border border-brand-700 bg-transparent';
       case 'ghost':
         return 'bg-transparent';
       default:
-        return 'bg-primary';
+        return 'bg-brand-700';
     }
   };
 
@@ -61,8 +61,8 @@ export function Button({
     const sizeStyle = size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-lg' : 'text-base';
     let color = 'text-white';
 
-    if (variant === 'secondary') color = 'text-primary dark:text-primary-dark';
-    if (variant === 'outline' || variant === 'ghost') color = 'text-primary dark:text-primary-dark';
+    if (variant === 'secondary') color = 'text-brand-900';
+    if (variant === 'outline' || variant === 'ghost') color = 'text-brand-700';
 
     return `${base} ${sizeStyle} ${color}`;
   };

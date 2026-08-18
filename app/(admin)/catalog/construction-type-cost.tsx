@@ -82,7 +82,7 @@ export default function AdminConstructionTypeCostScreen(): React.JSX.Element {
             disabled={updateSetting.isPending}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" color="#1D2725" size={24} />
+            <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
           </Pressable>
           <Text className="ml-1 flex-1 text-xl font-bold text-ink-900">시공 타입 금액 설정</Text>
         </View>
@@ -90,7 +90,7 @@ export default function AdminConstructionTypeCostScreen(): React.JSX.Element {
         <ScrollView contentContainerClassName="px-5 pb-8 pt-3" keyboardShouldPersistTaps="handled">
           <View className="rounded-3xl border border-brand-100 bg-white p-5">
             <View className="h-11 w-11 items-center justify-center rounded-2xl bg-brand-100">
-              <Ionicons name="hammer-outline" color="#176D62" size={22} />
+              <Ionicons name="hammer-outline" color="#163A63" size={22} />
             </View>
             <Text className="mt-4 text-lg font-bold text-ink-900">철거 추가 비용</Text>
             <Text className="mt-2 text-sm leading-6 text-ink-600">
@@ -191,7 +191,7 @@ function CenteredState({
 }): React.JSX.Element {
   return (
     <SafeAreaView className="flex-1 items-center justify-center bg-sand-50 px-6">
-      {loading ? <ActivityIndicator color="#176D62" size="large" /> : null}
+      {loading ? <ActivityIndicator color="#163A63" size="large" /> : null}
       <Text className="mt-4 text-center text-sm font-semibold text-ink-600">{text}</Text>
       {onRetry ? (
         <Pressable

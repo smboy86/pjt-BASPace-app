@@ -111,7 +111,7 @@ export default function AccountScreen(): React.JSX.Element {
   if (profileQuery.isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-sand-50" edges={['top']}>
-        <ActivityIndicator color="#123F3B" size="large" />
+        <ActivityIndicator color="#0B1F3A" size="large" />
         <Text className="mt-4 text-sm font-semibold text-ink-600">
           로그인 정보를 불러오고 있어요.
         </Text>
@@ -160,7 +160,7 @@ export default function AccountScreen(): React.JSX.Element {
           <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
             <View className="flex-row items-center">
               <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-100">
-                <Ionicons name="person-outline" color="#123F3B" size={24} />
+                <Ionicons name="person-outline" color="#0B1F3A" size={24} />
               </View>
               <View className="ml-4 flex-1">
                 <Text className="text-xs font-semibold text-ink-600">로그인 계정</Text>
@@ -207,7 +207,7 @@ export default function AccountScreen(): React.JSX.Element {
                 accessibilityRole="alert"
                 className="flex-row items-center rounded-xl bg-brand-100 px-4 py-3"
               >
-                <Ionicons name="checkmark-circle" color="#176D62" size={20} />
+                <Ionicons name="checkmark-circle" color="#163A63" size={20} />
                 <Text className="ml-2 flex-1 text-sm font-semibold text-brand-900">
                   로그인 정보를 저장했어요.
                 </Text>
@@ -246,7 +246,7 @@ export default function AccountScreen(): React.JSX.Element {
           </View>
 
           <View className="mt-4 flex-row items-start rounded-2xl bg-stone-100 px-4 py-3">
-            <Ionicons name="lock-closed-outline" color="#62706D" size={18} />
+            <Ionicons name="lock-closed-outline" color="#667085" size={18} />
             <Text className="ml-2 flex-1 text-xs leading-5 text-ink-600">
               이메일은 로그인 계정 식별 정보로 이 화면에서 변경할 수 없습니다.
             </Text>
@@ -271,7 +271,7 @@ function AccountHeader({ disabled }: IAccountHeaderProps): React.JSX.Element {
       disabled={disabled}
       onPress={goBackOrCustomerHome}
     >
-      <Ionicons name="chevron-back" color="#123F3B" size={22} />
+      <Ionicons name="chevron-back" color="#0B1F3A" size={22} />
       <Text className="font-semibold text-brand-900">설정</Text>
     </Pressable>
   );
@@ -317,7 +317,7 @@ function AccountField({
         keyboardType={keyboardType}
         maxLength={maxLength}
         placeholder={placeholder}
-        placeholderTextColor="#84908D"
+        placeholderTextColor="#667085"
         textContentType={textContentType}
         value={value}
         onBlur={onBlur}

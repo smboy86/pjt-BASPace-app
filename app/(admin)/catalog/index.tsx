@@ -21,7 +21,7 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
           className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" color="#1D2725" size={24} />
+          <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
         </Pressable>
         <Text className="ml-1 flex-1 text-xl font-bold text-ink-900">견적 옵션 관리</Text>
       </View>
@@ -54,7 +54,7 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
           refreshControl={
             <RefreshControl
               refreshing={optionsQuery.isRefetching || demolitionCostQuery.isRefetching}
-              tintColor="#176D62"
+              tintColor="#163A63"
               onRefresh={() =>
                 void Promise.all([optionsQuery.refetch(), demolitionCostQuery.refetch()])
               }
@@ -93,7 +93,7 @@ function ConstructionTypeCostListItem({
     >
       <View className="flex-row items-center">
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-100">
-          <Ionicons name="hammer-outline" color="#176D62" size={22} />
+          <Ionicons name="hammer-outline" color="#163A63" size={22} />
         </View>
         <View className="ml-3 flex-1">
           <Text className="text-sm font-bold text-ink-900">시공 타입 금액 설정</Text>
@@ -102,7 +102,7 @@ function ConstructionTypeCostListItem({
         <Text className={`ml-2 text-xs font-bold ${isError ? 'text-red-600' : 'text-brand-700'}`}>
           {statusText}
         </Text>
-        <Ionicons className="ml-1.5" name="chevron-forward" color="#84908D" size={18} />
+        <Ionicons className="ml-1.5" name="chevron-forward" color="#667085" size={18} />
       </View>
     </Pressable>
   );
@@ -111,7 +111,7 @@ function ConstructionTypeCostListItem({
 function QuoteOptionListLoading(): React.JSX.Element {
   return (
     <View className="flex-1 items-center justify-center px-6">
-      <ActivityIndicator color="#176D62" size="large" />
+      <ActivityIndicator color="#163A63" size="large" />
       <Text className="mt-4 text-sm font-semibold text-ink-600">견적 옵션을 불러오고 있어요.</Text>
     </View>
   );
@@ -146,7 +146,7 @@ function QuoteOptionListEmpty(): React.JSX.Element {
     <View className="flex-1 items-center justify-center">
       <View className="w-full items-center rounded-3xl border border-stone-100 bg-white p-7">
         <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">
-          <Ionicons name="grid-outline" color="#176D62" size={28} />
+          <Ionicons name="grid-outline" color="#163A63" size={28} />
         </View>
         <Text className="mt-4 text-lg font-bold text-ink-900">등록된 견적 옵션이 없어요.</Text>
       </View>
@@ -173,7 +173,7 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
     >
       <View className="flex-row items-center">
         <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
-          <Ionicons name="grid-outline" color="#176D62" size={20} />
+          <Ionicons name="grid-outline" color="#163A63" size={20} />
         </View>
         <Text className="ml-3 flex-1 text-sm font-bold text-ink-900" numberOfLines={1}>
           {option.name}
@@ -193,7 +193,7 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
         <Text className="ml-2 text-xs font-semibold text-ink-600">
           제품 {option.products.length}개
         </Text>
-        <Ionicons className="ml-1.5" name="chevron-forward" color="#84908D" size={18} />
+        <Ionicons className="ml-1.5" name="chevron-forward" color="#667085" size={18} />
       </View>
     </Pressable>
   );

@@ -86,7 +86,7 @@ export default function SignupScreen(): React.JSX.Element {
             disabled={signup.isPending}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" color="#123F3B" size={22} />
+            <Ionicons name="chevron-back" color="#0B1F3A" size={22} />
             <Text className="font-semibold text-brand-900">로그인</Text>
           </Pressable>
 
@@ -165,7 +165,7 @@ export default function SignupScreen(): React.JSX.Element {
             >
               <Ionicons
                 name={agreed ? 'checkbox' : 'square-outline'}
-                color={agreed ? '#176D62' : '#84908D'}
+                color={agreed ? '#163A63' : '#667085'}
                 size={22}
               />
               <Text className="ml-3 flex-1 text-sm leading-5 text-ink-600">
@@ -242,7 +242,7 @@ function SignupField({
         editable={editable}
         keyboardType={keyboardType}
         placeholder={placeholder}
-        placeholderTextColor="#84908D"
+        placeholderTextColor="#667085"
         secureTextEntry={secureTextEntry}
         textContentType={textContentType}
         value={value}

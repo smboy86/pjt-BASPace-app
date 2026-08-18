@@ -135,7 +135,7 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
             disabled={createPartner.isPending}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" color="#1D2725" size={24} />
+            <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
           </Pressable>
           <Text className="ml-1 text-xl font-bold text-ink-900">업체 추가</Text>
         </View>
@@ -212,7 +212,7 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
                   disabled={createPartner.isPending}
                   onPress={() => void selectImage()}
                 >
-                  <Ionicons name="image-outline" color="#176D62" size={28} />
+                  <Ionicons name="image-outline" color="#163A63" size={28} />
                   <Text className="mt-2 font-bold text-brand-700">이미지 1장 첨부</Text>
                   <Text className="mt-1 text-xs text-ink-600">JPEG, PNG, HEIC · 최대 10MB</Text>
                 </Pressable>
@@ -363,7 +363,7 @@ function FormField({
             onBlur={onBlur}
             onChangeText={onChange}
             placeholder={placeholder}
-            placeholderTextColor="#84908D"
+            placeholderTextColor="#667085"
             secureTextEntry={secureTextEntry}
             textAlignVertical={multiline ? 'top' : 'center'}
             textContentType={textContentType}

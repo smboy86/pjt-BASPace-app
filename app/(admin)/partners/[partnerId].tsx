@@ -25,7 +25,7 @@ export default function AdminPartnerDetailScreen(): React.JSX.Element {
           className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" color="#1D2725" size={24} />
+          <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
         </Pressable>
         <Text className="ml-1 text-xl font-bold text-ink-900">업체 상세</Text>
       </View>
@@ -70,7 +70,7 @@ export default function AdminPartnerDetailScreen(): React.JSX.Element {
               <EmptyDetailValue icon="image-outline" text="첨부된 사업자등록증이 없어요." />
             ) : documentQuery.isLoading ? (
               <View className="min-h-48 items-center justify-center">
-                <ActivityIndicator color="#176D62" />
+                <ActivityIndicator color="#163A63" />
                 <Text className="mt-3 text-sm text-ink-600">이미지를 불러오고 있어요.</Text>
               </View>
             ) : documentQuery.data ? (
@@ -103,7 +103,7 @@ export default function AdminPartnerDetailScreen(): React.JSX.Element {
 function DetailLoading(): React.JSX.Element {
   return (
     <View className="flex-1 items-center justify-center">
-      <ActivityIndicator color="#176D62" size="large" />
+      <ActivityIndicator color="#163A63" size="large" />
       <Text className="mt-4 text-sm font-semibold text-ink-600">업체 정보를 불러오고 있어요.</Text>
     </View>
   );
@@ -122,7 +122,7 @@ function DetailError({
         accessibilityRole="alert"
         className="w-full items-center rounded-3xl border border-stone-100 bg-white p-6"
       >
-        <Ionicons name="business-outline" color="#62706D" size={36} />
+        <Ionicons name="business-outline" color="#667085" size={36} />
         <Text className="mt-4 text-lg font-bold text-ink-900">업체 정보를 찾을 수 없어요.</Text>
         <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
           업체가 삭제되었거나 네트워크 연결이 원활하지 않을 수 있어요.
@@ -181,7 +181,7 @@ function EmptyDetailValue({
 }): React.JSX.Element {
   return (
     <View className="min-h-32 items-center justify-center rounded-2xl bg-sand-50 px-4">
-      <Ionicons name={icon} color="#62706D" size={28} />
+      <Ionicons name={icon} color="#667085" size={28} />
       <Text className="mt-2 text-center text-sm text-ink-600">{text}</Text>
     </View>
   );

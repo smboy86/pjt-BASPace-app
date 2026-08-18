@@ -77,7 +77,7 @@ export function ConstructionDatePickerModal({
               className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-50"
               onPress={onClose}
             >
-              <Ionicons color="#253330" name="close" size={24} />
+              <Ionicons color="#0B1F3A" name="close" size={24} />
             </Pressable>
           </View>
 
@@ -90,7 +90,7 @@ export function ConstructionDatePickerModal({
               disabled={!canMoveToPreviousMonth}
               onPress={() => setVisibleMonth((current) => current.subtract(1, 'month'))}
             >
-              <Ionicons color="#253330" name="chevron-back" size={22} />
+              <Ionicons color="#0B1F3A" name="chevron-back" size={22} />
             </Pressable>
             <Text accessibilityRole="header" className="text-base font-bold text-ink-900">
               {visibleMonth.format('YYYY년 M월')}
@@ -100,7 +100,7 @@ export function ConstructionDatePickerModal({
               className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-50"
               onPress={() => setVisibleMonth((current) => current.add(1, 'month'))}
             >
-              <Ionicons color="#253330" name="chevron-forward" size={22} />
+              <Ionicons color="#0B1F3A" name="chevron-forward" size={22} />
             </Pressable>
           </View>
 

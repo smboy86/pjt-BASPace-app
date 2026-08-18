@@ -55,7 +55,7 @@ export default function HomeScreen(): React.JSX.Element {
         refreshControl={
           <RefreshControl
             refreshing={requestsQuery.isRefetching}
-            tintColor="#176D62"
+            tintColor="#163A63"
             onRefresh={() => void refetchRequests()}
           />
         }
@@ -95,7 +95,7 @@ export default function HomeScreen(): React.JSX.Element {
         <View className="mt-4 gap-3">
           {requestsQuery.isPending ? (
             <View className="items-center rounded-2xl border border-stone-100 bg-white p-6">
-              <ActivityIndicator color="#176D62" />
+              <ActivityIndicator color="#163A63" />
               <Text className="mt-3 text-sm font-semibold text-ink-600">
                 저장된 견적 요청을 불러오고 있어요.
               </Text>
@@ -161,7 +161,7 @@ export default function HomeScreen(): React.JSX.Element {
                         ? `견적 v${latestQuote.version} 준비됨`
                         : '업체 회신을 기다리는 중'}
                     </Text>
-                    <Ionicons name="chevron-forward" color="#62706D" size={18} />
+                    <Ionicons name="chevron-forward" color="#667085" size={18} />
                   </View>
                 </Pressable>
               );

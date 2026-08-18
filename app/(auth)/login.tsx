@@ -161,7 +161,7 @@ export default function LoginScreen(): React.JSX.Element {
               editable={!login.isPending}
               keyboardType="email-address"
               placeholder="name@example.com"
-              placeholderTextColor="#84908D"
+              placeholderTextColor="#667085"
               returnKeyType="next"
               textContentType="emailAddress"
               value={email}
@@ -179,7 +179,7 @@ export default function LoginScreen(): React.JSX.Element {
               className="mt-2 min-h-12 rounded-xl bg-sand-50 px-4 text-base text-ink-900"
               editable={!login.isPending}
               placeholder="비밀번호를 입력해 주세요"
-              placeholderTextColor="#84908D"
+              placeholderTextColor="#667085"
               returnKeyType="done"
               secureTextEntry
               textContentType="password"
@@ -227,7 +227,7 @@ export default function LoginScreen(): React.JSX.Element {
 
           <View className="mt-5 rounded-2xl bg-brand-100 p-4">
             <View className="flex-row items-start">
-              <Ionicons name="information-circle-outline" color="#176D62" size={21} />
+              <Ionicons name="information-circle-outline" color="#163A63" size={21} />
               <Text className="ml-3 flex-1 text-sm leading-5 text-ink-600">
                 고객 계정만 직접 가입할 수 있습니다. 업체 담당자와 관리자는 운영자가 생성한 계정으로
                 참여합니다.

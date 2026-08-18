@@ -17,8 +17,8 @@ export function Card({
   const baseStyle = 'rounded-2xl p-4';
   const variantStyle =
     variant === 'glass'
-      ? 'bg-surface dark:bg-surface-dark border border-border dark:border-border-dark shadow-md'
-      : 'bg-surface dark:bg-surface-dark shadow-sm';
+      ? 'border border-stone-100 bg-white shadow-md'
+      : 'border border-stone-100 bg-white shadow-sm';
 
   return (
     <View style={style} className={`${baseStyle} ${variantStyle} ${className || ''}`}>

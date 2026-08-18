@@ -116,9 +116,9 @@ export default function AdminDashboardScreen(): React.JSX.Element {
           onPress={() => void handleLogout()}
         >
           {logout.isPending ? (
-            <ActivityIndicator color="#62706D" />
+            <ActivityIndicator color="#667085" />
           ) : (
-            <Ionicons name="log-out-outline" color="#62706D" size={20} />
+            <Ionicons name="log-out-outline" color="#667085" size={20} />
           )}
           <Text className="ml-2 font-bold text-ink-600">
             {logout.isPending ? '로그아웃 중...' : '로그아웃'}
@@ -148,7 +148,7 @@ function AdminMenuCard({
       onPress={destination ? () => router.push(destination) : undefined}
     >
       <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-100">
-        <Ionicons name={icon} color="#176D62" size={24} />
+        <Ionicons name={icon} color="#163A63" size={24} />
       </View>
       <View className="ml-4 flex-1">
         <View className="flex-row items-center">
@@ -162,7 +162,7 @@ function AdminMenuCard({
         <Text className="mt-1 text-sm leading-5 text-ink-600">{description}</Text>
       </View>
       {isAvailable ? (
-        <Ionicons className="ml-2" name="chevron-forward" color="#62706D" size={20} />
+        <Ionicons className="ml-2" name="chevron-forward" color="#667085" size={20} />
       ) : null}
     </Pressable>
   );

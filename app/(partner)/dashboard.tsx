@@ -48,7 +48,7 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
           <Text className="text-base font-bold text-ink-900">업체 연결 상태</Text>
           {workspaceQuery.isLoading ? (
             <View className="mt-4 flex-row items-center">
-              <ActivityIndicator color="#176D62" />
+              <ActivityIndicator color="#163A63" />
               <Text className="ml-3 text-sm text-ink-600">업체 연결 정보를 불러오고 있어요.</Text>
             </View>
           ) : workspaceQuery.isError ? (
@@ -96,12 +96,12 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
           onPress={() => router.push('/(partner)/requests')}
         >
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-100">
-            <Ionicons name="document-text-outline" color="#176D62" size={24} />
+            <Ionicons name="document-text-outline" color="#163A63" size={24} />
           </View>
           <View className="ml-4 flex-1">
             <View className="flex-row items-center">
               <Text className="flex-1 text-base font-bold text-ink-900">배정 견적서 확인</Text>
-              <Ionicons name="chevron-forward" color="#62706D" size={20} />
+              <Ionicons name="chevron-forward" color="#667085" size={20} />
             </View>
             <Text className="mt-1 text-sm leading-5 text-ink-600">{requestMenuHint}</Text>
           </View>
@@ -129,9 +129,9 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
           onPress={() => void handleLogout()}
         >
           {logout.isPending ? (
-            <ActivityIndicator color="#62706D" />
+            <ActivityIndicator color="#667085" />
           ) : (
-            <Ionicons name="log-out-outline" color="#62706D" size={20} />
+            <Ionicons name="log-out-outline" color="#667085" size={20} />
           )}
           <Text className="ml-2 font-bold text-ink-600">
             {logout.isPending ? '로그아웃 중...' : '로그아웃'}

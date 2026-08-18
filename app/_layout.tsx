@@ -77,7 +77,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-sand-50">
-        <ActivityIndicator color="#123F3B" size="large" />
+        <ActivityIndicator color="#0B1F3A" size="large" />
         <Text className="mt-4 text-sm font-semibold text-ink-600">
           로그인 정보를 확인하고 있어요.
         </Text>

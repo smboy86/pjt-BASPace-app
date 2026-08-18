@@ -1,41 +1,28 @@
 module.exports = {
-  content: [
-    './app/**/*.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}',
-  ],
+  content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
         brand: {
-          100: '#DCEFEA',
-          700: '#176D62',
-          900: '#123F3B',
+          50: '#F3F6FA',
+          100: '#E8EEF6',
+          200: '#D4DFEC',
+          700: '#163A63',
+          800: '#102E50',
+          900: '#0B1F3A',
         },
         sand: {
-          50: '#F8F6F0',
+          50: '#F7F8FA',
         },
         stone: {
-          100: '#EEEAE1',
+          50: '#F0F3F7',
+          100: '#D8E1EC',
         },
         ink: {
-          600: '#62706D',
-          900: '#1D2725',
-        },
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-        },
-        secondary: {
-          500: '#ec4899',
+          500: '#667085',
+          600: '#667085',
+          900: '#0B1F3A',
         },
         success: '#22c55e',
         warning: '#f59e0b',

@@ -162,7 +162,7 @@ export function RemodelRequestDetailScreen({
   if (isLoading && !request) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-sand-50 px-6">
-        <ActivityIndicator color="#176D62" size="large" />
+        <ActivityIndicator color="#163A63" size="large" />
         <Text className="mt-4 text-sm font-semibold text-ink-600">
           견적 요청을 불러오고 있어요.
         </Text>
@@ -395,10 +395,10 @@ export function RemodelRequestDetailScreen({
         <Pressable
           accessibilityLabel="견적 목록으로 돌아가기"
           accessibilityRole="button"
-          className="mb-4 min-h-10 flex-row items-center"
+          className="mb-4 min-h-11 flex-row items-center"
           onPress={onBack}
         >
-          <Ionicons name="chevron-back" color="#123F3B" size={22} />
+          <Ionicons name="chevron-back" color="#0B1F3A" size={22} />
           <Text className="font-semibold text-brand-900">목록</Text>
         </Pressable>
 
@@ -600,7 +600,7 @@ export function RemodelRequestDetailScreen({
         <View className="mt-3 gap-3">
           {consultationMessagesQuery.isPending && messages.length === 0 ? (
             <View className="items-center rounded-2xl bg-white p-5">
-              <ActivityIndicator color="#176D62" />
+              <ActivityIndicator color="#163A63" />
               <Text className="mt-3 text-sm text-ink-600">상담 내용을 불러오고 있어요.</Text>
             </View>
           ) : consultationMessagesQuery.isError && messages.length === 0 ? (
@@ -677,7 +677,7 @@ export function RemodelRequestDetailScreen({
                     editable={canAdjust && !adjustMutation.isPending}
                     keyboardType="number-pad"
                     placeholder="금액 입력"
-                    placeholderTextColor="#84908D"
+                    placeholderTextColor="#667085"
                     value={adjustedAmountInput}
                     onChangeText={(value) => {
                       setAdjustedAmountInput(formatAmountInput(value));
@@ -696,7 +696,7 @@ export function RemodelRequestDetailScreen({
                   maxLength={MAX_ADJUSTMENT_REASON_LENGTH}
                   multiline
                   placeholder="수정 견적 사유를 입력해 주세요."
-                  placeholderTextColor="#84908D"
+                  placeholderTextColor="#667085"
                   textAlignVertical="top"
                   value={adjustedReasonInput}
                   onChangeText={(value) => {
@@ -968,7 +968,7 @@ export function RemodelRequestDetailScreen({
               editable={!postMessageMutation.isPending}
               multiline
               placeholder="변경하고 싶은 조건이나 질문을 남겨주세요."
-              placeholderTextColor="#84908D"
+              placeholderTextColor="#667085"
               value={message}
               onChangeText={setMessage}
               textAlignVertical="top"
@@ -993,7 +993,7 @@ export function RemodelRequestDetailScreen({
               onPress={() => void sendMessage()}
             >
               {postMessageMutation.isPending ? (
-                <ActivityIndicator color="#62706D" />
+                <ActivityIndicator color="#667085" />
               ) : (
                 <Text className="font-bold text-white">코멘트 보내기</Text>
               )}
@@ -1069,7 +1069,7 @@ function PartnerAssignmentModal({
         <SafeAreaView className="max-h-[82%] rounded-t-3xl bg-sand-50" edges={['bottom']}>
           <View className="flex-row items-center border-b border-stone-100 px-5 py-4">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
-              <Ionicons name="business-outline" color="#176D62" size={21} />
+              <Ionicons name="business-outline" color="#163A63" size={21} />
             </View>
             <Text className="ml-3 flex-1 text-xl font-bold text-ink-900">등록업체 리스트</Text>
             <Pressable
@@ -1079,7 +1079,7 @@ function PartnerAssignmentModal({
               disabled={assigning}
               onPress={onClose}
             >
-              <Ionicons name="close" color="#1D2725" size={24} />
+              <Ionicons name="close" color="#0B1F3A" size={24} />
             </Pressable>
           </View>
 
@@ -1130,7 +1130,7 @@ function PartnerAssignmentModal({
             </View>
           ) : isLoading ? (
             <View className="items-center px-5 py-12">
-              <ActivityIndicator color="#176D62" size="large" />
+              <ActivityIndicator color="#163A63" size="large" />
               <Text className="mt-4 text-sm font-semibold text-ink-600">
                 등록 업체를 불러오고 있어요.
               </Text>
@@ -1150,7 +1150,7 @@ function PartnerAssignmentModal({
             </View>
           ) : partners.length === 0 ? (
             <View className="items-center px-5 py-10">
-              <Ionicons name="business-outline" color="#84908D" size={32} />
+              <Ionicons name="business-outline" color="#667085" size={32} />
               <Text className="mt-3 text-base font-bold text-ink-900">
                 배정 가능한 등록 업체가 없어요.
               </Text>

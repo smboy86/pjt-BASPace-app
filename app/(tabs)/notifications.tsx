@@ -16,7 +16,7 @@ export default function NotificationsScreen(): React.JSX.Element {
           className="mt-6 flex-1 items-center justify-center rounded-3xl border border-stone-100 bg-white px-6"
         >
           <View className="h-16 w-16 items-center justify-center rounded-full bg-brand-100">
-            <Ionicons name="notifications-outline" color="#123F3B" size={30} />
+            <Ionicons name="notifications-outline" color="#0B1F3A" size={30} />
           </View>
           <Text className="mt-5 text-lg font-bold text-ink-900">새 알림이 없어요.</Text>
           <Text className="mt-2 text-center text-sm leading-6 text-ink-600">

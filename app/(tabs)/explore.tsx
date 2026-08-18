@@ -260,7 +260,7 @@ function CustomerRequestScreen(): React.JSX.Element {
                 }`}
                 editable={false}
                 placeholder="주소 입력 버튼으로 검색"
-                placeholderTextColor="#84908D"
+                placeholderTextColor="#667085"
                 value={region}
               />
               <Pressable
@@ -277,7 +277,7 @@ function CustomerRequestScreen(): React.JSX.Element {
               maxLength={200}
               onChangeText={setAddressDetail}
               placeholder="상세 주소를 입력해 주세요. (선택)"
-              placeholderTextColor="#84908D"
+              placeholderTextColor="#667085"
               value={addressDetail}
             />
             {errors.address && (
@@ -294,7 +294,7 @@ function CustomerRequestScreen(): React.JSX.Element {
                 <Pressable
                   key={option.code}
                   accessibilityLabel={`희망 예산 ${option.label}`}
-                  className={`min-h-10 justify-center rounded-full px-4 ${
+                  className={`min-h-11 justify-center rounded-full px-4 ${
                     budgetCode === option.code
                       ? 'bg-brand-900'
                       : `border bg-white ${errors.budget ? 'border-red-500' : 'border-stone-100'}`
@@ -374,7 +374,7 @@ function CustomerRequestScreen(): React.JSX.Element {
             className="mt-4 min-h-28 items-center justify-center rounded-2xl border border-dashed border-brand-700 bg-brand-100 active:opacity-80"
             onPress={selectPhoto}
           >
-            <Ionicons color="#176D62" name="images-outline" size={26} />
+            <Ionicons color="#163A63" name="images-outline" size={26} />
             <Text className="mt-2 font-bold text-brand-900">사진 선택하기</Text>
             <Text className="mt-1 text-xs text-ink-600">{photos.length}/5장 선택됨</Text>
           </Pressable>
@@ -389,7 +389,7 @@ function CustomerRequestScreen(): React.JSX.Element {
           </Text>
           {quoteOptionsQuery.isPending && (
             <View className="items-center rounded-2xl bg-white py-8">
-              <ActivityIndicator color="#176D62" />
+              <ActivityIndicator color="#163A63" />
               <Text className="mt-3 text-sm text-ink-600">견적 옵션을 불러오는 중이에요.</Text>
             </View>
           )}
@@ -398,7 +398,7 @@ function CustomerRequestScreen(): React.JSX.Element {
               <Text className="text-sm leading-5 text-red-700">견적 옵션을 불러오지 못했어요.</Text>
               <Pressable
                 accessibilityLabel="견적 옵션 다시 불러오기"
-                className="mt-3 min-h-10 items-center justify-center rounded-xl bg-white"
+                className="mt-3 min-h-11 items-center justify-center rounded-xl bg-white"
                 onPress={() => void quoteOptionsQuery.refetch()}
               >
                 <Text className="font-bold text-red-700">다시 시도</Text>
@@ -427,7 +427,7 @@ function CustomerRequestScreen(): React.JSX.Element {
             multiline
             onChangeText={setNotes}
             placeholder="꼭 반영할 조건, 걱정되는 부분, 원하는 분위기를 적어주세요."
-            placeholderTextColor="#84908D"
+            placeholderTextColor="#667085"
             textAlignVertical="top"
             value={notes}
           />
@@ -567,7 +567,7 @@ function QuoteOptionField({
         onPress={onToggle}
       >
         <Ionicons
-          color={isChecked ? '#176D62' : hasProducts ? '#84908D' : '#C9CECC'}
+          color={isChecked ? '#163A63' : hasProducts ? '#667085' : '#B8C4D4'}
           name={isChecked ? 'checkbox' : 'square-outline'}
           size={24}
         />
@@ -577,7 +577,7 @@ function QuoteOptionField({
           </Text>
           {!hasProducts && <Text className="mt-1 text-xs text-ink-500">등록된 제품이 없어요.</Text>}
         </View>
-        {isChecked && <Ionicons color="#84908D" name="chevron-up" size={20} />}
+        {isChecked && <Ionicons color="#667085" name="chevron-up" size={20} />}
       </Pressable>
 
       {isChecked && (
@@ -644,7 +644,7 @@ function ProductCard({
           />
         ) : (
           <View className="h-28 w-full items-center justify-center bg-stone-50">
-            <Ionicons color="#84908D" name="image-outline" size={28} />
+            <Ionicons color="#667085" name="image-outline" size={28} />
           </View>
         )}
         <View className="p-3">
@@ -653,7 +653,7 @@ function ProductCard({
               {product.name}
             </Text>
             <Ionicons
-              color={isSelected ? '#176D62' : '#C9CECC'}
+              color={isSelected ? '#163A63' : '#B8C4D4'}
               name={isSelected ? 'radio-button-on' : 'radio-button-off'}
               size={20}
             />

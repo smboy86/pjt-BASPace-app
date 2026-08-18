@@ -84,7 +84,7 @@ export function ConstructionRequirementsSection({
             }`}
             onPress={openCalendar}
           >
-            <Ionicons color="#176D62" name="calendar-outline" size={21} />
+            <Ionicons color="#163A63" name="calendar-outline" size={21} />
             <Text
               className={`ml-3 flex-1 text-sm font-semibold ${
                 desiredConstructionDate ? 'text-ink-900' : 'text-ink-500'
@@ -92,7 +92,7 @@ export function ConstructionRequirementsSection({
             >
               {formattedDate}
             </Text>
-            <Ionicons color="#84908D" name="chevron-forward" size={19} />
+            <Ionicons color="#667085" name="chevron-forward" size={19} />
           </Pressable>
           {dateError && (
             <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-600">
@@ -148,7 +148,7 @@ function ConstructionTypeButton({
           {label}
         </Text>
         <Ionicons
-          color={isSelected ? '#176D62' : '#C9CECC'}
+          color={isSelected ? '#163A63' : '#B8C4D4'}
           name={isSelected ? 'radio-button-on' : 'radio-button-off'}
           size={22}
         />

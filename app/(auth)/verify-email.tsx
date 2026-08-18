@@ -29,7 +29,7 @@ export default function VerifyEmailScreen(): React.JSX.Element {
     <SafeAreaView className="flex-1 bg-sand-50 px-6">
       <View className="flex-1 justify-center">
         <View className="h-20 w-20 items-center justify-center rounded-3xl bg-brand-100">
-          <Ionicons name="mail-unread-outline" color="#176D62" size={38} />
+          <Ionicons name="mail-unread-outline" color="#163A63" size={38} />
         </View>
 
         <Text className="mt-8 text-sm font-bold text-brand-700">EMAIL VERIFICATION</Text>
@@ -58,7 +58,7 @@ export default function VerifyEmailScreen(): React.JSX.Element {
             accessibilityLiveRegion="polite"
             className="mt-4 flex-row items-center rounded-xl bg-brand-100 p-3"
           >
-            <Ionicons name="checkmark-circle" color="#176D62" size={20} />
+            <Ionicons name="checkmark-circle" color="#163A63" size={20} />
             <Text className="ml-2 flex-1 text-sm font-semibold text-brand-900">
               확인 이메일을 다시 보냈습니다.
             </Text>
@@ -94,7 +94,7 @@ export default function VerifyEmailScreen(): React.JSX.Element {
           >
             {resendVerification.isPending ? (
               <>
-                <ActivityIndicator color="#123F3B" />
+                <ActivityIndicator color="#0B1F3A" />
                 <Text className="ml-2 font-bold text-brand-900">보내는 중</Text>
               </>
             ) : (

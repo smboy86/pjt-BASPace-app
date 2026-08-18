@@ -18,7 +18,7 @@ export default function AdminPartnerListScreen(): React.JSX.Element {
           className="h-11 w-11 items-center justify-center rounded-full active:bg-stone-100"
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" color="#1D2725" size={24} />
+          <Ionicons name="chevron-back" color="#0B1F3A" size={24} />
         </Pressable>
         <Text className="ml-1 flex-1 text-xl font-bold text-ink-900">업체 관리</Text>
       </View>
@@ -47,7 +47,7 @@ export default function AdminPartnerListScreen(): React.JSX.Element {
           refreshControl={
             <RefreshControl
               refreshing={partnersQuery.isRefetching}
-              tintColor="#176D62"
+              tintColor="#163A63"
               onRefresh={() => void partnersQuery.refetch()}
             />
           }
@@ -62,7 +62,7 @@ export default function AdminPartnerListScreen(): React.JSX.Element {
 function PartnerListLoading(): React.JSX.Element {
   return (
     <View className="flex-1 items-center justify-center px-6">
-      <ActivityIndicator color="#176D62" size="large" />
+      <ActivityIndicator color="#163A63" size="large" />
       <Text className="mt-4 text-sm font-semibold text-ink-600">업체 목록을 불러오고 있어요.</Text>
     </View>
   );
@@ -97,7 +97,7 @@ function PartnerListEmpty(): React.JSX.Element {
     <View className="flex-1 items-center justify-center">
       <View className="w-full items-center rounded-3xl border border-stone-100 bg-white p-7">
         <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">
-          <Ionicons name="business-outline" color="#176D62" size={28} />
+          <Ionicons name="business-outline" color="#163A63" size={28} />
         </View>
         <Text className="mt-4 text-lg font-bold text-ink-900">등록된 업체가 없어요.</Text>
         <Text className="mt-2 text-center text-sm leading-6 text-ink-600">
@@ -123,13 +123,13 @@ function PartnerListItem({ partner }: { partner: IPartner }): React.JSX.Element 
     >
       <View className="flex-row items-start">
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-100">
-          <Ionicons name="business" color="#176D62" size={22} />
+          <Ionicons name="business" color="#163A63" size={22} />
         </View>
         <View className="ml-3 flex-1">
           <Text className="text-base font-bold text-ink-900">{partner.companyName}</Text>
           <Text className="mt-1 text-xs text-ink-600">사업자등록번호 {partner.businessNumber}</Text>
         </View>
-        <Ionicons name="chevron-forward" color="#84908D" size={20} />
+        <Ionicons name="chevron-forward" color="#667085" size={20} />
       </View>
       <View className="mt-4 border-t border-stone-100 pt-3">
         <Text className="text-sm font-semibold text-ink-900">{partner.contactName}</Text>
