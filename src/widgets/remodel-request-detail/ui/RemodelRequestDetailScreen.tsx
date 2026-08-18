@@ -205,7 +205,12 @@ export function RemodelRequestDetailScreen({
     );
   }
 
-  const currentEstimateAmount = request.adjustedEstimateAmount ?? originalEstimateAmount;
+  const adjustedEstimateAmount = request.adjustedEstimateAmount;
+  const currentEstimateAmount = adjustedEstimateAmount ?? originalEstimateAmount;
+  const adjustedEstimateDifference =
+    adjustedEstimateAmount === undefined
+      ? undefined
+      : adjustedEstimateAmount - originalEstimateAmount;
   const parsedAdjustedAmount = parseAmountInput(adjustedAmountInput);
   const amountError =
     adjustedAmountInput.length === 0
@@ -912,28 +917,103 @@ export function RemodelRequestDetailScreen({
           </View>
         ) : null}
 
-        {role === 'customer' &&
-        request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT &&
-        request.adjustedEstimateAmount !== undefined ? (
+        {role === 'customer' ? (
           <View className="mt-8 rounded-3xl border border-brand-100 bg-white p-5">
-            <Text className="text-sm font-semibold text-brand-700">관리자 조정 견적</Text>
-            <Text className="mt-2 text-3xl font-bold text-brand-900">
-              {request.adjustedEstimateAmount.toLocaleString('ko-KR')}원
-            </Text>
-            {request.adjustedEstimateReason ? (
-              <View className="mt-4 rounded-xl bg-sand-50 px-4 py-3">
-                <Text className="text-xs font-semibold text-brand-700">수정 견적 사유</Text>
-                <Text className="mt-1 text-sm leading-5 text-ink-900">
-                  {request.adjustedEstimateReason}
+            <View className="flex-row items-end justify-between gap-3">
+              <View className="flex-1">
+                <Text className="text-sm font-semibold text-ink-600">기존 견적</Text>
+                <Text
+                  className={
+                    adjustedEstimateAmount === undefined
+                      ? 'mt-2 text-3xl font-bold text-brand-900'
+                      : 'mt-1 text-base font-semibold text-ink-500 line-through'
+                  }
+                >
+                  {originalEstimateAmount.toLocaleString('ko-KR')}원
                 </Text>
               </View>
+
+              {adjustedEstimateAmount !== undefined && adjustedEstimateDifference !== undefined ? (
+                <View
+                  accessibilityLabel={
+                    adjustedEstimateDifference > 0
+                      ? `기존 견적보다 ${adjustedEstimateDifference.toLocaleString('ko-KR')}원 올랐어요.`
+                      : adjustedEstimateDifference < 0
+                        ? `기존 견적보다 ${Math.abs(adjustedEstimateDifference).toLocaleString('ko-KR')}원 내렸어요.`
+                        : '기존 견적과 금액이 같습니다.'
+                  }
+                  className={`flex-row items-center rounded-full px-3 py-2 ${
+                    adjustedEstimateDifference > 0
+                      ? 'bg-red-50'
+                      : adjustedEstimateDifference < 0
+                        ? 'bg-green-50'
+                        : 'bg-stone-50'
+                  }`}
+                >
+                  <Ionicons
+                    color={
+                      adjustedEstimateDifference > 0
+                        ? '#B42318'
+                        : adjustedEstimateDifference < 0
+                          ? '#15803D'
+                          : '#667085'
+                    }
+                    name={
+                      adjustedEstimateDifference > 0
+                        ? 'arrow-up-circle'
+                        : adjustedEstimateDifference < 0
+                          ? 'arrow-down-circle'
+                          : 'remove-circle'
+                    }
+                    size={20}
+                  />
+                  <Text
+                    className={`ml-2 text-base font-semibold ${
+                      adjustedEstimateDifference > 0
+                        ? 'text-red-700'
+                        : adjustedEstimateDifference < 0
+                          ? 'text-green-700'
+                          : 'text-ink-600'
+                    }`}
+                  >
+                    {adjustedEstimateDifference > 0
+                      ? '+'
+                      : adjustedEstimateDifference < 0
+                        ? '−'
+                        : ''}
+                    {Math.abs(adjustedEstimateDifference).toLocaleString('ko-KR')}원
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            {adjustedEstimateAmount !== undefined && adjustedEstimateDifference !== undefined ? (
+              <>
+                <View className="mt-5 border-t border-stone-100 pt-4">
+                  <Text className="text-sm font-semibold text-brand-700">관리자 조정 견적</Text>
+                  <Text className="mt-2 text-3xl font-bold text-brand-900">
+                    {adjustedEstimateAmount.toLocaleString('ko-KR')}원
+                  </Text>
+                </View>
+
+                {request.adjustedEstimateReason ? (
+                  <View className="mt-4 rounded-xl bg-sand-50 px-4 py-3">
+                    <Text className="text-xs font-semibold text-brand-700">수정 견적 사유</Text>
+                    <Text className="mt-1 text-sm leading-5 text-ink-900">
+                      {request.adjustedEstimateReason}
+                    </Text>
+                  </View>
+                ) : null}
+              </>
             ) : null}
-            {request.adjustmentConfirmedAt ? (
+
+            {adjustedEstimateAmount !== undefined && request.adjustmentConfirmedAt ? (
               <View className="mt-4 flex-row items-center rounded-xl bg-brand-100 px-4 py-3">
                 <Ionicons name="checkmark-circle" color="#176D62" size={20} />
                 <Text className="ml-2 font-bold text-brand-900">확정한 견적입니다.</Text>
               </View>
-            ) : (
+            ) : adjustedEstimateAmount !== undefined &&
+              request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT ? (
               <>
                 {confirmAdjustmentMutation.isError ? (
                   <Text accessibilityRole="alert" className="mt-3 text-sm text-red-700">
@@ -957,7 +1037,7 @@ export function RemodelRequestDetailScreen({
                   )}
                 </Pressable>
               </>
-            )}
+            ) : null}
           </View>
         ) : null}
 
