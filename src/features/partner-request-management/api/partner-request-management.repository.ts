@@ -150,10 +150,7 @@ const mapDetail = (row: TPartnerDetailRow): IPartnerRemodelRequestDetail => {
 };
 
 export const fetchPartnerRemodelRequests = async (): Promise<IPartnerRemodelRequestListItem[]> => {
-  const { data, error } = await getSupabaseClient().rpc(
-    'list_partner_assigned_remodel_requests',
-    {},
-  );
+  const { data, error } = await getSupabaseClient().rpc('list_partner_assigned_remodel_requests');
 
   if (error) throw error;
   return data.map(mapListItem);

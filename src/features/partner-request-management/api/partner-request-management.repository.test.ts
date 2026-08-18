@@ -125,7 +125,7 @@ describe('partner request management repository', () => {
         status: remodelRequestTypes.ERemodelRequestStatus.CANCELLED,
       }),
     ]);
-    expect(mocks.rpc).toHaveBeenCalledWith('list_partner_assigned_remodel_requests', {});
+    expect(mocks.rpc).toHaveBeenCalledWith('list_partner_assigned_remodel_requests');
   });
 
   it('maps the secure detail RPC response into the remodel-request domain', async () => {

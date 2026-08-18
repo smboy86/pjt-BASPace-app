@@ -136,7 +136,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
-          amount_manwon?: number;
+          amount_manwon: number;
           code: string;
           created_at?: string;
           updated_at?: string;
@@ -963,12 +963,20 @@ export type Database = {
     };
     Functions: {
       adjust_customer_request_quote: {
-        Args: { target_amount: number; target_reason: string; target_request_id: string };
+        Args: {
+          target_amount: number;
+          target_reason: string;
+          target_request_id: string;
+        };
         Returns: undefined;
       };
       assign_remodel_request_partner: {
         Args: { target_partner_id: string; target_request_id: string };
         Returns: string;
+      };
+      complete_remodel_request: {
+        Args: { target_request_id: string };
+        Returns: Database['public']['Enums']['remodel_request_status'];
       };
       confirm_adjusted_request_quote: {
         Args: { target_request_id: string };
@@ -977,56 +985,6 @@ export type Database = {
       confirm_final_quote: {
         Args: { target_quote_id: string };
         Returns: undefined;
-      };
-      get_partner_assigned_remodel_request: {
-        Args: { target_request_id: string };
-        Returns: {
-          address_detail: string;
-          adjusted_at: string | null;
-          adjusted_by: string | null;
-          adjusted_estimate_amount: number | null;
-          adjusted_estimate_reason: string | null;
-          adjustment_confirmed_at: string | null;
-          assignment_id: string;
-          assignment_status: Database['public']['Enums']['assignment_status'];
-          bathroom_type: string;
-          budget_range: string;
-          created_at: string;
-          customer_id: string;
-          customer_name: string;
-          demolition_cost_snapshot_manwon: number | null;
-          desired_schedule: string;
-          estimated_size: string | null;
-          has_bathtub: boolean | null;
-          housing_type: string;
-          id: string;
-          notes: string;
-          priorities: string[];
-          region: string;
-          request_status: Database['public']['Enums']['remodel_request_status'];
-          requires_demolition: boolean | null;
-          scope: Database['public']['Enums']['remodel_scope'];
-          selection_rows: Json;
-          special_structure_note: string | null;
-          submitted_at: string | null;
-          updated_at: string;
-        }[];
-      };
-      list_partner_assigned_remodel_requests: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          address_detail: string;
-          assignment_id: string;
-          assignment_status: Database['public']['Enums']['assignment_status'];
-          budget_range: string;
-          created_at: string;
-          customer_name: string;
-          desired_schedule: string;
-          region: string;
-          request_id: string;
-          request_status: Database['public']['Enums']['remodel_request_status'];
-          submitted_at: string | null;
-        }[];
       };
       create_partner_with_representative: {
         Args: {
@@ -1061,9 +1019,55 @@ export type Database = {
           isSetofReturn: false;
         };
       };
-      complete_remodel_request: {
+      get_partner_assigned_remodel_request: {
         Args: { target_request_id: string };
-        Returns: Database['public']['Enums']['remodel_request_status'];
+        Returns: {
+          address_detail: string;
+          adjusted_at: string;
+          adjusted_by: string;
+          adjusted_estimate_amount: number;
+          adjusted_estimate_reason: string;
+          adjustment_confirmed_at: string;
+          assignment_id: string;
+          assignment_status: Database['public']['Enums']['assignment_status'];
+          bathroom_type: string;
+          budget_range: string;
+          created_at: string;
+          customer_id: string;
+          customer_name: string;
+          demolition_cost_snapshot_manwon: number;
+          desired_schedule: string;
+          estimated_size: string;
+          has_bathtub: boolean;
+          housing_type: string;
+          id: string;
+          notes: string;
+          priorities: string[];
+          region: string;
+          request_status: Database['public']['Enums']['remodel_request_status'];
+          requires_demolition: boolean;
+          scope: Database['public']['Enums']['remodel_scope'];
+          selection_rows: Json;
+          special_structure_note: string;
+          submitted_at: string;
+          updated_at: string;
+        }[];
+      };
+      list_partner_assigned_remodel_requests: {
+        Args: never;
+        Returns: {
+          address_detail: string;
+          assignment_id: string;
+          assignment_status: Database['public']['Enums']['assignment_status'];
+          budget_range: string;
+          created_at: string;
+          customer_name: string;
+          desired_schedule: string;
+          region: string;
+          request_id: string;
+          request_status: Database['public']['Enums']['remodel_request_status'];
+          submitted_at: string;
+        }[];
       };
       mark_quote_final: {
         Args: { target_quote_id: string };
@@ -1085,10 +1089,6 @@ export type Database = {
         };
         Returns: string;
       };
-      update_remodel_request_schedule: {
-        Args: { target_date: string; target_request_id: string };
-        Returns: undefined;
-      };
       update_demolition_cost_setting: {
         Args: { target_amount_manwon: number };
         Returns: undefined;
@@ -1101,6 +1101,10 @@ export type Database = {
           target_option_id: string;
           target_products: Json;
         };
+        Returns: undefined;
+      };
+      update_remodel_request_schedule: {
+        Args: { target_date: string; target_request_id: string };
         Returns: undefined;
       };
     };
