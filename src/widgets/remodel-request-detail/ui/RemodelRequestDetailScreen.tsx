@@ -252,6 +252,11 @@ export function RemodelRequestDetailScreen({
     role === 'admin' &&
     (request.status === ERemodelRequestStatus.SUBMITTED ||
       request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT);
+  const canUpdateSchedule =
+    role === 'admin' &&
+    !request.adjustmentConfirmedAt &&
+    (request.status === ERemodelRequestStatus.SUBMITTED ||
+      request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT);
   const minimumScheduleDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
   const displayedSchedule = selectedSchedule ?? request.desiredSchedule;
   const displayedAvailableSchedule =
@@ -259,7 +264,7 @@ export function RemodelRequestDetailScreen({
       ? displayedSchedule
       : request.latestScheduleChange?.newSchedule;
   const canSaveSchedule =
-    role === 'admin' &&
+    canUpdateSchedule &&
     displayedSchedule !== request.desiredSchedule &&
     displayedSchedule >= minimumScheduleDate &&
     !updateScheduleMutation.isPending;
@@ -439,7 +444,7 @@ export function RemodelRequestDetailScreen({
                 </Text>
               )}
 
-              {role === 'admin' ? (
+              {canUpdateSchedule ? (
                 <>
                   <Pressable
                     accessibilityLabel={`공사 가능 날짜 ${request.latestScheduleChange ? '변경' : '입력'}`}
@@ -1009,7 +1014,7 @@ export function RemodelRequestDetailScreen({
 
             {adjustedEstimateAmount !== undefined && request.adjustmentConfirmedAt ? (
               <View className="mt-4 flex-row items-center rounded-xl bg-brand-100 px-4 py-3">
-                <Ionicons name="checkmark-circle" color="#176D62" size={20} />
+                <Ionicons name="checkmark-circle" color="#163A63" size={20} />
                 <Text className="ml-2 font-bold text-brand-900">확정한 견적입니다.</Text>
               </View>
             ) : adjustedEstimateAmount !== undefined &&
@@ -1092,7 +1097,7 @@ export function RemodelRequestDetailScreen({
         }}
         selectedDate={displayedSchedule}
         title="공사 가능 날짜"
-        visible={scheduleModalVisible}
+        visible={scheduleModalVisible && canUpdateSchedule}
       />
 
       <PartnerAssignmentModal
