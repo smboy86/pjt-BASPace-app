@@ -15,6 +15,10 @@ export type TAuthErrorCode =
   | 'unsupported_role'
   | 'account_inactive'
   | 'profile_unavailable'
+  | 'google_existing_email'
+  | 'kakao_existing_email'
+  | 'oauth_cancelled'
+  | 'oauth_failed'
   | 'network_error'
   | 'validation_error'
   | 'unknown';
@@ -41,6 +45,16 @@ export interface ILoginResponse {
   session: IAuthSession;
   user: IAuthUser;
 }
+
+export interface IGoogleOAuthRequest {
+  redirectTo: string;
+}
+
+export interface IGoogleOAuthResponse {
+  authorizationUrl: string;
+}
+
+export type TSocialAuthProvider = 'google' | 'kakao';
 
 export interface ISignupRequest {
   email: string;

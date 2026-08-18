@@ -14,7 +14,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useLogin } from '@/features/auth';
+import { useGoogleLogin, useKakaoLogin, useLogin } from '@/features/auth';
 
 const TEMP_LOGIN_ACCOUNTS = [
   { label: '고객', email: 'smboy86@gmail.com', password: 'Qwer1234$' },
@@ -24,6 +24,9 @@ const TEMP_LOGIN_ACCOUNTS = [
 
 export default function LoginScreen(): React.JSX.Element {
   const login = useLogin();
+  const kakaoLogin = useKakaoLogin();
+  const googleLogin = useGoogleLogin();
+  const isAuthenticating = login.isPending || kakaoLogin.isPending || googleLogin.isPending;
   const scrollViewRef = useRef<ScrollView>(null);
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
@@ -36,12 +39,16 @@ export default function LoginScreen(): React.JSX.Element {
     setEmail(value);
     setValidationError('');
     login.reset();
+    kakaoLogin.reset();
+    googleLogin.reset();
   };
 
   const updatePassword = (value: string): void => {
     setPassword(value);
     setValidationError('');
     login.reset();
+    kakaoLogin.reset();
+    googleLogin.reset();
   };
 
   const fillTempAccount = (account: (typeof TEMP_LOGIN_ACCOUNTS)[number]): void => {
@@ -49,6 +56,8 @@ export default function LoginScreen(): React.JSX.Element {
     setPassword(account.password);
     setValidationError('');
     login.reset();
+    kakaoLogin.reset();
+    googleLogin.reset();
   };
 
   const submit = async (): Promise<void> => {
@@ -70,7 +79,38 @@ export default function LoginScreen(): React.JSX.Element {
     }
   };
 
-  const errorMessage = validationError || login.error?.message || '';
+  const continueWithGoogle = async (): Promise<void> => {
+    setValidationError('');
+    login.reset();
+    kakaoLogin.reset();
+    googleLogin.reset();
+
+    try {
+      await googleLogin.mutateAsync();
+    } catch {
+      // The mutation exposes a sanitized, user-facing error below.
+    }
+  };
+
+  const continueWithKakao = async (): Promise<void> => {
+    setValidationError('');
+    login.reset();
+    kakaoLogin.reset();
+    googleLogin.reset();
+
+    try {
+      await kakaoLogin.mutateAsync();
+    } catch {
+      // The mutation exposes a sanitized, user-facing error below.
+    }
+  };
+
+  const errorMessage =
+    validationError ||
+    login.error?.message ||
+    kakaoLogin.error?.message ||
+    googleLogin.error?.message ||
+    '';
 
   const scrollToInput = useCallback((input: TextInput | null): void => {
     const inputHandle = findNodeHandle(input);
@@ -139,11 +179,11 @@ export default function LoginScreen(): React.JSX.Element {
                       accessibilityHint="선택한 임시 계정의 이메일과 비밀번호를 입력합니다."
                       accessibilityLabel={`${account.label} 임시 계정 입력`}
                       accessibilityRole="button"
-                      accessibilityState={{ disabled: login.isPending }}
+                      accessibilityState={{ disabled: isAuthenticating }}
                       className={`h-11 items-center justify-center rounded-full border border-brand-700 bg-brand-100 px-3 ${
-                        login.isPending ? 'opacity-50' : 'active:opacity-70'
+                        isAuthenticating ? 'opacity-50' : 'active:opacity-70'
                       }`}
-                      disabled={login.isPending}
+                      disabled={isAuthenticating}
                       onPress={() => fillTempAccount(account)}
                     >
                       <Text className="text-xs font-bold text-brand-900">{account.label}</Text>
@@ -158,7 +198,7 @@ export default function LoginScreen(): React.JSX.Element {
               autoCapitalize="none"
               autoComplete="email"
               className="mt-2 min-h-12 rounded-xl bg-sand-50 px-4 text-base text-ink-900"
-              editable={!login.isPending}
+              editable={!isAuthenticating}
               keyboardType="email-address"
               placeholder="name@example.com"
               placeholderTextColor="#667085"
@@ -177,7 +217,7 @@ export default function LoginScreen(): React.JSX.Element {
               autoCapitalize="none"
               autoComplete="current-password"
               className="mt-2 min-h-12 rounded-xl bg-sand-50 px-4 text-base text-ink-900"
-              editable={!login.isPending}
+              editable={!isAuthenticating}
               placeholder="비밀번호를 입력해 주세요"
               placeholderTextColor="#667085"
               returnKeyType="done"
@@ -197,11 +237,11 @@ export default function LoginScreen(): React.JSX.Element {
 
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: login.isPending, busy: login.isPending }}
+              accessibilityState={{ disabled: isAuthenticating, busy: login.isPending }}
               className={`mt-5 h-12 flex-row items-center justify-center rounded-xl bg-brand-900 ${
                 login.isPending ? 'opacity-60' : 'active:opacity-80'
               }`}
-              disabled={login.isPending}
+              disabled={isAuthenticating}
               onPress={() => void submit()}
             >
               {login.isPending ? (
@@ -214,11 +254,65 @@ export default function LoginScreen(): React.JSX.Element {
               )}
             </Pressable>
 
+            <View className="my-4 flex-row items-center">
+              <View className="h-px flex-1 bg-stone-100" />
+              <Text className="mx-3 text-xs font-semibold text-ink-600">또는</Text>
+              <View className="h-px flex-1 bg-stone-100" />
+            </View>
+
+            <Pressable
+              accessibilityLabel="카카오로 계속하기"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isAuthenticating, busy: kakaoLogin.isPending }}
+              className={`h-12 flex-row items-center justify-center rounded-xl bg-[#FEE500] ${
+                isAuthenticating ? 'opacity-60' : 'active:opacity-80'
+              }`}
+              disabled={isAuthenticating}
+              onPress={() => void continueWithKakao()}
+            >
+              {kakaoLogin.isPending ? (
+                <>
+                  <ActivityIndicator color="#191919" />
+                  <Text className="ml-2 font-bold text-[#191919]">카카오 로그인 중</Text>
+                </>
+              ) : (
+                <>
+                  <View className="h-6 w-6 items-center justify-center rounded-full bg-[#191919]">
+                    <Text className="text-xs font-black text-[#FEE500]">K</Text>
+                  </View>
+                  <Text className="ml-3 font-bold text-[#191919]">카카오로 계속하기</Text>
+                </>
+              )}
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel="Google로 계속하기"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isAuthenticating, busy: googleLogin.isPending }}
+              className={`mt-3 h-12 flex-row items-center justify-center rounded-xl border border-stone-100 bg-white ${
+                isAuthenticating ? 'opacity-60' : 'active:bg-sand-50'
+              }`}
+              disabled={isAuthenticating}
+              onPress={() => void continueWithGoogle()}
+            >
+              {googleLogin.isPending ? (
+                <>
+                  <ActivityIndicator color="#123F3B" />
+                  <Text className="ml-2 font-bold text-ink-900">Google 로그인 중</Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="logo-google" color="#4285F4" size={20} />
+                  <Text className="ml-3 font-bold text-ink-900">Google로 계속하기</Text>
+                </>
+              )}
+            </Pressable>
+
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: login.isPending }}
+              accessibilityState={{ disabled: isAuthenticating }}
               className="mt-3 h-12 items-center justify-center rounded-xl border border-brand-700"
-              disabled={login.isPending}
+              disabled={isAuthenticating}
               onPress={() => router.push('/(auth)/signup')}
             >
               <Text className="font-bold text-brand-900">고객 회원가입</Text>

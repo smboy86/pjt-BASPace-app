@@ -7,12 +7,15 @@ import {
   AuthError,
   type IAuthSession,
   type IAuthUser,
+  type IGoogleOAuthRequest,
+  type IGoogleOAuthResponse,
   type ILoginRequest,
   type ILoginResponse,
   type IResendVerificationRequest,
   type ISignupRequest,
   type ISignupResponse,
   type TAuthErrorCode,
+  type TSocialAuthProvider,
 } from '../types';
 
 type TProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -44,6 +47,10 @@ const AUTH_ERROR_MESSAGES: Record<TAuthErrorCode, string> = {
   unsupported_role: '지원하지 않는 계정 역할입니다.',
   account_inactive: '현재 이용할 수 없는 계정입니다. 고객센터에 문의해 주세요.',
   profile_unavailable: '사용자 프로필을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  google_existing_email: '이미 이메일로 가입된 계정입니다. 이메일로 로그인해 주세요.',
+  kakao_existing_email: '이미 이메일로 가입된 계정입니다. 이메일로 로그인해 주세요.',
+  oauth_cancelled: 'Google 로그인이 취소되었습니다.',
+  oauth_failed: 'Google 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
   network_error: '네트워크 연결을 확인한 뒤 다시 시도해 주세요.',
   validation_error: '입력한 정보를 다시 확인해 주세요.',
   unknown: '인증 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
@@ -101,6 +108,12 @@ export const mapAuthError = (error: unknown): AuthError => {
   }
   if (code === 'signup_disabled') {
     return createAuthError('signup_disabled');
+  }
+  if (
+    message.includes('google_identity_existing_email') ||
+    message.includes('social_identity_existing_email')
+  ) {
+    return createAuthError('google_existing_email');
   }
   if (
     message.includes('network request failed') ||
@@ -191,7 +204,78 @@ const loadSupportedProfile = async (user: User): Promise<IAuthUser> => {
   return mapProfile(user, profile);
 };
 
+const createSocialOAuthUrl = async (
+  provider: TSocialAuthProvider,
+  input: IGoogleOAuthRequest,
+): Promise<IGoogleOAuthResponse> => {
+  try {
+    const { data, error } = await getSupabaseClient().auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: input.redirectTo,
+        skipBrowserRedirect: true,
+        ...(provider === 'google'
+          ? {
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'select_account',
+              },
+            }
+          : {}),
+      },
+    });
+
+    if (error) throw error;
+    if (!data.url) throw createAuthError('oauth_failed');
+
+    return { authorizationUrl: data.url };
+  } catch (error: unknown) {
+    throw mapAuthError(error);
+  }
+};
+
+const completeSocialLogin = async (
+  provider: TSocialAuthProvider,
+  code: string,
+): Promise<ILoginResponse> => {
+  try {
+    const { data, error } = await getSupabaseClient().auth.exchangeCodeForSession(code);
+
+    if (error) throw error;
+
+    const usesExpectedProvider = data.user.identities?.some(
+      (identity) => identity.provider === provider,
+    );
+    if (!usesExpectedProvider) {
+      await clearLocalSession();
+      throw createAuthError('oauth_failed');
+    }
+
+    try {
+      const user = await loadSupportedProfile(data.user);
+      if (user.role !== 'customer') throw createAuthError('unsupported_role');
+      return { session: mapSession(data.session), user };
+    } catch (profileError: unknown) {
+      await clearLocalSession();
+      throw profileError;
+    }
+  } catch (error: unknown) {
+    throw mapAuthError(error);
+  }
+};
+
 export const authApi = {
+  createGoogleOAuthUrl: (input: IGoogleOAuthRequest): Promise<IGoogleOAuthResponse> =>
+    createSocialOAuthUrl('google', input),
+
+  createKakaoOAuthUrl: (input: IGoogleOAuthRequest): Promise<IGoogleOAuthResponse> =>
+    createSocialOAuthUrl('kakao', input),
+
+  completeGoogleLogin: (code: string): Promise<ILoginResponse> =>
+    completeSocialLogin('google', code),
+
+  completeKakaoLogin: (code: string): Promise<ILoginResponse> => completeSocialLogin('kakao', code),
+
   login: async (input: ILoginRequest): Promise<ILoginResponse> => {
     try {
       const credentials = validateLogin(input);

@@ -21,10 +21,41 @@ Database password, secret key, `service_role` key는 저장소와 앱 번들에 
 - 고객: 이메일·비밀번호 자가가입, 이메일 확인 필수
 - 업체 담당자: 승인된 업체에 관리자가 초대
 - 관리자: 직접 가입을 허용하지 않고 운영자가 역할을 승격
-- 휴대폰·소셜 로그인: MVP 범위에서 제외
+- Google 로그인: 고객만 허용, 기존 이메일 identity와 자동 연결 금지
+- Kakao 로그인: 고객만 허용, 기존 이메일 identity와 자동 연결 금지
+- 휴대폰·기타 소셜 로그인: 현재 범위에서 제외
 - 세션: 앱 연동 시 `expo-secure-store` 기반 Supabase storage adapter 사용
 - Redirect URL: Supabase Dashboard의 Authentication → URL Configuration에
-  `baspace://**`를 추가한다.
+  `baspace://auth/callback`을 추가한다.
+
+### Google OAuth 설정
+
+1. Google Cloud Console에서 OAuth 동의 화면과 Web application OAuth client를 만든다.
+2. Google client의 Authorized redirect URI에
+   `https://<현재-project-ref>.supabase.co/auth/v1/callback`을 등록한다.
+3. Supabase Dashboard의 Authentication → Sign In / Providers → Google에 client ID와
+   secret을 입력하고 활성화한다.
+4. Supabase Authentication → URL Configuration → Redirect URLs에
+   `baspace://auth/callback`을 등록한다. Expo 개발 URL로 시험할 때만 실행 시 출력되는
+   `exp://.../--/auth/callback`도 추가한다.
+5. 현재 프로젝트에 `npx supabase link --project-ref <현재-project-ref>`를 실행한 뒤
+   `npx supabase db push`로 Google identity 연결 차단 Migration을 적용한다.
+
+Google client secret은 Supabase Dashboard에만 저장한다. 앱에는 기존 Supabase URL과
+publishable key 외의 Google secret이 필요하지 않다.
+
+### Kakao OAuth 설정
+
+1. Kakao Developers에서 애플리케이션을 만들고 제품 설정 → 카카오 로그인에서 활성화한다.
+2. Web 플랫폼 사이트 도메인과 Redirect URI에 Supabase Dashboard의 Kakao provider 화면에
+   표시되는 callback URL을 등록한다. 기본 형식은
+   `https://<현재-project-ref>.supabase.co/auth/v1/callback`이다.
+3. Kakao Developers의 REST API 키와 Client Secret을 Supabase Dashboard의
+   Authentication → Sign In / Providers → Kakao에 입력하고 활성화한다.
+4. 앱 복귀 URL은 Google과 동일하게 Supabase Redirect URLs의
+   `baspace://auth/callback`을 사용한다.
+
+Kakao REST API 키와 Client Secret은 Supabase Dashboard에만 저장하고 앱 번들에 넣지 않는다.
 
 ## 로컬 CLI 연결
 

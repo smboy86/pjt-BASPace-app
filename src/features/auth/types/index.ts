@@ -3,6 +3,8 @@ export type {
   IAuthState,
   IAuthSession,
   IAuthUser,
+  IGoogleOAuthRequest,
+  IGoogleOAuthResponse,
   ILoginRequest,
   ILoginResponse,
   IResendVerificationRequest,
@@ -12,4 +14,5 @@ export type {
   TAuthProfileStatus,
   TAuthRole,
   TAuthStateStatus,
+  TSocialAuthProvider,
 } from './auth.types';

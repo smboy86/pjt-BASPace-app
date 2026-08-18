@@ -1,10 +1,20 @@
 export { authApi } from './api';
-export { useAuthSession, useLogin, useLogout, useResendVerification, useSignup } from './hooks';
+export {
+  useAuthSession,
+  useGoogleLogin,
+  useKakaoLogin,
+  useLogin,
+  useLogout,
+  useResendVerification,
+  useSignup,
+} from './hooks';
 export { useAuthStore } from './store';
 export type {
   IAuthState,
   IAuthSession,
   IAuthUser,
+  IGoogleOAuthRequest,
+  IGoogleOAuthResponse,
   ILoginRequest,
   ILoginResponse,
   IResendVerificationRequest,
@@ -14,5 +24,6 @@ export type {
   TAuthProfileStatus,
   TAuthRole,
   TAuthStateStatus,
+  TSocialAuthProvider,
 } from './types';
 export { AuthError } from './types';

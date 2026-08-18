@@ -157,9 +157,7 @@ export default function TabLayout(): React.JSX.Element {
                 style={[
                   styles.homeTabLabel,
                   {
-                    color: ariaSelected
-                      ? CustomerHomeColors.primary
-                      : CustomerHomeColors.inactive,
+                    color: ariaSelected ? CustomerHomeColors.primary : CustomerHomeColors.inactive,
                     fontWeight: ariaSelected ? '700' : '600',
                   },
                 ]}

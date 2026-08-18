@@ -4,10 +4,12 @@ import { AuthError } from '../types';
 
 const mocks = vi.hoisted(() => ({
   clearAllSecure: vi.fn(),
+  exchangeCodeForSession: vi.fn(),
   getSession: vi.fn(),
   getUser: vi.fn(),
   onAuthStateChange: vi.fn(),
   resend: vi.fn(),
+  signInWithOAuth: vi.fn(),
   signInWithPassword: vi.fn(),
   signOut: vi.fn(),
   signUp: vi.fn(),
@@ -21,10 +23,12 @@ vi.mock('@/shared/secure-storage', () => ({
 vi.mock('@/shared/supabase', () => ({
   getSupabaseClient: () => ({
     auth: {
+      exchangeCodeForSession: mocks.exchangeCodeForSession,
       getSession: mocks.getSession,
       getUser: mocks.getUser,
       onAuthStateChange: mocks.onAuthStateChange,
       resend: mocks.resend,
+      signInWithOAuth: mocks.signInWithOAuth,
       signInWithPassword: mocks.signInWithPassword,
       signOut: mocks.signOut,
       signUp: mocks.signUp,
@@ -44,6 +48,16 @@ const AUTH_USER = {
   email: 'customer@example.com',
   email_confirmed_at: '2026-07-25T00:00:00.000Z',
   user_metadata: { display_name: '고객' },
+};
+
+const GOOGLE_AUTH_USER = {
+  ...AUTH_USER,
+  identities: [{ provider: 'google' }],
+};
+
+const KAKAO_AUTH_USER = {
+  ...AUTH_USER,
+  identities: [{ provider: 'kakao' }],
 };
 
 const SESSION = {
@@ -103,6 +117,78 @@ describe('authApi', () => {
       email: 'customer@example.com',
       password: 'Password1',
     });
+  });
+
+  test('creates a Google PKCE authorization URL without opening the browser', async () => {
+    mocks.signInWithOAuth.mockResolvedValue({
+      data: { provider: 'google', url: 'https://example.supabase.co/auth/v1/authorize' },
+      error: null,
+    });
+
+    await expect(
+      authApi.createGoogleOAuthUrl({ redirectTo: 'baspace://auth/callback' }),
+    ).resolves.toEqual({ authorizationUrl: 'https://example.supabase.co/auth/v1/authorize' });
+    expect(mocks.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: 'baspace://auth/callback',
+        skipBrowserRedirect: true,
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
+      },
+    });
+  });
+
+  test('completes Google login only for an active customer profile', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: GOOGLE_AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: CUSTOMER_PROFILE, error: null });
+
+    await expect(authApi.completeGoogleLogin('oauth-code')).resolves.toMatchObject({
+      session: { expiresAt: SESSION.expires_at },
+      user: { id: AUTH_USER.id, role: 'customer' },
+    });
+  });
+
+  test('creates and completes Kakao OAuth for an active customer profile', async () => {
+    mocks.signInWithOAuth.mockResolvedValue({
+      data: { provider: 'kakao', url: 'https://example.supabase.co/auth/v1/authorize' },
+      error: null,
+    });
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: KAKAO_AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: CUSTOMER_PROFILE, error: null });
+
+    await expect(
+      authApi.createKakaoOAuthUrl({ redirectTo: 'baspace://auth/callback' }),
+    ).resolves.toEqual({ authorizationUrl: 'https://example.supabase.co/auth/v1/authorize' });
+    expect(mocks.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'kakao',
+      options: {
+        redirectTo: 'baspace://auth/callback',
+        skipBrowserRedirect: true,
+      },
+    });
+    await expect(authApi.completeKakaoLogin('oauth-code')).resolves.toMatchObject({
+      user: { role: 'customer' },
+    });
+  });
+
+  test('rejects and clears a Google session for an admin profile', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: GOOGLE_AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: ADMIN_PROFILE, error: null });
+
+    await expect(authApi.completeGoogleLogin('oauth-code')).rejects.toMatchObject({
+      code: 'unsupported_role',
+    });
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
   });
 
   test('logs in after loading an active admin profile', async () => {
