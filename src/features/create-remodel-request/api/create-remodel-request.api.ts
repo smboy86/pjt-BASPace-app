@@ -46,6 +46,7 @@ export const submitRemodelRequest = async (
     requiresDemolition: input.requiresDemolition,
     budgetRange: input.budgetCode,
     desiredSchedule: input.desiredConstructionDate,
+    customerDesiredSchedule: input.desiredConstructionDate,
     scope: ERemodelScope.FULL,
     priorities: [],
     notes: input.notes,

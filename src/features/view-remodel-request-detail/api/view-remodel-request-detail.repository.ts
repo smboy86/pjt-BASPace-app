@@ -31,9 +31,8 @@ export const fetchRemodelRequestDetail = async (
       .from('remodel_request_schedule_changes')
       .select('*')
       .eq('request_id', requestId)
-      .order('changed_at', { ascending: false })
-      .order('id', { ascending: false })
-      .limit(1),
+      .order('changed_at', { ascending: true })
+      .order('id', { ascending: true }),
   ]);
 
   if (selectionsResult.error) throw selectionsResult.error;
@@ -41,14 +40,17 @@ export const fetchRemodelRequestDetail = async (
   if (scheduleChangesResult.error) throw scheduleChangesResult.error;
 
   const selections: ISelectionSnapshot[] = selectionsResult.data.map(mapSelectionSnapshot);
+  const firstScheduleChangeRow = scheduleChangesResult.data[0];
+  const latestScheduleChangeRow = scheduleChangesResult.data.at(-1);
 
   return {
     request: mapRemodelRequest(
       requestRow,
       selections,
-      scheduleChangesResult.data[0]
-        ? mapRemodelRequestScheduleChange(scheduleChangesResult.data[0])
+      latestScheduleChangeRow
+        ? mapRemodelRequestScheduleChange(latestScheduleChangeRow)
         : undefined,
+      firstScheduleChangeRow?.previous_schedule ?? requestRow.desired_schedule,
     ),
     customerName: customerResult.data.display_name,
   };

@@ -57,10 +57,18 @@ describe('remodel request mapper', () => {
         adjustedBy: 'admin-1',
         adjustedEstimateAmount: 3_500_000,
         adjustmentConfirmedAt: undefined,
+        customerDesiredSchedule: '2개월 이내',
         status: ERemodelRequestStatus.QUOTE_ADJUSTMENT,
       }),
     );
     expect(request.selections[0]?.basePriceSnapshot).toBe(1_250_000);
+  });
+
+  it('keeps the customer submitted schedule separate from the current admin schedule', () => {
+    const request = mapRemodelRequest(REQUEST_ROW, [], undefined, '2026-08-18');
+
+    expect(request.customerDesiredSchedule).toBe('2026-08-18');
+    expect(request.desiredSchedule).toBe('2개월 이내');
   });
 
   it('maps a declined final assignment request to the cancelled domain status', () => {

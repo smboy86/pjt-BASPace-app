@@ -13,6 +13,7 @@ const createRequest = (input: Partial<IRemodelRequest> = {}): IRemodelRequest =>
   budgetRange: ERemodelBudgetCode.CONSULTATION,
   createdAt: '2026-07-28T00:00:00.000Z',
   customerId: 'customer-1',
+  customerDesiredSchedule: input.customerDesiredSchedule ?? '2개월 이내',
   desiredSchedule: '2개월 이내',
   hasBathtub: false,
   housingType: '아파트',

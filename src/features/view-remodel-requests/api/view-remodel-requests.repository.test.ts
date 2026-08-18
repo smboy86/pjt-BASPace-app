@@ -66,9 +66,11 @@ const remodelRequestTypes = vi.hoisted(() => {
       },
       selections: unknown[],
       latestScheduleChange?: unknown,
+      customerDesiredSchedule?: string,
     ) => ({
       budgetRange: row.budget_range,
       customerId: row.customer_id,
+      customerDesiredSchedule,
       id: row.id,
       photos: [],
       selections,
@@ -142,9 +144,18 @@ const SELECTION_ROW = {
 } as const;
 
 const SCHEDULE_CHANGE_ROW = {
-  changed_at: '2026-08-11T00:00:00.000Z',
+  changed_at: '2026-08-12T00:00:00.000Z',
   changed_by: 'admin-1',
   id: 'schedule-change-1',
+  new_schedule: '2026-08-22',
+  previous_schedule: '2026-08-20',
+  request_id: REQUEST_ROW.id,
+} as const;
+
+const FIRST_SCHEDULE_CHANGE_ROW = {
+  changed_at: '2026-08-11T00:00:00.000Z',
+  changed_by: 'admin-1',
+  id: 'schedule-change-0',
   new_schedule: '2026-08-20',
   previous_schedule: '2026-08-18',
   request_id: REQUEST_ROW.id,
@@ -153,11 +164,11 @@ const SCHEDULE_CHANGE_ROW = {
 const configureQueries = ({
   requests = [REQUEST_ROW],
   selections = [SELECTION_ROW],
-  scheduleChanges = [SCHEDULE_CHANGE_ROW],
+  scheduleChanges = [SCHEDULE_CHANGE_ROW, FIRST_SCHEDULE_CHANGE_ROW],
 }: {
   requests?: readonly (typeof REQUEST_ROW)[];
   selections?: readonly (typeof SELECTION_ROW)[];
-  scheduleChanges?: readonly (typeof SCHEDULE_CHANGE_ROW)[];
+  scheduleChanges?: readonly (typeof SCHEDULE_CHANGE_ROW | typeof FIRST_SCHEDULE_CHANGE_ROW)[];
 } = {}): void => {
   mocks.from.mockImplementation((table: string) => {
     if (table === 'remodel_requests') {
@@ -211,11 +222,12 @@ describe('fetchCustomerRemodelRequests', () => {
       expect.objectContaining({
         budgetRange: remodelRequestTypes.ERemodelBudgetCode.KRW_300_500,
         customerId: 'customer-1',
+        customerDesiredSchedule: '2026-08-18',
         id: 'request-1',
         photos: [],
         latestScheduleChange: expect.objectContaining({
           id: 'schedule-change-1',
-          previousSchedule: '2026-08-18',
+          previousSchedule: '2026-08-20',
         }),
         status: remodelRequestTypes.ERemodelRequestStatus.SUBMITTED,
         selections: [

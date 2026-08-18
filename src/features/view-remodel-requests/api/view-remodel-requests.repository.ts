@@ -52,6 +52,7 @@ export const fetchCustomerRemodelRequests = async (
   });
 
   const latestScheduleChangeByRequestId = new Map<string, IRemodelRequestScheduleChange>();
+  const customerDesiredScheduleByRequestId = new Map<string, string>();
   scheduleChangesResult.data.forEach((scheduleChangeRow) => {
     if (!latestScheduleChangeByRequestId.has(scheduleChangeRow.request_id)) {
       latestScheduleChangeByRequestId.set(
@@ -59,6 +60,10 @@ export const fetchCustomerRemodelRequests = async (
         mapRemodelRequestScheduleChange(scheduleChangeRow),
       );
     }
+    customerDesiredScheduleByRequestId.set(
+      scheduleChangeRow.request_id,
+      scheduleChangeRow.previous_schedule,
+    );
   });
 
   return requestRows.map((requestRow) =>
@@ -66,6 +71,7 @@ export const fetchCustomerRemodelRequests = async (
       requestRow,
       selectionsByRequestId.get(requestRow.id) ?? [],
       latestScheduleChangeByRequestId.get(requestRow.id),
+      customerDesiredScheduleByRequestId.get(requestRow.id) ?? requestRow.desired_schedule,
     ),
   );
 };

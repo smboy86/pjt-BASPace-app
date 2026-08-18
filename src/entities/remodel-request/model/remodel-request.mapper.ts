@@ -145,6 +145,7 @@ export const mapRemodelRequest = (
   row: TRemodelRequestRow,
   selections: ISelectionSnapshot[],
   latestScheduleChange?: IRemodelRequestScheduleChange,
+  customerDesiredSchedule = row.desired_schedule,
 ): IRemodelRequest => ({
   id: row.id,
   customerId: row.customer_id,
@@ -159,6 +160,7 @@ export const mapRemodelRequest = (
   specialStructureNote: row.special_structure_note ?? undefined,
   budgetRange: mapBudgetRange(row.budget_range),
   desiredSchedule: row.desired_schedule,
+  customerDesiredSchedule,
   latestScheduleChange,
   scope: mapScope(row.scope),
   priorities: row.priorities,

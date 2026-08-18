@@ -80,6 +80,7 @@ export interface IRemodelRequest {
   specialStructureNote?: string;
   budgetRange: ERemodelBudgetCode;
   desiredSchedule: string;
+  customerDesiredSchedule: string;
   latestScheduleChange?: IRemodelRequestScheduleChange;
   scope: ERemodelScope;
   priorities: string[];

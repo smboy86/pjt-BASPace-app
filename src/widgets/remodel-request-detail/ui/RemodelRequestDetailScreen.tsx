@@ -234,6 +234,10 @@ export function RemodelRequestDetailScreen({
       request.status === ERemodelRequestStatus.QUOTE_ADJUSTMENT);
   const minimumScheduleDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
   const displayedSchedule = selectedSchedule ?? request.desiredSchedule;
+  const displayedAvailableSchedule =
+    role === 'admin' && displayedSchedule !== request.desiredSchedule
+      ? displayedSchedule
+      : request.latestScheduleChange?.newSchedule;
   const canSaveSchedule =
     role === 'admin' &&
     displayedSchedule !== request.desiredSchedule &&
@@ -390,80 +394,106 @@ export function RemodelRequestDetailScreen({
         </Text>
         <Text className="mt-2 text-sm text-ink-600">
           {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
-          {getRemodelBudgetLabel(request.budgetRange)} · {request.desiredSchedule}
+          {getRemodelBudgetLabel(request.budgetRange)}
         </Text>
 
-        <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
-          <View className="flex-row items-start justify-between gap-4">
-            <View className="flex-1">
+        {role === 'customer' || role === 'admin' ? (
+          <View className="mt-6 flex-row items-stretch gap-3">
+            <View className="flex-1 rounded-3xl border border-stone-100 bg-white p-4">
               <Text className="text-sm font-semibold text-brand-700">공사 희망 날짜</Text>
               <Text className="mt-2 text-xl font-bold text-ink-900">
-                {formatRemodelSchedule(displayedSchedule)}
+                {formatRemodelSchedule(request.customerDesiredSchedule)}
               </Text>
             </View>
-            {role === 'admin' ? (
-              <Pressable
-                accessibilityLabel="공사 희망 날짜 변경"
-                accessibilityRole="button"
-                className="min-h-11 items-center justify-center rounded-xl border border-brand-700 px-4 active:bg-brand-100"
-                disabled={updateScheduleMutation.isPending}
-                onPress={() => setScheduleModalVisible(true)}
-              >
-                <Text className="text-sm font-bold text-brand-900">날짜 변경</Text>
-              </Pressable>
-            ) : null}
-          </View>
 
-          {request.latestScheduleChange ? (
-            <View className="mt-4 rounded-2xl bg-amber-50 p-4">
-              <Text className="text-sm font-bold text-amber-900">
-                관리자가 공사 희망 날짜를 변경했어요.
-              </Text>
-              <Text className="mt-1 text-xs leading-5 text-amber-800">
-                이전 {formatRemodelSchedule(request.latestScheduleChange.previousSchedule)}
-                {' · '}
-                {dayjs(request.latestScheduleChange.changedAt).format('YYYY년 M월 D일 HH:mm')} 변경
-              </Text>
-            </View>
-          ) : null}
-
-          {role === 'admin' && displayedSchedule !== request.desiredSchedule ? (
-            <View className="mt-4">
-              <Text className="text-xs leading-5 text-ink-600">
-                저장하면 고객 화면에 변경된 날짜와 변경 안내가 표시됩니다.
-              </Text>
-              {updateScheduleMutation.isError ? (
-                <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-700">
-                  날짜를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.
+            <View className="flex-1 rounded-3xl border border-stone-100 bg-white p-4">
+              <Text className="text-sm font-semibold text-brand-700">공사 가능 날짜</Text>
+              {displayedAvailableSchedule ? (
+                <Text className="mt-2 text-xl font-bold text-ink-900">
+                  {formatRemodelSchedule(displayedAvailableSchedule)}
                 </Text>
+              ) : (
+                <Text className="mt-2 text-sm leading-5 text-ink-600">
+                  관리자가 공사 가능날짜를 입력하기 전입니다
+                </Text>
+              )}
+
+              {role === 'admin' ? (
+                <>
+                  <Pressable
+                    accessibilityLabel={`공사 가능 날짜 ${request.latestScheduleChange ? '변경' : '입력'}`}
+                    accessibilityRole="button"
+                    className="mt-4 min-h-11 items-center justify-center rounded-xl border border-brand-700 px-3 active:bg-brand-100"
+                    disabled={updateScheduleMutation.isPending}
+                    onPress={() => setScheduleModalVisible(true)}
+                  >
+                    <Text className="text-sm font-bold text-brand-900">
+                      {request.latestScheduleChange ? '날짜 변경' : '날짜 입력'}
+                    </Text>
+                  </Pressable>
+
+                  {displayedSchedule !== request.desiredSchedule ? (
+                    <View className="mt-4">
+                      <Text className="text-xs leading-5 text-ink-600">
+                        저장하면 고객 화면의 공사 가능 날짜에 표시됩니다.
+                      </Text>
+                      {updateScheduleMutation.isError ? (
+                        <Text
+                          accessibilityRole="alert"
+                          className="mt-2 text-xs font-semibold text-red-700"
+                        >
+                          공사 가능 날짜를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.
+                        </Text>
+                      ) : null}
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{
+                          busy: updateScheduleMutation.isPending,
+                          disabled: !canSaveSchedule,
+                        }}
+                        className={`mt-3 min-h-12 items-center justify-center rounded-xl ${
+                          canSaveSchedule
+                            ? 'bg-brand-900 active:opacity-80'
+                            : 'bg-stone-100 opacity-60'
+                        }`}
+                        disabled={!canSaveSchedule}
+                        onPress={() => void handleUpdateSchedule()}
+                      >
+                        {updateScheduleMutation.isPending ? (
+                          <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                          <Text
+                            className={`font-bold ${canSaveSchedule ? 'text-white' : 'text-ink-600'}`}
+                          >
+                            변경 저장
+                          </Text>
+                        )}
+                      </Pressable>
+                    </View>
+                  ) : updateScheduleMutation.isSuccess ? (
+                    <Text
+                      accessibilityRole="alert"
+                      className="mt-3 text-xs font-semibold text-emerald-700"
+                    >
+                      공사 가능 날짜를 저장했어요.
+                    </Text>
+                  ) : null}
+                </>
               ) : null}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{
-                  busy: updateScheduleMutation.isPending,
-                  disabled: !canSaveSchedule,
-                }}
-                className={`mt-3 min-h-12 items-center justify-center rounded-xl ${
-                  canSaveSchedule ? 'bg-brand-900 active:opacity-80' : 'bg-stone-100 opacity-60'
-                }`}
-                disabled={!canSaveSchedule}
-                onPress={() => void handleUpdateSchedule()}
-              >
-                {updateScheduleMutation.isPending ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text className={`font-bold ${canSaveSchedule ? 'text-white' : 'text-ink-600'}`}>
-                    변경 저장
-                  </Text>
-                )}
-              </Pressable>
             </View>
-          ) : updateScheduleMutation.isSuccess ? (
-            <Text accessibilityRole="alert" className="mt-3 text-xs font-semibold text-emerald-700">
-              공사 희망 날짜를 변경했어요.
-            </Text>
-          ) : null}
-        </View>
+          </View>
+        ) : (
+          <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
+            <View className="flex-row items-start justify-between gap-4">
+              <View className="flex-1">
+                <Text className="text-sm font-semibold text-brand-700">공사 희망 날짜</Text>
+                <Text className="mt-2 text-xl font-bold text-ink-900">
+                  {formatRemodelSchedule(request.desiredSchedule)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View className="mt-6 rounded-3xl bg-white p-5">
           <Text className="text-sm font-semibold text-brand-700">선택 리포트</Text>
@@ -901,7 +931,7 @@ export function RemodelRequestDetailScreen({
           setScheduleModalVisible(false);
         }}
         selectedDate={displayedSchedule}
-        title="변경할 공사 희망 날짜"
+        title="공사 가능 날짜"
         visible={scheduleModalVisible}
       />
 

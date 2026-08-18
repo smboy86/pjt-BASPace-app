@@ -6,10 +6,7 @@ import {
   ERemodelScope,
   type IRemodelRequest,
 } from '../../../entities/remodel-request/types';
-import type {
-  IPartnerRemodelRequestDetail,
-  IPartnerRemodelRequestListItem,
-} from '../types';
+import type { IPartnerRemodelRequestDetail, IPartnerRemodelRequestListItem } from '../types';
 import {
   applyPartnerResponseToDetailCache,
   applyPartnerResponseToListCache,
@@ -53,6 +50,7 @@ const REQUEST: IRemodelRequest = {
   housingType: '아파트',
   bathroomType: '공용 욕실',
   budgetRange: ERemodelBudgetCode.KRW_300_500,
+  customerDesiredSchedule: '2개월 이내',
   desiredSchedule: '2개월 이내',
   scope: ERemodelScope.FULL,
   priorities: [],
@@ -73,11 +71,7 @@ const DETAIL: IPartnerRemodelRequestDetail = {
 describe('partner request response cache', () => {
   it('moves a proceeded assignment and request to their in-progress states immediately', () => {
     expect(
-      applyPartnerResponseToListCache(
-        [LIST_ITEM],
-        REQUEST_ID,
-        ERequestPartnerStatus.ACCEPTED,
-      )?.[0],
+      applyPartnerResponseToListCache([LIST_ITEM], REQUEST_ID, ERequestPartnerStatus.ACCEPTED)?.[0],
     ).toEqual(
       expect.objectContaining({
         assignmentStatus: ERequestPartnerStatus.ACCEPTED,
@@ -85,9 +79,7 @@ describe('partner request response cache', () => {
       }),
     );
 
-    expect(
-      applyPartnerResponseToDetailCache(DETAIL, ERequestPartnerStatus.ACCEPTED),
-    ).toEqual(
+    expect(applyPartnerResponseToDetailCache(DETAIL, ERequestPartnerStatus.ACCEPTED)).toEqual(
       expect.objectContaining({
         assignmentStatus: ERequestPartnerStatus.ACCEPTED,
         request: expect.objectContaining({
@@ -99,11 +91,7 @@ describe('partner request response cache', () => {
 
   it('moves a declined assignment immediately without guessing the request-wide status', () => {
     expect(
-      applyPartnerResponseToListCache(
-        [LIST_ITEM],
-        REQUEST_ID,
-        ERequestPartnerStatus.DECLINED,
-      )?.[0],
+      applyPartnerResponseToListCache([LIST_ITEM], REQUEST_ID, ERequestPartnerStatus.DECLINED)?.[0],
     ).toEqual(
       expect.objectContaining({
         assignmentStatus: ERequestPartnerStatus.DECLINED,
