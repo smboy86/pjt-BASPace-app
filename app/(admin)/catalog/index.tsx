@@ -4,10 +4,12 @@ import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EQuoteOptionFormType, type IQuoteOption } from '@/entities/quote-option';
+import { useDemolitionCostSetting } from '@/features/manage-construction-type-cost';
 import { useQuoteOptions } from '@/features/quote-option-management';
 
 export default function AdminQuoteOptionListScreen(): React.JSX.Element {
   const optionsQuery = useQuoteOptions();
+  const demolitionCostQuery = useDemolitionCostSetting();
   const options = optionsQuery.data ?? [];
 
   return (
@@ -25,7 +27,9 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
       </View>
 
       <View className="px-5 pb-4 pt-3">
-        <Text className="text-xs font-semibold text-ink-600">총 {options.length}개 옵션</Text>
+        <Text className="text-xs font-semibold text-ink-600">
+          총 {options.length + 1}개 관리 항목
+        </Text>
         <Text className="mt-2 text-sm leading-5 text-ink-600">
           고객 견적양식에 표시할 카테고리와 그 안의 제품을 관리합니다.
         </Text>
@@ -40,11 +44,20 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
           contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 20 }}
           data={options}
           keyExtractor={(option) => option.id}
+          ListHeaderComponent={
+            <ConstructionTypeCostListItem
+              amountManwon={demolitionCostQuery.data?.amountManwon}
+              isError={demolitionCostQuery.isError}
+              isLoading={demolitionCostQuery.isLoading}
+            />
+          }
           refreshControl={
             <RefreshControl
-              refreshing={optionsQuery.isRefetching}
+              refreshing={optionsQuery.isRefetching || demolitionCostQuery.isRefetching}
               tintColor="#176D62"
-              onRefresh={() => void optionsQuery.refetch()}
+              onRefresh={() =>
+                void Promise.all([optionsQuery.refetch(), demolitionCostQuery.refetch()])
+              }
             />
           }
           renderItem={({ item }) => <QuoteOptionListItem option={item} />}
@@ -52,6 +65,46 @@ export default function AdminQuoteOptionListScreen(): React.JSX.Element {
         />
       )}
     </SafeAreaView>
+  );
+}
+
+function ConstructionTypeCostListItem({
+  amountManwon,
+  isError,
+  isLoading,
+}: {
+  amountManwon?: number;
+  isError: boolean;
+  isLoading: boolean;
+}): React.JSX.Element {
+  const statusText = isLoading
+    ? '설정 불러오는 중'
+    : isError || amountManwon === undefined
+      ? '설정 조회 실패'
+      : `철거 ${amountManwon.toLocaleString('ko-KR')}만원`;
+
+  return (
+    <Pressable
+      accessibilityLabel={`시공 타입 금액 설정, ${statusText}`}
+      accessibilityHint="철거 추가 비용 설정 화면으로 이동합니다."
+      accessibilityRole="button"
+      className="mb-4 min-h-20 justify-center rounded-2xl border border-brand-100 bg-white px-4 py-4 active:bg-brand-100"
+      onPress={() => router.push('/(admin)/catalog/construction-type-cost')}
+    >
+      <View className="flex-row items-center">
+        <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-100">
+          <Ionicons name="hammer-outline" color="#176D62" size={22} />
+        </View>
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-bold text-ink-900">시공 타입 금액 설정</Text>
+          <Text className="mt-1 text-xs text-ink-600">철거 선택 시 추가되는 견적 금액</Text>
+        </View>
+        <Text className={`ml-2 text-xs font-bold ${isError ? 'text-red-600' : 'text-brand-700'}`}>
+          {statusText}
+        </Text>
+        <Ionicons className="ml-1.5" name="chevron-forward" color="#84908D" size={18} />
+      </View>
+    </Pressable>
   );
 }
 

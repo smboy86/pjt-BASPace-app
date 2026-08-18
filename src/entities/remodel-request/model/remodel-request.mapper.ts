@@ -157,6 +157,7 @@ export const mapRemodelRequest = (
   estimatedSize: row.estimated_size ?? undefined,
   hasBathtub: row.has_bathtub ?? undefined,
   requiresDemolition: row.requires_demolition ?? undefined,
+  demolitionCostSnapshotManwon: row.demolition_cost_snapshot_manwon ?? undefined,
   specialStructureNote: row.special_structure_note ?? undefined,
   budgetRange: mapBudgetRange(row.budget_range),
   desiredSchedule: row.desired_schedule,

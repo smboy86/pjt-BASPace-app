@@ -77,6 +77,7 @@ export interface IRemodelRequest {
   estimatedSize?: string;
   hasBathtub?: boolean;
   requiresDemolition?: boolean;
+  demolitionCostSnapshotManwon?: number;
   specialStructureNote?: string;
   budgetRange: ERemodelBudgetCode;
   desiredSchedule: string;

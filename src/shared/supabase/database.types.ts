@@ -127,6 +127,38 @@ export type Database = {
           },
         ];
       };
+      construction_type_cost_settings: {
+        Row: {
+          amount_manwon: number;
+          code: string;
+          created_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          amount_manwon?: number;
+          code: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_manwon?: number;
+          code?: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'construction_type_cost_settings_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       consultation_messages: {
         Row: {
           assignment_id: string | null;
@@ -684,6 +716,7 @@ export type Database = {
           budget_range: string;
           created_at: string;
           customer_id: string;
+          demolition_cost_snapshot_manwon: number | null;
           desired_schedule: string;
           estimated_size: string | null;
           has_bathtub: boolean | null;
@@ -709,6 +742,7 @@ export type Database = {
           budget_range: string;
           created_at?: string;
           customer_id: string;
+          demolition_cost_snapshot_manwon?: number | null;
           desired_schedule: string;
           estimated_size?: string | null;
           has_bathtub?: boolean | null;
@@ -734,6 +768,7 @@ export type Database = {
           budget_range?: string;
           created_at?: string;
           customer_id?: string;
+          demolition_cost_snapshot_manwon?: number | null;
           desired_schedule?: string;
           estimated_size?: string | null;
           has_bathtub?: boolean | null;
@@ -955,6 +990,7 @@ export type Database = {
           created_at: string;
           customer_id: string;
           customer_name: string;
+          demolition_cost_snapshot_manwon: number | null;
           desired_schedule: string;
           estimated_size: string | null;
           has_bathtub: boolean | null;
@@ -1047,6 +1083,10 @@ export type Database = {
       };
       update_remodel_request_schedule: {
         Args: { target_date: string; target_request_id: string };
+        Returns: undefined;
+      };
+      update_demolition_cost_setting: {
+        Args: { target_amount_manwon: number };
         Returns: undefined;
       };
       update_quote_option_master: {

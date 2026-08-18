@@ -123,6 +123,7 @@ const mapDetail = (row: TPartnerDetailRow): IPartnerRemodelRequestDetail => {
     budget_range: row.budget_range,
     created_at: row.created_at,
     customer_id: row.customer_id,
+    demolition_cost_snapshot_manwon: row.demolition_cost_snapshot_manwon,
     desired_schedule: row.desired_schedule,
     estimated_size: row.estimated_size,
     has_bathtub: row.has_bathtub,

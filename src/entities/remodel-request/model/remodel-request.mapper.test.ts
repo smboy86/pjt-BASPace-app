@@ -13,6 +13,7 @@ const REQUEST_ROW: Database['public']['Tables']['remodel_requests']['Row'] = {
   budget_range: 'KRW_300_500',
   created_at: '2026-07-28T10:00:00.000Z',
   customer_id: 'customer-1',
+  demolition_cost_snapshot_manwon: 150,
   desired_schedule: '2개월 이내',
   estimated_size: '약 3㎡',
   has_bathtub: false,
@@ -58,6 +59,7 @@ describe('remodel request mapper', () => {
         adjustedEstimateAmount: 3_500_000,
         adjustmentConfirmedAt: undefined,
         customerDesiredSchedule: '2개월 이내',
+        demolitionCostSnapshotManwon: 150,
         status: ERemodelRequestStatus.QUOTE_ADJUSTMENT,
       }),
     );

@@ -18,7 +18,9 @@ import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
 import {
   ERemodelRequestStatus,
   formatRemodelSchedule,
+  getDemolitionCostAmount,
   getRemodelBudgetLabel,
+  getRemodelRequestBaseEstimate,
   type IRemodelRequest,
   useRemodelRequestStore,
 } from '@/entities/remodel-request';
@@ -126,10 +128,8 @@ export function RemodelRequestDetailScreen({
     [quotes],
   );
   const originalEstimateAmount = useMemo(
-    () =>
-      request?.selections.reduce((sum, selection) => sum + (selection.basePriceSnapshot ?? 0), 0) ??
-      0,
-    [request?.selections],
+    () => (request ? getRemodelRequestBaseEstimate(request) : 0),
+    [request],
   );
 
   useEffect(() => {
@@ -494,6 +494,27 @@ export function RemodelRequestDetailScreen({
             </View>
           </View>
         )}
+
+        <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
+          <Text className="text-sm font-semibold text-brand-700">시공 타입</Text>
+          <View className="mt-3 flex-row items-center justify-between gap-4">
+            <Text className="text-xl font-bold text-ink-900">
+              {request.requiresDemolition === true
+                ? '철거'
+                : request.requiresDemolition === false
+                  ? '덧방'
+                  : '미설정'}
+            </Text>
+            {request.requiresDemolition && request.demolitionCostSnapshotManwon !== undefined ? (
+              <View className="items-end">
+                <Text className="text-xs font-semibold text-ink-600">추가 비용</Text>
+                <Text className="mt-1 text-lg font-bold text-brand-900">
+                  +{getDemolitionCostAmount(request).toLocaleString('ko-KR')}원
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
 
         <View className="mt-6 rounded-3xl bg-white p-5">
           <Text className="text-sm font-semibold text-brand-700">선택 리포트</Text>

@@ -78,6 +78,7 @@ const DETAIL_ROW = {
   adjustment_confirmed_at: null,
   bathroom_type: '공용 욕실',
   customer_id: 'customer-1',
+  demolition_cost_snapshot_manwon: 150,
   estimated_size: null,
   has_bathtub: false,
   housing_type: '아파트',
