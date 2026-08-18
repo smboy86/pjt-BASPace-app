@@ -169,6 +169,7 @@ export const mapRemodelRequest = (
   photos: [],
   selections,
   adjustedEstimateAmount: row.adjusted_estimate_amount ?? undefined,
+  adjustedEstimateReason: row.adjusted_estimate_reason ?? undefined,
   adjustedBy: row.adjusted_by ?? undefined,
   adjustedAt: row.adjusted_at ?? undefined,
   adjustmentConfirmedAt: row.adjustment_confirmed_at ?? undefined,

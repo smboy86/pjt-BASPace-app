@@ -75,6 +75,7 @@ const DETAIL_ROW = {
   adjusted_at: null,
   adjusted_by: null,
   adjusted_estimate_amount: null,
+  adjusted_estimate_reason: null,
   adjustment_confirmed_at: null,
   bathroom_type: '공용 욕실',
   customer_id: 'customer-1',

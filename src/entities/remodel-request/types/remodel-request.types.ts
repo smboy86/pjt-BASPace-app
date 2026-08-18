@@ -89,6 +89,7 @@ export interface IRemodelRequest {
   photos: IRequestPhoto[];
   selections: ISelectionSnapshot[];
   adjustedEstimateAmount?: number;
+  adjustedEstimateReason?: string;
   adjustedBy?: string;
   adjustedAt?: string;
   adjustmentConfirmedAt?: string;
@@ -102,6 +103,7 @@ export type TCreateRemodelRequestInput = Omit<
   | 'id'
   | 'status'
   | 'adjustedEstimateAmount'
+  | 'adjustedEstimateReason'
   | 'adjustedBy'
   | 'adjustedAt'
   | 'adjustmentConfirmedAt'

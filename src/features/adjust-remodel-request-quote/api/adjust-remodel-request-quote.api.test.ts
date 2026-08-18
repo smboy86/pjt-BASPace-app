@@ -21,10 +21,15 @@ describe('adjust remodel request quote api', () => {
   });
 
   it('sends the adjusted amount through the administrator RPC', async () => {
-    await adjustRemodelRequestQuote({ requestId: 'request-1', amount: 3_500_000 });
+    await adjustRemodelRequestQuote({
+      requestId: 'request-1',
+      amount: 3_500_000,
+      reason: '자재 등급 변경을 반영했습니다.',
+    });
 
     expect(mocks.rpc).toHaveBeenCalledWith('adjust_customer_request_quote', {
       target_amount: 3_500_000,
+      target_reason: '자재 등급 변경을 반영했습니다.',
       target_request_id: 'request-1',
     });
   });

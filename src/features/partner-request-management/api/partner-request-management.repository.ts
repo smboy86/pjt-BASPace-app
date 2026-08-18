@@ -118,6 +118,7 @@ const mapDetail = (row: TPartnerDetailRow): IPartnerRemodelRequestDetail => {
     adjusted_at: row.adjusted_at,
     adjusted_by: row.adjusted_by,
     adjusted_estimate_amount: row.adjusted_estimate_amount,
+    adjusted_estimate_reason: row.adjusted_estimate_reason,
     adjustment_confirmed_at: row.adjustment_confirmed_at,
     bathroom_type: row.bathroom_type,
     budget_range: row.budget_range,

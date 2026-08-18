@@ -711,6 +711,7 @@ export type Database = {
           adjusted_at: string | null;
           adjusted_by: string | null;
           adjusted_estimate_amount: number | null;
+          adjusted_estimate_reason: string | null;
           adjustment_confirmed_at: string | null;
           bathroom_type: string;
           budget_range: string;
@@ -737,6 +738,7 @@ export type Database = {
           adjusted_at?: string | null;
           adjusted_by?: string | null;
           adjusted_estimate_amount?: number | null;
+          adjusted_estimate_reason?: string | null;
           adjustment_confirmed_at?: string | null;
           bathroom_type: string;
           budget_range: string;
@@ -763,6 +765,7 @@ export type Database = {
           adjusted_at?: string | null;
           adjusted_by?: string | null;
           adjusted_estimate_amount?: number | null;
+          adjusted_estimate_reason?: string | null;
           adjustment_confirmed_at?: string | null;
           bathroom_type?: string;
           budget_range?: string;
@@ -960,7 +963,7 @@ export type Database = {
     };
     Functions: {
       adjust_customer_request_quote: {
-        Args: { target_amount: number; target_request_id: string };
+        Args: { target_amount: number; target_reason: string; target_request_id: string };
         Returns: undefined;
       };
       assign_remodel_request_partner: {
@@ -982,6 +985,7 @@ export type Database = {
           adjusted_at: string | null;
           adjusted_by: string | null;
           adjusted_estimate_amount: number | null;
+          adjusted_estimate_reason: string | null;
           adjustment_confirmed_at: string | null;
           assignment_id: string;
           assignment_status: Database['public']['Enums']['assignment_status'];

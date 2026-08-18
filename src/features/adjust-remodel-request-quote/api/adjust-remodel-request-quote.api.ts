@@ -6,6 +6,7 @@ export const adjustRemodelRequestQuote = async (
 ): Promise<void> => {
   const { error } = await getSupabaseClient().rpc('adjust_customer_request_quote', {
     target_amount: input.amount,
+    target_reason: input.reason,
     target_request_id: input.requestId,
   });
 

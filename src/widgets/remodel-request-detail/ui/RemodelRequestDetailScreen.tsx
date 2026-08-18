@@ -59,6 +59,7 @@ interface IRemodelRequestDetailScreenProps {
 }
 
 const MAX_ESTIMATE_AMOUNT = 1_000_000_000_000;
+const MAX_ADJUSTMENT_REASON_LENGTH = 500;
 
 const formatAmountInput = (value: string): string => {
   const digits = value.replace(/\D/g, '');
@@ -102,6 +103,7 @@ export function RemodelRequestDetailScreen({
   const resetCompleteRequestMutation = completeRequestMutation.reset;
   const [message, setMessage] = useState('');
   const [adjustedAmountInput, setAdjustedAmountInput] = useState('');
+  const [adjustedReasonInput, setAdjustedReasonInput] = useState('');
   const [assignmentModalVisible, setAssignmentModalVisible] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<IAssignablePartner | null>(null);
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
@@ -138,8 +140,14 @@ export function RemodelRequestDetailScreen({
         ? request.adjustedEstimateAmount.toLocaleString('ko-KR')
         : '',
     );
+    setAdjustedReasonInput(request?.adjustedEstimateReason ?? '');
     resetAdjustMutation();
-  }, [request?.adjustedEstimateAmount, request?.id, resetAdjustMutation]);
+  }, [
+    request?.adjustedEstimateAmount,
+    request?.adjustedEstimateReason,
+    request?.id,
+    resetAdjustMutation,
+  ]);
 
   useEffect(() => {
     resetPartnerResponseMutation();
@@ -204,6 +212,13 @@ export function RemodelRequestDetailScreen({
       ? '수정 견적 금액을 입력해 주세요.'
       : parsedAdjustedAmount === null || parsedAdjustedAmount > MAX_ESTIMATE_AMOUNT
         ? '0원 이상 1조 원 이하의 금액을 입력해 주세요.'
+        : null;
+  const trimmedAdjustedReason = adjustedReasonInput.trim();
+  const reasonError =
+    trimmedAdjustedReason.length === 0
+      ? '수정 견적 사유를 입력해 주세요.'
+      : trimmedAdjustedReason.length > MAX_ADJUSTMENT_REASON_LENGTH
+        ? '수정 견적 사유는 500자 이하로 입력해 주세요.'
         : null;
   const canAdjust = role === 'admin' && request.status === ERemodelRequestStatus.SUBMITTED;
   const adjustmentLockedMessage = request.adjustmentConfirmedAt
@@ -281,6 +296,7 @@ export function RemodelRequestDetailScreen({
       await adjustMutation.mutateAsync({
         requestId: request.id,
         amount: parsedAdjustedAmount,
+        reason: trimmedAdjustedReason,
       });
       Alert.alert('견적 조정을 완료했어요', '고객이 조정 견적을 확인할 수 있습니다.');
     } catch {
@@ -633,6 +649,14 @@ export function RemodelRequestDetailScreen({
             <Text className="mt-2 text-3xl font-bold text-white">
               {currentEstimateAmount.toLocaleString('ko-KR')}원
             </Text>
+            {role === 'partner' && request.adjustedEstimateReason ? (
+              <View className="mt-4 rounded-xl bg-brand-800 px-4 py-3">
+                <Text className="text-xs font-semibold text-brand-100">수정 견적 사유</Text>
+                <Text className="mt-1 text-sm leading-5 text-white">
+                  {request.adjustedEstimateReason}
+                </Text>
+              </View>
+            ) : null}
             {request.adjustedEstimateAmount !== undefined ? (
               <Text className="mt-2 text-xs text-brand-100">
                 최초 선택 합계 {originalEstimateAmount.toLocaleString('ko-KR')}원
@@ -662,16 +686,34 @@ export function RemodelRequestDetailScreen({
                   />
                   <Text className="ml-2 font-bold text-ink-600">원</Text>
                 </View>
+                <Text className="mt-4 text-sm font-bold text-white">수정 견적 사유</Text>
+                <TextInput
+                  accessibilityLabel="수정 견적 사유"
+                  className={`mt-2 min-h-24 rounded-xl bg-white px-4 py-3 text-base leading-6 text-ink-900 ${
+                    canAdjust ? '' : 'opacity-60'
+                  }`}
+                  editable={canAdjust && !adjustMutation.isPending}
+                  maxLength={MAX_ADJUSTMENT_REASON_LENGTH}
+                  multiline
+                  placeholder="수정 견적 사유를 입력해 주세요."
+                  placeholderTextColor="#84908D"
+                  textAlignVertical="top"
+                  value={adjustedReasonInput}
+                  onChangeText={(value) => {
+                    setAdjustedReasonInput(value);
+                    adjustMutation.reset();
+                  }}
+                />
                 {!canAdjust ? (
                   <Text className="mt-2 text-xs font-semibold text-brand-100">
                     {adjustmentLockedMessage}
                   </Text>
-                ) : amountError ? (
+                ) : amountError || reasonError ? (
                   <Text
                     accessibilityRole="alert"
                     className="mt-2 text-xs font-semibold text-red-200"
                   >
-                    {amountError}
+                    {amountError ?? reasonError}
                   </Text>
                 ) : null}
                 {adjustMutation.isError ? (
@@ -686,14 +728,23 @@ export function RemodelRequestDetailScreen({
                   accessibilityRole="button"
                   accessibilityState={{
                     busy: adjustMutation.isPending,
-                    disabled: !canAdjust || Boolean(amountError) || adjustMutation.isPending,
+                    disabled:
+                      !canAdjust ||
+                      Boolean(amountError) ||
+                      Boolean(reasonError) ||
+                      adjustMutation.isPending,
                   }}
                   className={`mt-4 min-h-12 items-center justify-center rounded-xl ${
-                    !canAdjust || amountError || adjustMutation.isPending
+                    !canAdjust || amountError || reasonError || adjustMutation.isPending
                       ? 'bg-stone-100 opacity-60'
                       : 'bg-brand-700 active:opacity-80'
                   }`}
-                  disabled={!canAdjust || Boolean(amountError) || adjustMutation.isPending}
+                  disabled={
+                    !canAdjust ||
+                    Boolean(amountError) ||
+                    Boolean(reasonError) ||
+                    adjustMutation.isPending
+                  }
                   onPress={() => void handleAdjustQuote()}
                 >
                   {adjustMutation.isPending ? (
@@ -701,7 +752,7 @@ export function RemodelRequestDetailScreen({
                   ) : (
                     <Text
                       className={`font-bold ${
-                        !canAdjust || amountError ? 'text-ink-600' : 'text-white'
+                        !canAdjust || amountError || reasonError ? 'text-ink-600' : 'text-white'
                       }`}
                     >
                       견적 조정
@@ -869,6 +920,14 @@ export function RemodelRequestDetailScreen({
             <Text className="mt-2 text-3xl font-bold text-brand-900">
               {request.adjustedEstimateAmount.toLocaleString('ko-KR')}원
             </Text>
+            {request.adjustedEstimateReason ? (
+              <View className="mt-4 rounded-xl bg-sand-50 px-4 py-3">
+                <Text className="text-xs font-semibold text-brand-700">수정 견적 사유</Text>
+                <Text className="mt-1 text-sm leading-5 text-ink-900">
+                  {request.adjustedEstimateReason}
+                </Text>
+              </View>
+            ) : null}
             {request.adjustmentConfirmedAt ? (
               <View className="mt-4 flex-row items-center rounded-xl bg-brand-100 px-4 py-3">
                 <Ionicons name="checkmark-circle" color="#176D62" size={20} />
