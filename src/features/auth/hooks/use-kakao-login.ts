@@ -30,7 +30,7 @@ export function useKakaoLogin() {
       }
 
       const callbackError = readCallbackValue(result.url, 'error_description');
-      if (callbackError) throw mapAuthError(new Error(callbackError));
+      if (callbackError) throw mapAuthError(new Error(callbackError), 'kakao');
 
       const code = readCallbackValue(result.url, 'code');
       if (!code) {

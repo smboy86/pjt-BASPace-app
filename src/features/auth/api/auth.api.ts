@@ -75,7 +75,10 @@ const readErrorMessage = (error: unknown): string => {
   return typeof error.message === 'string' ? error.message.toLowerCase() : '';
 };
 
-export const mapAuthError = (error: unknown): AuthError => {
+export const mapAuthError = (
+  error: unknown,
+  socialProvider?: TSocialAuthProvider,
+): AuthError => {
   if (error instanceof AuthError) {
     return error;
   }
@@ -109,11 +112,13 @@ export const mapAuthError = (error: unknown): AuthError => {
   if (code === 'signup_disabled') {
     return createAuthError('signup_disabled');
   }
-  if (
-    message.includes('google_identity_existing_email') ||
-    message.includes('social_identity_existing_email')
-  ) {
+  if (message.includes('google_identity_existing_email')) {
     return createAuthError('google_existing_email');
+  }
+  if (message.includes('social_identity_existing_email')) {
+    return createAuthError(
+      socialProvider === 'kakao' ? 'kakao_existing_email' : 'google_existing_email',
+    );
   }
   if (
     message.includes('network request failed') ||
@@ -230,7 +235,7 @@ const createSocialOAuthUrl = async (
 
     return { authorizationUrl: data.url };
   } catch (error: unknown) {
-    throw mapAuthError(error);
+    throw mapAuthError(error, provider);
   }
 };
 
@@ -260,7 +265,7 @@ const completeSocialLogin = async (
       throw profileError;
     }
   } catch (error: unknown) {
-    throw mapAuthError(error);
+    throw mapAuthError(error, provider);
   }
 };
 

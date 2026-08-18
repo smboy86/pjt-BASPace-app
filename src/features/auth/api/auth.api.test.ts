@@ -406,4 +406,13 @@ describe('mapAuthError', () => {
       message: '이메일 또는 비밀번호를 확인해 주세요.',
     });
   });
+
+  test('keeps the Kakao provider when a social identity conflicts with email login', () => {
+    const result = mapAuthError(new Error('social_identity_existing_email'), 'kakao');
+
+    expect(result).toMatchObject({
+      code: 'kakao_existing_email',
+      message: '이미 이메일로 가입된 계정입니다. 이메일로 로그인해 주세요.',
+    });
+  });
 });

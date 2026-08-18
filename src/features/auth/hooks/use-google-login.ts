@@ -31,7 +31,7 @@ export function useGoogleLogin() {
       }
 
       const callbackError = readCallbackValue(result.url, 'error_description');
-      if (callbackError) throw mapAuthError(new Error(callbackError));
+      if (callbackError) throw mapAuthError(new Error(callbackError), 'google');
 
       const code = readCallbackValue(result.url, 'code');
       if (!code) {
