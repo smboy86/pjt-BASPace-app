@@ -177,6 +177,57 @@ describe('authApi', () => {
     });
   });
 
+  test('completes the shared callback for either supported social provider', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: KAKAO_AUTH_USER },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: CUSTOMER_PROFILE, error: null });
+
+    await expect(authApi.completeSocialLogin('oauth-code')).resolves.toMatchObject({
+      user: { role: 'customer' },
+    });
+  });
+
+  test('rejects a callback session without a supported social identity', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: { ...AUTH_USER, identities: [{ provider: 'email' }] } },
+      error: null,
+    });
+
+    await expect(authApi.completeSocialLogin('oauth-code')).rejects.toMatchObject({
+      code: 'oauth_failed',
+    });
+    expect(mocks.single).not.toHaveBeenCalled();
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
+  test('completes customer email verification through the shared PKCE callback', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: SESSION, user: { ...AUTH_USER, identities: [{ provider: 'email' }] } },
+      error: null,
+    });
+    mocks.single.mockResolvedValue({ data: CUSTOMER_PROFILE, error: null });
+
+    await expect(authApi.completeCustomerAuthCallback('verification-code')).resolves.toMatchObject({
+      user: { role: 'customer', emailVerified: true },
+    });
+  });
+
+  test('clears an existing local session when callback code exchange fails', async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({
+      data: { session: null, user: null },
+      error: { message: 'invalid flow state' },
+    });
+
+    await expect(authApi.completeCustomerAuthCallback('expired-code')).rejects.toBeInstanceOf(
+      AuthError,
+    );
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(mocks.clearAllSecure).toHaveBeenCalledOnce();
+  });
+
   test('rejects and clears a Google session for an admin profile', async () => {
     mocks.exchangeCodeForSession.mockResolvedValue({
       data: { session: SESSION, user: GOOGLE_AUTH_USER },

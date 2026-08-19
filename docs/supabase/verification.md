@@ -93,10 +93,9 @@ NODE
 
 ## 3. 이메일 확인
 
-수신한 Supabase 확인 메일에서 링크를 연다. 현재 앱에는
-`baspace://auth/callback` code-exchange route가 아직 없으므로 딥링크 화면 전환은
-검증 대상이 아니다. 링크를 연 뒤 Dashboard → Authentication → Users에서
-`Last Sign In` 또는 이메일 확인 상태가 갱신됐는지 확인한다.
+수신한 Supabase 확인 메일에서 링크를 연다. `baspace://auth/callback` 딥링크가 앱을 열고
+콜백 화면에서 인증 코드를 한 번만 교환하는지 확인한다. 링크를 연 뒤 Dashboard →
+Authentication → Users에서 `Last Sign In` 또는 이메일 확인 상태가 갱신됐는지 확인한다.
 
 메일이 오지 않으면 다음을 확인한다.
 
@@ -290,5 +289,5 @@ where u.email = '테스트_이메일';
 3. 고객이 관리자 경로에 접근할 때 고객 탭으로 복귀
 4. 관리자가 고객 탭 경로에 접근할 때 관리자 운영 홈으로 복귀
 5. 업체 담당자 프로필 로그인 거절과 로컬 세션 정리
-6. `baspace://auth/callback` route와 PKCE code exchange
+6. Google·Kakao 실제 계정의 `baspace://auth/callback` 진입과 PKCE code exchange
 7. 실제 계정으로 견적 요청 생성과 RLS 검증

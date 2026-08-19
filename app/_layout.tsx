@@ -11,7 +11,7 @@ import { toastConfig, ErrorBoundary } from '@shared/ui';
 import { useExitAppOnDoubleBack } from '@shared/lib';
 import { useQuoteStore } from '@/entities/quote';
 import { useRemodelRequestStore } from '@/entities/remodel-request';
-import { useAuthSession } from '@/features/auth';
+import { resolveAuthRedirect, useAuthSession } from '@/features/auth';
 import { useRequestConsultationStore } from '@/features/request-consultation';
 import '../global.css';
 
@@ -35,43 +35,12 @@ function AuthenticatedNavigator(): React.JSX.Element {
   useEffect(() => {
     if (!navigationState?.key || isLoading || error) return;
 
-    const currentGroup = segments[0];
-    const isInAuthGroup = currentGroup === '(auth)';
-    const isInCustomerGroup = currentGroup === '(tabs)';
-    const isInAdminGroup = currentGroup === '(admin)';
-    const isInPartnerGroup = currentGroup === '(partner)';
-
-    if (!isAuthenticated || !user) {
-      if (!isInAuthGroup) {
-        router.replace('/(auth)/login');
-      }
-      return;
-    }
-
-    if (user.role === 'admin') {
-      if (!isInAdminGroup) {
-        router.replace('/(admin)/dashboard');
-      }
-      return;
-    }
-
-    if (user.role === 'partner_staff') {
-      if (!isInPartnerGroup) {
-        router.replace('/(partner)/dashboard');
-      }
-      return;
-    }
-
-    if (user.role === 'customer') {
-      if (!isInCustomerGroup) {
-        router.replace('/(tabs)/home');
-      }
-      return;
-    }
-
-    if (!isInAuthGroup) {
-      router.replace('/(auth)/login');
-    }
+    const redirectTo = resolveAuthRedirect({
+      isAuthenticated,
+      role: user?.role ?? null,
+      segments,
+    });
+    if (redirectTo) router.replace(redirectTo);
   }, [error, isAuthenticated, isLoading, navigationState?.key, segments, user]);
 
   if (isLoading) {
@@ -114,6 +83,7 @@ function AuthenticatedNavigator(): React.JSX.Element {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(admin)" />
         <Stack.Screen name="(partner)" />
+        <Stack.Screen name="auth/callback" />
       </Stack>
       <Toast config={toastConfig} />
     </>

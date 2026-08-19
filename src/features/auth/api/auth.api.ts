@@ -75,10 +75,7 @@ const readErrorMessage = (error: unknown): string => {
   return typeof error.message === 'string' ? error.message.toLowerCase() : '';
 };
 
-export const mapAuthError = (
-  error: unknown,
-  socialProvider?: TSocialAuthProvider,
-): AuthError => {
+export const mapAuthError = (error: unknown, socialProvider?: TSocialAuthProvider): AuthError => {
   if (error instanceof AuthError) {
     return error;
   }
@@ -240,32 +237,39 @@ const createSocialOAuthUrl = async (
 };
 
 const completeSocialLogin = async (
-  provider: TSocialAuthProvider,
+  expectedProvider: TSocialAuthProvider | null,
   code: string,
+  allowEmailIdentity = false,
 ): Promise<ILoginResponse> => {
+  let resolvedProvider = expectedProvider ?? undefined;
+
   try {
     const { data, error } = await getSupabaseClient().auth.exchangeCodeForSession(code);
 
     if (error) throw error;
 
-    const usesExpectedProvider = data.user.identities?.some(
-      (identity) => identity.provider === provider,
-    );
-    if (!usesExpectedProvider) {
-      await clearLocalSession();
+    const actualProvider = data.user.identities?.find((identity) =>
+      allowEmailIdentity
+        ? identity.provider === 'email' ||
+          identity.provider === 'google' ||
+          identity.provider === 'kakao'
+        : identity.provider === 'google' || identity.provider === 'kakao',
+    )?.provider;
+    const usesSupportedSocialProvider = actualProvider === 'google' || actualProvider === 'kakao';
+    if (!usesSupportedSocialProvider && !(allowEmailIdentity && actualProvider === 'email')) {
+      throw createAuthError('oauth_failed');
+    }
+    if (usesSupportedSocialProvider) resolvedProvider = actualProvider;
+    if (expectedProvider && resolvedProvider !== expectedProvider) {
       throw createAuthError('oauth_failed');
     }
 
-    try {
-      const user = await loadSupportedProfile(data.user);
-      if (user.role !== 'customer') throw createAuthError('unsupported_role');
-      return { session: mapSession(data.session), user };
-    } catch (profileError: unknown) {
-      await clearLocalSession();
-      throw profileError;
-    }
+    const user = await loadSupportedProfile(data.user);
+    if (user.role !== 'customer') throw createAuthError('unsupported_role');
+    return { session: mapSession(data.session), user };
   } catch (error: unknown) {
-    throw mapAuthError(error, provider);
+    await clearLocalSession();
+    throw mapAuthError(error, resolvedProvider);
   }
 };
 
@@ -280,6 +284,11 @@ export const authApi = {
     completeSocialLogin('google', code),
 
   completeKakaoLogin: (code: string): Promise<ILoginResponse> => completeSocialLogin('kakao', code),
+
+  completeSocialLogin: (code: string): Promise<ILoginResponse> => completeSocialLogin(null, code),
+
+  completeCustomerAuthCallback: (code: string): Promise<ILoginResponse> =>
+    completeSocialLogin(null, code, true),
 
   login: async (input: ILoginRequest): Promise<ILoginResponse> => {
     try {

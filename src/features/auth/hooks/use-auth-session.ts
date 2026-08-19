@@ -42,12 +42,7 @@ const startAuthSynchronization = (): void => {
       return;
     }
 
-    if (
-      event === 'INITIAL_SESSION' ||
-      event === 'SIGNED_IN' ||
-      event === 'TOKEN_REFRESHED' ||
-      event === 'USER_UPDATED'
-    ) {
+    if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
       // Supabase advises deferring additional auth calls until its callback
       // finishes to avoid locking the auth client.
       setTimeout(() => {

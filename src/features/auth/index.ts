@@ -1,4 +1,6 @@
-export { authApi } from './api';
+export { authApi, mapAuthError } from './api';
+export { resolveAuthRedirect } from './lib';
+export type { TAuthRedirectPath } from './lib';
 export {
   useAuthSession,
   useGoogleLogin,

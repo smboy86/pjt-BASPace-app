@@ -1,19 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { authApi, mapAuthError } from '../api';
-import { useAuthStore } from '../store';
-import { AuthError, type ILoginResponse } from '../types';
+import { authApi } from '../api';
+import { AuthError } from '../types';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const readCallbackValue = (url: string, key: string): string | null => {
-  const value = Linking.parse(url).queryParams?.[key];
-  return typeof value === 'string' ? value : null;
-};
-
 export function useKakaoLogin() {
-  return useMutation<ILoginResponse, Error, void>({
+  return useMutation<void, Error, void>({
     mutationFn: async () => {
       const redirectTo = Linking.createURL('auth/callback');
       const { authorizationUrl } = await authApi.createKakaoOAuthUrl({ redirectTo });
@@ -29,21 +23,8 @@ export function useKakaoLogin() {
         );
       }
 
-      const callbackError = readCallbackValue(result.url, 'error_description');
-      if (callbackError) throw mapAuthError(new Error(callbackError), 'kakao');
-
-      const code = readCallbackValue(result.url, 'code');
-      if (!code) {
-        throw new AuthError(
-          'oauth_failed',
-          '카카오 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.',
-        );
-      }
-
-      return authApi.completeKakaoLogin(code);
-    },
-    onSuccess: ({ session, user }) => {
-      useAuthStore.getState().setAuthenticated(session, user);
+      // The dedicated /auth/callback route owns PKCE code exchange so Android
+      // warm starts and cold starts follow the same single-use flow.
     },
   });
 }
