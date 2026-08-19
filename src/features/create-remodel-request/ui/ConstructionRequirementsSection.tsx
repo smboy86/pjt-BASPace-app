@@ -86,7 +86,7 @@ export function ConstructionRequirementsSection({
               className="min-h-12 shrink-0 items-center justify-center rounded-xl border border-brand-700 bg-brand-100 px-2 active:opacity-80"
               onPress={onMeasurementUnavailable}
             >
-              <Text className="text-xs font-bold text-brand-900">1실측 불가</Text>
+              <Text className="text-xs font-bold text-brand-900">실측불가</Text>
             </Pressable>
           </View>
           {dimensionError && (
@@ -194,7 +194,7 @@ function BathroomDimensionInput({
         inputMode="numeric"
         keyboardType="number-pad"
         onChangeText={(text) => onChangeText(sanitizeBathroomDimension(text))}
-        placeholder="ex) 1000"
+        placeholder="1200"
         placeholderTextColor="#667085"
         value={value}
       />

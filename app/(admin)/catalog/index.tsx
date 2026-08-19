@@ -177,7 +177,6 @@ function QuoteOptionListItem({ option }: { option: IQuoteOption }): React.JSX.El
         </View>
         <Text className="ml-3 flex-1 text-sm font-bold text-ink-900" numberOfLines={1}>
           {option.name}
-          <Text className="text-xs font-semibold text-brand-700"> · {option.code}</Text>
         </Text>
         <View
           className={`ml-2 rounded-full px-2.5 py-1 ${

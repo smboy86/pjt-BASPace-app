@@ -418,11 +418,6 @@ export function RemodelRequestDetailScreen({
         <Text className="text-2xl font-bold text-ink-900">
           {request.region} · {request.bathroomType}
         </Text>
-        <Text className="mt-2 text-sm text-ink-600">
-          {request.scope === 'full' ? '전체 리모델링' : '부분 리모델링'} ·{' '}
-          {getRemodelBudgetLabel(request.budgetRange)}
-        </Text>
-
         {role === 'customer' || role === 'admin' ? (
           <View className="mt-6 flex-row items-stretch gap-3">
             <View className="flex-1 rounded-3xl border border-stone-100 bg-white p-4">
