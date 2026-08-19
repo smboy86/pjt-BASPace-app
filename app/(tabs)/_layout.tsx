@@ -142,6 +142,7 @@ export default function TabLayout(): React.JSX.Element {
               disabled={disabled}
               onLongPress={onLongPress}
               onPress={onPress as React.ComponentProps<typeof Pressable>['onPress']}
+              hitSlop={{ top: 22 }}
               style={({ pressed }) => [
                 tabBarButtonStyle,
                 styles.homeTabButton,
@@ -150,20 +151,24 @@ export default function TabLayout(): React.JSX.Element {
               role={role}
               testID={testID}
             >
-              <HomeTabIcon focused={ariaSelected ?? false} />
-              <Text
-                allowFontScaling
-                accessible={false}
-                style={[
-                  styles.homeTabLabel,
-                  {
-                    color: ariaSelected ? CustomerHomeColors.primary : CustomerHomeColors.inactive,
-                    fontWeight: ariaSelected ? '700' : '600',
-                  },
-                ]}
-              >
-                홈
-              </Text>
+              <View pointerEvents="none" style={styles.homeTabContent}>
+                <HomeTabIcon focused={ariaSelected ?? false} />
+                <Text
+                  allowFontScaling
+                  accessible={false}
+                  style={[
+                    styles.homeTabLabel,
+                    {
+                      color: ariaSelected
+                        ? CustomerHomeColors.primary
+                        : CustomerHomeColors.inactive,
+                      fontWeight: ariaSelected ? '700' : '600',
+                    },
+                  ]}
+                >
+                  홈
+                </Text>
+              </View>
             </Pressable>
           ),
           tabBarIcon: () => null,
@@ -210,14 +215,23 @@ export default function TabLayout(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   homeTabButton: {
+    flex: 1,
+    alignSelf: 'stretch',
     minWidth: 64,
-    minHeight: 79,
-    marginTop: -22,
+    minHeight: 76,
     padding: 0,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     overflow: 'visible',
-    borderRadius: 32,
+  },
+  homeTabContent: {
+    position: 'absolute',
+    top: -22,
+    left: 0,
+    right: 0,
+    minHeight: 79,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   homeTabCircle: {
     ...Platform.select({
