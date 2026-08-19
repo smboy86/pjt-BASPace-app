@@ -53,6 +53,7 @@ module.exports = ({ config }) => {
       },
     },
     plugins: [
+      ['expo-dev-client', { launchMode: 'launcher' }],
       'expo-router',
       'expo-font',
       'expo-image',
