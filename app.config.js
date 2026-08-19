@@ -17,7 +17,7 @@ module.exports = ({ config }) => {
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
     scheme: 'baspace',
-    icon: './assets/images/icon.png',
+    icon: './assets/images/icon-v2.png',
     splash: {
       image: './assets/images/splash-icon.png',
       resizeMode: 'contain',
@@ -48,8 +48,8 @@ module.exports = ({ config }) => {
         'android.permission.ACCESS_ADSERVICES_TOPICS',
       ],
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
-        backgroundColor: '#0a0a0a',
+        foregroundImage: './assets/images/adaptive-icon-v2.png',
+        backgroundColor: '#F7F8FA',
       },
     },
     plugins: [
