@@ -60,9 +60,6 @@ export function ConstructionRequirementsSection({
       <View className="mt-3 gap-5 rounded-3xl border border-stone-100 bg-white p-4">
         <View>
           <Text className="text-sm font-semibold text-ink-900">욕실 크기</Text>
-          <Text className="mt-1 text-xs leading-5 text-ink-600">
-            밀리미터(mm) 단위의 숫자로 입력해 주세요.
-          </Text>
           <View className="mt-3 flex-row items-end gap-1.5">
             <BathroomDimensionInput
               error={Boolean(dimensionError)}
@@ -89,7 +86,7 @@ export function ConstructionRequirementsSection({
               className="min-h-12 shrink-0 items-center justify-center rounded-xl border border-brand-700 bg-brand-100 px-2 active:opacity-80"
               onPress={onMeasurementUnavailable}
             >
-              <Text className="text-xs font-bold text-brand-900">실측 불가</Text>
+              <Text className="text-xs font-bold text-brand-900">1실측 불가</Text>
             </Pressable>
           </View>
           {dimensionError && (
@@ -197,7 +194,7 @@ function BathroomDimensionInput({
         inputMode="numeric"
         keyboardType="number-pad"
         onChangeText={(text) => onChangeText(sanitizeBathroomDimension(text))}
-        placeholder="숫자"
+        placeholder="ex) 1000"
         placeholderTextColor="#667085"
         value={value}
       />
