@@ -19,6 +19,7 @@ import { useAuthSession } from '@/features/auth';
 import { AddressSearchModal } from '@/features/address-search';
 import {
   ConstructionRequirementsSection,
+  areBathroomDimensionsValid,
   isFutureConstructionDate,
   useSubmitRemodelRequest,
 } from '@/features/create-remodel-request';
@@ -32,6 +33,7 @@ import type { IQuoteOption, IQuoteOptionProduct } from '@/entities/quote-option'
 
 interface IFormErrors {
   address?: string;
+  bathroomDimensions?: string;
   budget?: string;
   constructionType?: string;
   desiredConstructionDate?: string;
@@ -55,6 +57,9 @@ function CustomerRequestScreen(): React.JSX.Element {
   const [addressDetail, setAddressDetail] = useState('');
   const [budgetCode, setBudgetCode] = useState<ERemodelBudgetCode | null>(null);
   const [requiresDemolition, setRequiresDemolition] = useState<boolean | null>(null);
+  const [bathroomWidth, setBathroomWidth] = useState('');
+  const [bathroomLength, setBathroomLength] = useState('');
+  const [bathroomHeight, setBathroomHeight] = useState('');
   const [desiredConstructionDate, setDesiredConstructionDate] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -155,6 +160,13 @@ function CustomerRequestScreen(): React.JSX.Element {
     }, {});
     const nextErrors: IFormErrors = {
       address: region.trim() ? undefined : '주소를 검색해 기본 주소를 입력해 주세요.',
+      bathroomDimensions: areBathroomDimensionsValid({
+        bathroomHeight,
+        bathroomLength,
+        bathroomWidth,
+      })
+        ? undefined
+        : '가로, 세로, 높이를 모두 입력하거나 실측 불가를 선택해 주세요.',
       budget: budgetCode ? undefined : '희망 예산을 선택해 주세요.',
       constructionType:
         requiresDemolition === null ? '철거 또는 덧방 중 하나를 선택해 주세요.' : undefined,
@@ -168,6 +180,7 @@ function CustomerRequestScreen(): React.JSX.Element {
     setErrors(nextErrors);
     return (
       !nextErrors.address &&
+      !nextErrors.bathroomDimensions &&
       !nextErrors.budget &&
       !nextErrors.constructionType &&
       !nextErrors.desiredConstructionDate &&
@@ -202,6 +215,9 @@ function CustomerRequestScreen(): React.JSX.Element {
     try {
       await submitMutation.mutateAsync({
         customerId: user.id,
+        bathroomHeight: Number(bathroomHeight),
+        bathroomLength: Number(bathroomLength),
+        bathroomWidth: Number(bathroomWidth),
         region: region.trim(),
         addressDetail: addressDetail.trim(),
         budgetCode,
@@ -221,6 +237,9 @@ function CustomerRequestScreen(): React.JSX.Element {
       setRegion('');
       setAddressDetail('');
       setBudgetCode(null);
+      setBathroomWidth('');
+      setBathroomLength('');
+      setBathroomHeight('');
       setRequiresDemolition(null);
       setDesiredConstructionDate(null);
       setNotes('');
@@ -323,11 +342,33 @@ function CustomerRequestScreen(): React.JSX.Element {
         </Section>
 
         <ConstructionRequirementsSection
+          bathroomHeight={bathroomHeight}
+          bathroomLength={bathroomLength}
+          bathroomWidth={bathroomWidth}
           dateError={errors.desiredConstructionDate}
+          dimensionError={errors.bathroomDimensions}
           desiredConstructionDate={desiredConstructionDate}
+          onBathroomHeightChange={(value) => {
+            setBathroomHeight(value);
+            setErrors((current) => ({ ...current, bathroomDimensions: undefined }));
+          }}
+          onBathroomLengthChange={(value) => {
+            setBathroomLength(value);
+            setErrors((current) => ({ ...current, bathroomDimensions: undefined }));
+          }}
+          onBathroomWidthChange={(value) => {
+            setBathroomWidth(value);
+            setErrors((current) => ({ ...current, bathroomDimensions: undefined }));
+          }}
           onDateChange={(date) => {
             setDesiredConstructionDate(date);
             setErrors((current) => ({ ...current, desiredConstructionDate: undefined }));
+          }}
+          onMeasurementUnavailable={() => {
+            setBathroomWidth('0');
+            setBathroomLength('0');
+            setBathroomHeight('0');
+            setErrors((current) => ({ ...current, bathroomDimensions: undefined }));
           }}
           onRequiresDemolitionChange={(nextRequiresDemolition) => {
             setRequiresDemolition(nextRequiresDemolition);

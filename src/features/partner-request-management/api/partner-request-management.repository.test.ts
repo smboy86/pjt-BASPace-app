@@ -28,11 +28,20 @@ const remodelRequestTypes = vi.hoisted(() => ({
     CANCELLED: 'cancelled',
   },
   mapRemodelRequest: (
-    row: { id: string; status: string },
+    row: {
+      bathroom_height: number;
+      bathroom_length: number;
+      bathroom_width: number;
+      id: string;
+      status: string;
+    },
     selections: readonly { itemName?: string; selectedOptionIds: string[] }[],
   ) => ({
     id: row.id,
     status: row.status,
+    bathroomHeight: row.bathroom_height,
+    bathroomLength: row.bathroom_length,
+    bathroomWidth: row.bathroom_width,
     selections,
   }),
   mapRemodelRequestStatus: (status: string) => status,
@@ -77,7 +86,10 @@ const DETAIL_ROW = {
   adjusted_estimate_amount: null,
   adjusted_estimate_reason: null,
   adjustment_confirmed_at: null,
+  bathroom_height: 2200,
+  bathroom_length: 1800,
   bathroom_type: '공용 욕실',
+  bathroom_width: 1600,
   customer_id: 'customer-1',
   demolition_cost_snapshot_manwon: 150,
   estimated_size: null,
@@ -137,6 +149,9 @@ describe('partner request management repository', () => {
         assignmentStatus: partnerTypes.ERequestPartnerStatus.DECLINED,
         customerName: '김고객',
         request: expect.objectContaining({
+          bathroomHeight: 2200,
+          bathroomLength: 1800,
+          bathroomWidth: 1600,
           id: 'request-1',
           status: remodelRequestTypes.ERemodelRequestStatus.CANCELLED,
           selections: [

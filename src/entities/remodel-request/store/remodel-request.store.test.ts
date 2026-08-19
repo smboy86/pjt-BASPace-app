@@ -9,7 +9,10 @@ import { useRemodelRequestStore } from './remodel-request.store';
 
 const createRequest = (input: Partial<IRemodelRequest> = {}): IRemodelRequest => ({
   addressDetail: '101동 101호',
+  bathroomHeight: 2200,
+  bathroomLength: 1800,
   bathroomType: '공용 욕실',
+  bathroomWidth: 1600,
   budgetRange: ERemodelBudgetCode.CONSULTATION,
   createdAt: '2026-07-28T00:00:00.000Z',
   customerId: 'customer-1',

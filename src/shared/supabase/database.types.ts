@@ -713,7 +713,10 @@ export type Database = {
           adjusted_estimate_amount: number | null;
           adjusted_estimate_reason: string | null;
           adjustment_confirmed_at: string | null;
+          bathroom_height: number;
+          bathroom_length: number;
           bathroom_type: string;
+          bathroom_width: number;
           budget_range: string;
           created_at: string;
           customer_id: string;
@@ -740,7 +743,10 @@ export type Database = {
           adjusted_estimate_amount?: number | null;
           adjusted_estimate_reason?: string | null;
           adjustment_confirmed_at?: string | null;
+          bathroom_height?: number;
+          bathroom_length?: number;
           bathroom_type: string;
+          bathroom_width?: number;
           budget_range: string;
           created_at?: string;
           customer_id: string;
@@ -767,7 +773,10 @@ export type Database = {
           adjusted_estimate_amount?: number | null;
           adjusted_estimate_reason?: string | null;
           adjustment_confirmed_at?: string | null;
+          bathroom_height?: number;
+          bathroom_length?: number;
           bathroom_type?: string;
+          bathroom_width?: number;
           budget_range?: string;
           created_at?: string;
           customer_id?: string;
@@ -1030,7 +1039,10 @@ export type Database = {
           adjustment_confirmed_at: string;
           assignment_id: string;
           assignment_status: Database['public']['Enums']['assignment_status'];
+          bathroom_height: number;
+          bathroom_length: number;
           bathroom_type: string;
+          bathroom_width: number;
           budget_range: string;
           created_at: string;
           customer_id: string;
@@ -1080,6 +1092,9 @@ export type Database = {
       submit_customer_remodel_request: {
         Args: {
           target_address_detail: string;
+          target_bathroom_height: number;
+          target_bathroom_length: number;
+          target_bathroom_width: number;
           target_budget_range: string;
           target_desired_construction_date: string;
           target_notes: string;

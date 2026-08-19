@@ -74,6 +74,9 @@ export interface IRemodelRequest {
   addressDetail: string;
   housingType: string;
   bathroomType: string;
+  bathroomWidth: number;
+  bathroomLength: number;
+  bathroomHeight: number;
   estimatedSize?: string;
   hasBathtub?: boolean;
   requiresDemolition?: boolean;

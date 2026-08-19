@@ -1,23 +1,39 @@
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import { ConstructionDatePickerModal } from '@/shared/ui';
-import { getMinimumConstructionDate } from '../model';
+import { getMinimumConstructionDate, sanitizeBathroomDimension } from '../model';
 
 interface IConstructionRequirementsSectionProps {
+  bathroomHeight: string;
+  bathroomLength: string;
+  bathroomWidth: string;
   dateError?: string;
+  dimensionError?: string;
   desiredConstructionDate: string | null;
+  onBathroomHeightChange: (value: string) => void;
+  onBathroomLengthChange: (value: string) => void;
+  onBathroomWidthChange: (value: string) => void;
   onDateChange: (date: string) => void;
+  onMeasurementUnavailable: () => void;
   onRequiresDemolitionChange: (requiresDemolition: boolean) => void;
   requiresDemolition: boolean | null;
   typeError?: string;
 }
 
 export function ConstructionRequirementsSection({
+  bathroomHeight,
+  bathroomLength,
+  bathroomWidth,
   dateError,
+  dimensionError,
   desiredConstructionDate,
+  onBathroomHeightChange,
+  onBathroomLengthChange,
+  onBathroomWidthChange,
   onDateChange,
+  onMeasurementUnavailable,
   onRequiresDemolitionChange,
   requiresDemolition,
   typeError,
@@ -35,13 +51,56 @@ export function ConstructionRequirementsSection({
   return (
     <View className="mt-7">
       <Text className="text-lg font-bold text-ink-900">공사 조건</Text>
-      {(typeError || dateError) && (
+      {(dimensionError || typeError || dateError) && (
         <Text accessibilityRole="alert" className="mt-1 text-sm font-semibold text-red-600">
           필수 공사 조건을 확인해 주세요.
         </Text>
       )}
 
       <View className="mt-3 gap-5 rounded-3xl border border-stone-100 bg-white p-4">
+        <View>
+          <Text className="text-sm font-semibold text-ink-900">욕실 크기</Text>
+          <Text className="mt-1 text-xs leading-5 text-ink-600">
+            가로, 세로, 높이를 각각 입력해 주세요.
+          </Text>
+          <View className="mt-3 flex-row items-end gap-1.5">
+            <BathroomDimensionInput
+              error={Boolean(dimensionError)}
+              label="가로"
+              onChangeText={onBathroomWidthChange}
+              value={bathroomWidth}
+            />
+            <Text className="mb-3 text-sm font-semibold text-ink-500">x</Text>
+            <BathroomDimensionInput
+              error={Boolean(dimensionError)}
+              label="세로"
+              onChangeText={onBathroomLengthChange}
+              value={bathroomLength}
+            />
+            <Text className="mb-3 text-sm font-semibold text-ink-500">x</Text>
+            <BathroomDimensionInput
+              error={Boolean(dimensionError)}
+              label="높이"
+              onChangeText={onBathroomHeightChange}
+              value={bathroomHeight}
+            />
+            <Pressable
+              accessibilityLabel="욕실 크기 실측 불가"
+              className="min-h-12 shrink-0 items-center justify-center rounded-xl border border-brand-700 bg-brand-100 px-2 active:opacity-80"
+              onPress={onMeasurementUnavailable}
+            >
+              <Text className="text-xs font-bold text-brand-900">실측 불가</Text>
+            </Pressable>
+          </View>
+          {dimensionError && (
+            <Text accessibilityRole="alert" className="mt-2 text-xs font-semibold text-red-600">
+              {dimensionError}
+            </Text>
+          )}
+        </View>
+
+        <View className="h-px bg-stone-100" />
+
         <View>
           <Text className="text-sm font-semibold text-ink-900">시공 타입</Text>
           <Text className="mt-1 text-xs leading-5 text-ink-600">
@@ -111,6 +170,36 @@ export function ConstructionRequirementsSection({
         }}
         selectedDate={desiredConstructionDate}
         visible={isCalendarVisible}
+      />
+    </View>
+  );
+}
+
+function BathroomDimensionInput({
+  error,
+  label,
+  onChangeText,
+  value,
+}: {
+  error: boolean;
+  label: string;
+  onChangeText: (value: string) => void;
+  value: string;
+}): React.JSX.Element {
+  return (
+    <View className="min-w-0 flex-1">
+      <Text className="mb-1 text-xs font-semibold text-ink-600">{label}</Text>
+      <TextInput
+        accessibilityLabel={`욕실 ${label}`}
+        className={`min-h-12 rounded-xl border bg-stone-50 px-2 text-center text-sm font-semibold text-ink-900 ${
+          error ? 'border-red-500' : 'border-stone-100'
+        }`}
+        inputMode="decimal"
+        keyboardType="decimal-pad"
+        onChangeText={(text) => onChangeText(sanitizeBathroomDimension(text))}
+        placeholder="숫자"
+        placeholderTextColor="#667085"
+        value={value}
       />
     </View>
   );

@@ -25,6 +25,9 @@ export interface ISelectedQuoteProductSubmission {
 
 export interface ISubmitRemodelRequestInput {
   addressDetail: string;
+  bathroomHeight: number;
+  bathroomLength: number;
+  bathroomWidth: number;
   budgetCode: ERemodelBudgetCode;
   customerId: string;
   desiredConstructionDate: string;

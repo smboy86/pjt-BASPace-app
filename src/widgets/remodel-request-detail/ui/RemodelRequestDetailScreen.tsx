@@ -523,7 +523,18 @@ export function RemodelRequestDetailScreen({
 
         <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
           <Text className="text-sm font-semibold text-brand-700">시공 타입</Text>
-          <View className="mt-3 flex-row items-center justify-between gap-4">
+          <View className="mt-3">
+            <Text className="text-xs font-semibold text-ink-600">욕실 크기</Text>
+            <View className="mt-2 flex-row items-end gap-2">
+              <BathroomDimensionValue label="가로" value={request.bathroomWidth} />
+              <Text className="mb-3 text-sm font-semibold text-ink-500">x</Text>
+              <BathroomDimensionValue label="세로" value={request.bathroomLength} />
+              <Text className="mb-3 text-sm font-semibold text-ink-500">x</Text>
+              <BathroomDimensionValue label="높이" value={request.bathroomHeight} />
+            </View>
+          </View>
+          <View className="my-4 h-px bg-stone-100" />
+          <View className="flex-row items-center justify-between gap-4">
             <Text className="text-xl font-bold text-ink-900">
               {request.requiresDemolition === true
                 ? '철거'
@@ -1114,6 +1125,23 @@ export function RemodelRequestDetailScreen({
         onSelect={setSelectedPartner}
       />
     </SafeAreaView>
+  );
+}
+
+function BathroomDimensionValue({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}): React.JSX.Element {
+  return (
+    <View className="min-w-0 flex-1">
+      <Text className="mb-1 text-xs font-semibold text-ink-600">{label}</Text>
+      <View className="min-h-12 items-center justify-center rounded-xl border border-stone-100 bg-stone-50 px-2">
+        <Text className="text-sm font-bold text-ink-900">{value}</Text>
+      </View>
+    </View>
   );
 }
 
