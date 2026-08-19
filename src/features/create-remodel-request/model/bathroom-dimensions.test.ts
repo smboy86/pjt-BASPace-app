@@ -10,13 +10,6 @@ describe('bathroom dimensions', () => {
         bathroomWidth: '1600',
       }),
     ).toBe(true);
-    expect(
-      areBathroomDimensionsValid({
-        bathroomHeight: '2.4',
-        bathroomLength: '1.8',
-        bathroomWidth: '1.6',
-      }),
-    ).toBe(true);
   });
 
   it('accepts only the all-zero unavailable measurement value', () => {
@@ -51,9 +44,17 @@ describe('bathroom dimensions', () => {
         bathroomWidth: '1600',
       }),
     ).toBe(false);
+    expect(
+      areBathroomDimensionsValid({
+        bathroomHeight: '2200.5',
+        bathroomLength: '1800',
+        bathroomWidth: '1600',
+      }),
+    ).toBe(false);
   });
 
-  it('normalizes dimension input to one decimal separator', () => {
-    expect(sanitizeBathroomDimension('12a.3.4')).toBe('12.34');
+  it('keeps only integer digits in dimension input', () => {
+    expect(sanitizeBathroomDimension('12a.3.4')).toBe('1234');
+    expect(sanitizeBathroomDimension('가로 1,600mm')).toBe('1600');
   });
 });

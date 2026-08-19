@@ -524,7 +524,7 @@ export function RemodelRequestDetailScreen({
         <View className="mt-6 rounded-3xl border border-stone-100 bg-white p-5">
           <Text className="text-sm font-semibold text-brand-700">시공 타입</Text>
           <View className="mt-3">
-            <Text className="text-xs font-semibold text-ink-600">욕실 크기</Text>
+            <Text className="text-xs font-semibold text-ink-600">욕실 크기 (mm)</Text>
             <View className="mt-2 flex-row items-end gap-2">
               <BathroomDimensionValue label="가로" value={request.bathroomWidth} />
               <Text className="mb-3 text-sm font-semibold text-ink-500">x</Text>

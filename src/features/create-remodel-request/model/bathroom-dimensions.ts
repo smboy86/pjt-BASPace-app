@@ -4,15 +4,10 @@ export interface IBathroomDimensionValues {
   bathroomWidth: string;
 }
 
-const BATHROOM_DIMENSION_PATTERN = /^(?:\d+|\d*\.\d+)$/;
+const BATHROOM_DIMENSION_PATTERN = /^\d+$/;
 
 export const sanitizeBathroomDimension = (value: string): string => {
-  const numericValue = value.replace(/[^\d.]/g, '');
-  const [integerPart = '', ...decimalParts] = numericValue.split('.');
-
-  if (decimalParts.length === 0) return integerPart;
-
-  return `${integerPart}.${decimalParts.join('')}`;
+  return value.replace(/\D/g, '');
 };
 
 export const areBathroomDimensionsValid = ({

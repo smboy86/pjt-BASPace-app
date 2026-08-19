@@ -61,7 +61,7 @@ export function ConstructionRequirementsSection({
         <View>
           <Text className="text-sm font-semibold text-ink-900">욕실 크기</Text>
           <Text className="mt-1 text-xs leading-5 text-ink-600">
-            가로, 세로, 높이를 각각 입력해 주세요.
+            밀리미터(mm) 단위의 숫자로 입력해 주세요.
           </Text>
           <View className="mt-3 flex-row items-end gap-1.5">
             <BathroomDimensionInput
@@ -188,14 +188,14 @@ function BathroomDimensionInput({
 }): React.JSX.Element {
   return (
     <View className="min-w-0 flex-1">
-      <Text className="mb-1 text-xs font-semibold text-ink-600">{label}</Text>
+      <Text className="mb-1 text-xs font-semibold text-ink-600">{label} (mm)</Text>
       <TextInput
-        accessibilityLabel={`욕실 ${label}`}
+        accessibilityLabel={`욕실 ${label} 밀리미터`}
         className={`min-h-12 rounded-xl border bg-stone-50 px-2 text-center text-sm font-semibold text-ink-900 ${
           error ? 'border-red-500' : 'border-stone-100'
         }`}
-        inputMode="decimal"
-        keyboardType="decimal-pad"
+        inputMode="numeric"
+        keyboardType="number-pad"
         onChangeText={(text) => onChangeText(sanitizeBathroomDimension(text))}
         placeholder="숫자"
         placeholderTextColor="#667085"
