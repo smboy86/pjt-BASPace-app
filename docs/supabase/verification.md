@@ -206,7 +206,7 @@ update public.profiles as p
 set
   role = 'admin',
   status = 'active',
-  display_name = '바스페이스 관리자'
+  display_name = '노크 관리자'
 from auth.users as u
 where p.id = u.id
   and lower(u.email) = lower('smboy86@naver.com')

@@ -43,12 +43,12 @@ export default function VerifyEmailScreen(): React.JSX.Element {
               {`로 확인 링크를 보냈습니다. 이메일 확인을 마치면 고객 계정으로 로그인할 수 있습니다.`}
             </>
           ) : (
-            '가입할 때 입력한 이메일에서 바스페이스 확인 링크를 열어 주세요.'
+            '가입할 때 입력한 이메일에서 노크 확인 링크를 열어 주세요.'
           )}
         </Text>
 
         <View className="mt-7 rounded-2xl border border-stone-100 bg-white p-5">
-          <FlowRow number="1" text="이메일에서 바스페이스 확인 링크 열기" />
+          <FlowRow number="1" text="이메일에서 노크 확인 링크 열기" />
           <FlowRow number="2" text="이메일 확인 완료하기" />
           <FlowRow number="3" text="앱으로 돌아와 로그인하기" isLast />
         </View>

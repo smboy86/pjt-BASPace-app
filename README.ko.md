@@ -1,8 +1,8 @@
-# 바스페이스
+# 노크
 
 [English](./README.md)
 
-바스페이스는 욕실 리모델링 견적 협업을 위한 React Native·Expo 앱입니다. 고객이 요청을 접수하면 관리자가 참여 업체를 배정하고, 고객과 업체가 견적 버전과 코멘트를 주고받은 뒤 최종 컨펌합니다.
+노크는 욕실 리모델링 견적 협업을 위한 React Native·Expo 앱입니다. 고객이 요청을 접수하면 관리자가 참여 업체를 배정하고, 고객과 업체가 견적 버전과 코멘트를 주고받은 뒤 최종 컨펌합니다.
 
 ## 기술 스택
 
@@ -19,27 +19,27 @@
 
 하네스 문서와 실행 산출물은 다음 네 위치로 구분합니다.
 
-| 경로 | 역할 |
-| --- | --- |
-| `AGENTS.md` | 프로젝트 공통 규칙과 품질 게이트 |
-| `.codex/agents/` | 역할별 Codex 에이전트 프로필 |
-| `.agents/skills/` | 반복 가능한 작업 프로세스 |
-| `_workspace/` | 단계 간 인수인계 산출물과 현재 진행 상태 |
+| 경로              | 역할                                     |
+| ----------------- | ---------------------------------------- |
+| `AGENTS.md`       | 프로젝트 공통 규칙과 품질 게이트         |
+| `.codex/agents/`  | 역할별 Codex 에이전트 프로필             |
+| `.agents/skills/` | 반복 가능한 작업 프로세스                |
+| `_workspace/`     | 단계 간 인수인계 산출물과 현재 진행 상태 |
 
 ### 에이전트 역할
 
-| 역할 | 책임 |
-| --- | --- |
-| `idea-researcher` | 시장·경쟁 서비스 조사 |
-| `product-planner` | PRD, 유저 스토리, KPI, 모듈 맵 |
-| `spec-planner` | 기능별 task 분해와 진행 추적 |
-| `design-architect` | 디자인 시스템과 화면 설계 |
-| `feature-builder` | FSD 모듈 구성 |
-| `api-integrator` | Supabase 데이터, 상태, 보안 저장소, 평점 정책 |
-| `ui-developer` | Expo Router 화면과 NativeWind UI |
-| `qa-reviewer` | 타입·린트·FSD·보안·정책 검증 |
-| `app-inspector` | 기능·UX·접근성·런타임 검수 |
-| `loop-engineer` | 출시 후 한 슬라이스 단위 개선 |
+| 역할               | 책임                                          |
+| ------------------ | --------------------------------------------- |
+| `idea-researcher`  | 시장·경쟁 서비스 조사                         |
+| `product-planner`  | PRD, 유저 스토리, KPI, 모듈 맵                |
+| `spec-planner`     | 기능별 task 분해와 진행 추적                  |
+| `design-architect` | 디자인 시스템과 화면 설계                     |
+| `feature-builder`  | FSD 모듈 구성                                 |
+| `api-integrator`   | Supabase 데이터, 상태, 보안 저장소, 평점 정책 |
+| `ui-developer`     | Expo Router 화면과 NativeWind UI              |
+| `qa-reviewer`      | 타입·린트·FSD·보안·정책 검증                  |
+| `app-inspector`    | 기능·UX·접근성·런타임 검수                    |
+| `loop-engineer`    | 출시 후 한 슬라이스 단위 개선                 |
 
 ### 스킬
 

@@ -164,7 +164,7 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
               error={errors.companyName?.message}
               label="업체명 *"
               name="companyName"
-              placeholder="예: 바스페이스 리모델링"
+              placeholder="예: 노크 리모델링"
             />
             <FormField
               control={control}

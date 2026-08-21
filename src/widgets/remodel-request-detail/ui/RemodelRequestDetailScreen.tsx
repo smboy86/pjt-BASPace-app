@@ -651,7 +651,7 @@ export function RemodelRequestDetailScreen({
                       : '고객'
                     : item.assignmentId
                       ? '업체 담당자'
-                      : '바스페이스 운영팀'}
+                      : '노크 운영팀'}
                 </Text>
                 <Text className="mt-1 text-sm leading-5 text-ink-900">{item.body}</Text>
               </View>

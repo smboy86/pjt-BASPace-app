@@ -78,7 +78,7 @@ export default function PartnerDashboardScreen(): React.JSX.Element {
           ) : (
             <View accessibilityRole="alert" className="mt-4">
               <Text className="text-sm leading-6 text-ink-600">
-                연결된 업체가 없습니다. 바스페이스 관리자에게 업체 연결을 요청해 주세요.
+                연결된 업체가 없습니다. 노크 관리자에게 업체 연결을 요청해 주세요.
               </Text>
             </View>
           )}

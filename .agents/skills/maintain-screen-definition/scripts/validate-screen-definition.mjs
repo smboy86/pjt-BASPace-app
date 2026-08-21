@@ -13,7 +13,7 @@ if (!existsSync(documentPath)) {
 
 const document = readFileSync(documentPath, 'utf8');
 const requiredHeadings = [
-  '# 바스페이스 통합 기획 및 화면정의서',
+  '# 노크 통합 기획 및 화면정의서',
   '## 4. 공통 화면 정의',
   '## 5. 고객 화면 정의',
   '## 6. 업체 담당자 화면 정의',

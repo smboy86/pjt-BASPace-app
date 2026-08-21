@@ -164,7 +164,7 @@ export default function LoginScreen(): React.JSX.Element {
               다시 만나서 반가워요.
             </Text>
             <Text className="mt-3 text-base leading-6 text-ink-600">
-              바스페이스 계정으로 로그인하고{`\n`}역할에 맞는 업무를 이어가세요.
+              노크 계정으로 로그인하고{`\n`}역할에 맞는 업무를 이어가세요.
             </Text>
           </View>
 

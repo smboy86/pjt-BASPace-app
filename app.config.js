@@ -10,7 +10,7 @@ module.exports = ({ config }) => {
 
   return {
     ...config,
-    name: '바스페이스',
+    name: '노크',
     slug: 'baspace',
     owner: 'smboy86',
     version: APP_VERSION,
@@ -71,7 +71,7 @@ module.exports = ({ config }) => {
           },
         },
       ],
-      ['./plugins/withLocalizedAppName', { ko: '바스페이스' }],
+      ['./plugins/withLocalizedAppName', { ko: '노크' }],
     ],
     experiments: { typedRoutes: true, reactCompiler: false },
     extra: {

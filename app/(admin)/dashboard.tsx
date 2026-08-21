@@ -78,7 +78,7 @@ export default function AdminDashboardScreen(): React.JSX.Element {
           </Text>
           <Text className="mt-1 text-sm text-brand-100">{user?.email ?? ''}</Text>
           <Text className="mt-5 text-sm leading-6 text-brand-100">
-            바스페이스의 견적 요청, 참여 업체와 견적 옵션을 관리합니다.
+            노크의 견적 요청, 참여 업체와 견적 옵션을 관리합니다.
           </Text>
         </View>
 

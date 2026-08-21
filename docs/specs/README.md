@@ -1,14 +1,14 @@
-# 바스페이스 구현 현황
+# 노크 구현 현황
 
 > 역할별 화면 기능과 현재 구현 수준은 `docs/screen-definition.md`를 정본으로 사용한다.
 > 이 문서는 feature task 진행률 대시보드로만 관리한다.
 
-| # | Feature | MVP | Status |
-|---|---|---|---|
-| 01 | 역할 세션 및 네비게이션 | 4/5 | 🟡 customer/admin auth + role shell |
-| 02 | 욕실 요청 및 제품 선택 | 0/8 | 🔴 not started |
-| 03 | 견적 협업 | 0/7 | 🔴 not started |
-| 04 | 업체 매칭 및 카탈로그 관리 | 2/6 | 🟡 UI prototype |
+| #   | Feature                    | MVP | Status                              |
+| --- | -------------------------- | --- | ----------------------------------- |
+| 01  | 역할 세션 및 네비게이션    | 4/5 | 🟡 customer/admin auth + role shell |
+| 02  | 욕실 요청 및 제품 선택     | 0/8 | 🔴 not started                      |
+| 03  | 견적 협업                  | 0/7 | 🔴 not started                      |
+| 04  | 업체 매칭 및 카탈로그 관리 | 2/6 | 🟡 UI prototype                     |
 
 ## 화면 우선 구현 원칙
 
