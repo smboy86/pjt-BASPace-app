@@ -2,6 +2,7 @@ import {
   mapRemodelRequest,
   mapRemodelRequestScheduleChange,
   mapSelectionSnapshot,
+  resolveRequestPhotos,
   type IRemodelRequest,
   type IRemodelRequestScheduleChange,
   type ISelectionSnapshot,
@@ -25,7 +26,7 @@ export const fetchCustomerRemodelRequests = async (
   if (requestRows.length === 0) return [];
 
   const requestIds = requestRows.map((request) => request.id);
-  const [selectionsResult, scheduleChangesResult] = await Promise.all([
+  const [selectionsResult, scheduleChangesResult, photosResult] = await Promise.all([
     supabase
       .from('selection_snapshots')
       .select('*')
@@ -38,18 +39,44 @@ export const fetchCustomerRemodelRequests = async (
       .in('request_id', requestIds)
       .order('changed_at', { ascending: false })
       .order('id', { ascending: false }),
+    supabase
+      .from('request_photos')
+      .select('*')
+      .in('request_id', requestIds)
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true }),
   ]);
 
   if (selectionsResult.error) throw selectionsResult.error;
   if (scheduleChangesResult.error) throw scheduleChangesResult.error;
+  if (photosResult.error) throw photosResult.error;
 
   const selectionsByRequestId = new Map<string, ISelectionSnapshot[]>();
+  const photoRowsByRequestId = new Map<
+    string,
+    (typeof photosResult.data)[number][]
+  >();
 
   selectionsResult.data.forEach((selectionRow) => {
     const selections = selectionsByRequestId.get(selectionRow.request_id) ?? [];
     selections.push(mapSelectionSnapshot(selectionRow));
     selectionsByRequestId.set(selectionRow.request_id, selections);
   });
+
+  photosResult.data.forEach((photoRow) => {
+    const rows = photoRowsByRequestId.get(photoRow.request_id) ?? [];
+    rows.push(photoRow);
+    photoRowsByRequestId.set(photoRow.request_id, rows);
+  });
+
+  const photosByRequestId = new Map(
+    await Promise.all(
+      requestIds.map(async (requestId) => [
+        requestId,
+        await resolveRequestPhotos(photoRowsByRequestId.get(requestId) ?? []),
+      ] as const),
+    ),
+  );
 
   const latestScheduleChangeByRequestId = new Map<string, IRemodelRequestScheduleChange>();
   const customerDesiredScheduleByRequestId = new Map<string, string>();
@@ -72,6 +99,7 @@ export const fetchCustomerRemodelRequests = async (
       selectionsByRequestId.get(requestRow.id) ?? [],
       latestScheduleChangeByRequestId.get(requestRow.id),
       customerDesiredScheduleByRequestId.get(requestRow.id) ?? requestRow.desired_schedule,
+      photosByRequestId.get(requestRow.id) ?? [],
     ),
   );
 };

@@ -1,5 +1,5 @@
 import type { ImagePickerAsset } from 'expo-image-picker';
-import type { EQuoteOptionFormType } from '@/entities/quote-option';
+import type { EQuoteOptionFormType, TQuoteOptionTileSize } from '@/entities/quote-option';
 
 export type TQuoteOptionEditableProductImage =
   | {
@@ -21,6 +21,7 @@ export interface IQuoteOptionEditableProduct {
   name: string;
   price: number;
   displayOrder: number;
+  tileSize?: TQuoteOptionTileSize;
   createdAt: string;
   image: TQuoteOptionEditableProductImage | null;
 }

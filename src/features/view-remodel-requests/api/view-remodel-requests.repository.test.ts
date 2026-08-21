@@ -67,12 +67,13 @@ const remodelRequestTypes = vi.hoisted(() => {
       selections: unknown[],
       latestScheduleChange?: unknown,
       customerDesiredSchedule?: string,
+      photos: unknown[] = [],
     ) => ({
       budgetRange: row.budget_range,
       customerId: row.customer_id,
       customerDesiredSchedule,
       id: row.id,
-      photos: [],
+      photos,
       selections,
       latestScheduleChange,
       status: row.status,
@@ -92,6 +93,7 @@ const remodelRequestTypes = vi.hoisted(() => {
       previousSchedule: row.previous_schedule,
       requestId: row.request_id,
     }),
+    resolveRequestPhotos: async (rows: unknown[]) => rows,
   };
 });
 
@@ -207,6 +209,18 @@ const configureQueries = ({
       };
     }
 
+    if (table === 'request_photos') {
+      return {
+        select: () => ({
+          in: () => ({
+            order: () => ({
+              order: () => Promise.resolve({ data: [], error: null }),
+            }),
+          }),
+        }),
+      };
+    }
+
     throw new Error(`Unexpected table: ${table}`);
   });
 };
@@ -243,6 +257,7 @@ describe('fetchCustomerRemodelRequests', () => {
     expect(mocks.from).toHaveBeenNthCalledWith(1, 'remodel_requests');
     expect(mocks.from).toHaveBeenNthCalledWith(2, 'selection_snapshots');
     expect(mocks.from).toHaveBeenNthCalledWith(3, 'remodel_request_schedule_changes');
+    expect(mocks.from).toHaveBeenNthCalledWith(4, 'request_photos');
   });
 
   it('returns an empty list without querying snapshots when the customer has no requests', async () => {

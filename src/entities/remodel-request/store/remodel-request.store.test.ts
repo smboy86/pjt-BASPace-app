@@ -38,13 +38,21 @@ describe('useRemodelRequestStore hydration', () => {
     useRemodelRequestStore.setState({ requests: [] });
   });
 
-  it('keeps local-only photos while replacing request fields with server data', () => {
+  it('replaces local photos with the latest server photo metadata', () => {
     const localPhoto = {
       category: '욕실 사진',
       createdAt: '2026-07-28T00:00:00.000Z',
       id: 'local-photo-1',
       localUri: 'file:///bathroom.jpg',
       sortOrder: 0,
+    };
+    const serverPhoto = {
+      category: 'bathroom',
+      createdAt: '2026-08-21T00:00:00.000Z',
+      displayUri: 'https://example.com/signed-bathroom.jpg',
+      id: 'server-photo-1',
+      sortOrder: 0,
+      storagePath: 'customer-1/bathroom.jpg',
     };
 
     useRemodelRequestStore.setState({
@@ -53,12 +61,12 @@ describe('useRemodelRequestStore hydration', () => {
 
     useRemodelRequestStore
       .getState()
-      .hydrateRequests([createRequest({ notes: '서버 요청', photos: [] })]);
+      .hydrateRequests([createRequest({ notes: '서버 요청', photos: [serverPhoto] })]);
 
     expect(useRemodelRequestStore.getState().requests).toEqual([
       expect.objectContaining({
         notes: '서버 요청',
-        photos: [localPhoto],
+        photos: [serverPhoto],
       }),
     ]);
   });

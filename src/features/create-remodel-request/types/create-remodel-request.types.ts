@@ -4,6 +4,7 @@ import type {
   TCreateRemodelRequestInput,
   TUpdateRemodelRequestInput,
 } from '@entities/remodel-request';
+import type { TQuoteOptionTileSize } from '@/entities/quote-option';
 
 export type TRemodelRequestFormValues = TCreateRemodelRequestInput;
 
@@ -21,6 +22,7 @@ export interface ISelectedQuoteProductSubmission {
   productId: string;
   productName: string;
   price: number;
+  tileSize?: TQuoteOptionTileSize;
 }
 
 export interface ISubmitRemodelRequestInput {

@@ -21,6 +21,7 @@ const createSignedProduct = async (
       price: product.price,
       displayOrder: product.display_order,
       storagePath: '',
+      tileSize: product.tile_size ?? undefined,
       url: '',
       createdAt: product.created_at,
     };
@@ -38,6 +39,7 @@ const createSignedProduct = async (
     price: product.price,
     displayOrder: product.display_order,
     storagePath: product.image_path,
+    tileSize: product.tile_size ?? undefined,
     url: data.signedUrl,
     createdAt: product.created_at,
   };

@@ -40,7 +40,11 @@ export const getRemodelBudgetLabel = (code: ERemodelBudgetCode): string =>
 
 export interface IRequestPhoto {
   id: string;
-  localUri: string;
+  displayUri?: string;
+  localUri?: string;
+  storagePath?: string;
+  mimeType?: string;
+  sizeBytes?: number;
   category: string;
   sortOrder: number;
   createdAt: string;
@@ -53,6 +57,7 @@ export interface ISelectionSnapshot {
   itemName?: string;
   selectedOptionIds: string[];
   selectedOptionNames: string[];
+  tileSize?: string;
   basePriceSnapshot?: number;
   decisionStatus: ESelectionDecision;
 }

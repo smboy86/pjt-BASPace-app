@@ -2,6 +2,7 @@ import {
   mapRemodelRequest,
   mapRemodelRequestScheduleChange,
   mapSelectionSnapshot,
+  resolveRequestPhotos,
   type ISelectionSnapshot,
 } from '@/entities/remodel-request';
 import { getSupabaseClient } from '@/shared/supabase';
@@ -19,7 +20,7 @@ export const fetchRemodelRequestDetail = async (
 
   if (requestError) throw requestError;
 
-  const [selectionsResult, customerResult, scheduleChangesResult] = await Promise.all([
+  const [selectionsResult, customerResult, scheduleChangesResult, photosResult] = await Promise.all([
     supabase
       .from('selection_snapshots')
       .select('*')
@@ -33,13 +34,21 @@ export const fetchRemodelRequestDetail = async (
       .eq('request_id', requestId)
       .order('changed_at', { ascending: true })
       .order('id', { ascending: true }),
+    supabase
+      .from('request_photos')
+      .select('*')
+      .eq('request_id', requestId)
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true }),
   ]);
 
   if (selectionsResult.error) throw selectionsResult.error;
   if (customerResult.error) throw customerResult.error;
   if (scheduleChangesResult.error) throw scheduleChangesResult.error;
+  if (photosResult.error) throw photosResult.error;
 
   const selections: ISelectionSnapshot[] = selectionsResult.data.map(mapSelectionSnapshot);
+  const photos = await resolveRequestPhotos(photosResult.data);
   const firstScheduleChangeRow = scheduleChangesResult.data[0];
   const latestScheduleChangeRow = scheduleChangesResult.data.at(-1);
 
@@ -51,6 +60,7 @@ export const fetchRemodelRequestDetail = async (
         ? mapRemodelRequestScheduleChange(latestScheduleChangeRow)
         : undefined,
       firstScheduleChangeRow?.previous_schedule ?? requestRow.desired_schedule,
+      photos,
     ),
     customerName: customerResult.data.display_name,
   };

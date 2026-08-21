@@ -6,6 +6,7 @@ import {
 } from './partner-request-management.repository';
 
 const mocks = vi.hoisted(() => ({
+  from: vi.fn(),
   rpc: vi.fn(),
 }));
 
@@ -54,6 +55,7 @@ const remodelRequestTypes = vi.hoisted(() => ({
       option.productId ? [option.productId] : [],
     ),
   }),
+  resolveRequestPhotos: async () => [],
 }));
 
 vi.mock('@/entities/partner', () => partnerTypes);
@@ -61,6 +63,7 @@ vi.mock('@/entities/remodel-request', () => remodelRequestTypes);
 
 vi.mock('@/shared/supabase', () => ({
   getSupabaseClient: () => ({
+    from: mocks.from,
     rpc: mocks.rpc,
   }),
 }));
@@ -125,6 +128,15 @@ const DETAIL_ROW = {
 describe('partner request management repository', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.from.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          order: () => ({
+            order: () => Promise.resolve({ data: [], error: null }),
+          }),
+        }),
+      }),
+    });
   });
 
   it('keeps a declined assignment in the cancelled request list', async () => {

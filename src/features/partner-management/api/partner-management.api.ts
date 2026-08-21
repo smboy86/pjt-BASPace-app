@@ -9,7 +9,7 @@ import {
 } from '../types';
 
 const PARTNER_DOCUMENTS_BUCKET = 'partner-documents';
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 2_000_000;
 const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif']);
 
 type TPartnerRow = Pick<
@@ -36,7 +36,7 @@ interface ICreatePartnerFunctionResponse {
 const ERROR_MESSAGES: Record<TPartnerManagementErrorCode, string> = {
   duplicate_business_number: '이미 등록된 사업자등록번호예요.',
   email_already_registered: '이미 등록된 로그인 이메일이에요.',
-  image_too_large: '사업자등록증 이미지는 10MB 이하만 첨부할 수 있어요.',
+  image_too_large: '사업자등록증 이미지는 최적화 후 2MB 이하여야 해요.',
   invalid_email: '올바른 이메일 주소를 입력해 주세요.',
   unauthorized: '관리자 로그인 정보를 다시 확인해 주세요.',
   unsupported_image: 'JPEG, PNG, HEIC 또는 HEIF 이미지만 첨부할 수 있어요.',

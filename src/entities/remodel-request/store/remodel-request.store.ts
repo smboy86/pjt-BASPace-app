@@ -22,20 +22,7 @@ const createId = () => `request-${Date.now()}-${Math.random().toString(36).slice
 export const useRemodelRequestStore = create<IRemodelRequestState>((set, get) => ({
   requests: [],
   hydrateRequests: (requests) => {
-    set((state) => {
-      const localPhotosByRequestId = new Map(
-        state.requests
-          .filter((request) => request.photos.length > 0)
-          .map((request) => [request.id, request.photos] as const),
-      );
-
-      return {
-        requests: requests.map((request) => ({
-          ...request,
-          photos: localPhotosByRequestId.get(request.id) ?? request.photos,
-        })),
-      };
-    });
+    set({ requests });
   },
   clearRequests: () => {
     set({ requests: [] });

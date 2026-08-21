@@ -4,6 +4,8 @@ import {
   mapRemodelRequest,
   mapRemodelRequestStatus,
   mapSelectionSnapshot,
+  resolveRequestPhotos,
+  type IRequestPhoto,
   type ISelectionSnapshot,
 } from '@/entities/remodel-request';
 import { getSupabaseClient, type Database, type TJson } from '@/shared/supabase';
@@ -110,7 +112,10 @@ const mapListItem = (row: TPartnerListRow): IPartnerRemodelRequestListItem => ({
   createdAt: row.created_at,
 });
 
-const mapDetail = (row: TPartnerDetailRow): IPartnerRemodelRequestDetail => {
+const mapDetail = (
+  row: TPartnerDetailRow,
+  photos: IRequestPhoto[],
+): IPartnerRemodelRequestDetail => {
   const selectionRows = parseSelectionRows(row.selection_rows);
   const selections: ISelectionSnapshot[] = selectionRows.map(mapSelectionSnapshot);
   const requestRow: TRemodelRequestRow = {
@@ -145,7 +150,7 @@ const mapDetail = (row: TPartnerDetailRow): IPartnerRemodelRequestDetail => {
   };
 
   return {
-    request: mapRemodelRequest(requestRow, selections),
+    request: mapRemodelRequest(requestRow, selections, undefined, row.desired_schedule, photos),
     customerName: row.customer_name,
     assignmentId: row.assignment_id,
     assignmentStatus: mapAssignmentStatus(row.assignment_status),
@@ -162,7 +167,8 @@ export const fetchPartnerRemodelRequests = async (): Promise<IPartnerRemodelRequ
 export const fetchPartnerRemodelRequestDetail = async (
   requestId: string,
 ): Promise<IPartnerRemodelRequestDetail> => {
-  const { data, error } = await getSupabaseClient().rpc('get_partner_assigned_remodel_request', {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.rpc('get_partner_assigned_remodel_request', {
     target_request_id: requestId,
   });
 
@@ -173,7 +179,15 @@ export const fetchPartnerRemodelRequestDetail = async (
     throw new Error('Accessible partner remodel request was not found.');
   }
 
-  return mapDetail(row);
+  const { data: photoRows, error: photosError } = await supabase
+    .from('request_photos')
+    .select('*')
+    .eq('request_id', requestId)
+    .order('sort_order', { ascending: true })
+    .order('id', { ascending: true });
+  if (photosError) throw photosError;
+
+  return mapDetail(row, await resolveRequestPhotos(photoRows));
 };
 
 export const respondToPartnerRequest = async ({

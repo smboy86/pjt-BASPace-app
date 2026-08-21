@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ERequestPartnerStatus } from '@/entities/partner';
@@ -19,9 +20,9 @@ import {
   ERemodelRequestStatus,
   formatRemodelSchedule,
   getDemolitionCostAmount,
-  getRemodelBudgetLabel,
   getRemodelRequestBaseEstimate,
   type IRemodelRequest,
+  type IRequestPhoto,
   useRemodelRequestStore,
 } from '@/entities/remodel-request';
 import {
@@ -108,6 +109,7 @@ export function RemodelRequestDetailScreen({
   const [selectedPartner, setSelectedPartner] = useState<IAssignablePartner | null>(null);
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<IRequestPhoto | null>(null);
   const assignablePartnersQuery = useAssignablePartners(role === 'admin' && assignmentModalVisible);
   const assignPartnerMutation = useAssignRemodelRequestPartner();
 
@@ -560,7 +562,9 @@ export function RemodelRequestDetailScreen({
               request.selections.map((selection) => (
                 <View key={selection.id} className="flex-row justify-between gap-3">
                   <Text className="flex-1 text-sm text-ink-900">
-                    {selection.category}: {selection.itemName ?? '선택 안 함'}
+                    {selection.category}
+                    {selection.tileSize ? ` · ${selection.tileSize.replace('x', '×')}` : ''}:{' '}
+                    {selection.itemName ?? '선택 안 함'}
                   </Text>
                   {selection.basePriceSnapshot !== undefined ? (
                     <Text className="text-sm font-semibold text-ink-900">
@@ -571,7 +575,29 @@ export function RemodelRequestDetailScreen({
               ))
             )}
           </View>
-          <Text className="mt-4 text-xs text-ink-600">첨부 사진 {request.photos.length}장</Text>
+          <View className="mt-5 border-t border-stone-100 pt-4">
+            <View className="flex-row items-center justify-between gap-3">
+              <Text className="text-sm font-bold text-ink-900">욕실 사진</Text>
+              <Text className="text-xs font-semibold text-ink-600">{request.photos.length}장</Text>
+            </View>
+            {request.photos.length === 0 ? (
+              <View className="mt-3 items-center rounded-2xl bg-stone-50 px-4 py-6">
+                <Ionicons name="images-outline" color="#667085" size={28} />
+                <Text className="mt-2 text-sm text-ink-600">등록된 욕실 사진이 없습니다.</Text>
+              </View>
+            ) : (
+              <View className="mt-3 flex-row flex-wrap gap-2">
+                {request.photos.map((photo, index) => (
+                  <RequestPhotoThumbnail
+                    key={photo.id}
+                    index={index}
+                    photo={photo}
+                    onPress={() => setSelectedPhoto(photo)}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
         </View>
 
         <Text className="mt-8 text-lg font-bold text-ink-900">견적 버전</Text>
@@ -1119,7 +1145,173 @@ export function RemodelRequestDetailScreen({
         onRetry={() => void assignablePartnersQuery.refetch()}
         onSelect={setSelectedPartner}
       />
+      <RequestPhotoViewerModal
+        photo={selectedPhoto}
+        photoIndex={
+          selectedPhoto ? request.photos.findIndex((photo) => photo.id === selectedPhoto.id) : -1
+        }
+        totalPhotos={request.photos.length}
+        onClose={() => setSelectedPhoto(null)}
+      />
     </SafeAreaView>
+  );
+}
+
+function getRequestPhotoUri(photo: IRequestPhoto): string | undefined {
+  const displayUri =
+    'displayUri' in photo && typeof photo.displayUri === 'string' ? photo.displayUri : undefined;
+  return displayUri ?? photo.localUri;
+}
+
+function RequestPhotoThumbnail({
+  photo,
+  index,
+  onPress,
+}: {
+  photo: IRequestPhoto;
+  index: number;
+  onPress: () => void;
+}): React.JSX.Element {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const uri = getRequestPhotoUri(photo);
+  const label = `욕실 사진 ${index + 1}`;
+
+  if (!uri || hasError) {
+    return (
+      <View
+        accessibilityLabel={`${label}, 이미지를 불러올 수 없음`}
+        accessibilityRole="image"
+        className="aspect-square w-[31%] items-center justify-center rounded-xl bg-stone-100 px-2"
+      >
+        <Ionicons name="image-outline" color="#667085" size={24} />
+        <Text className="mt-1 text-center text-xs font-semibold text-ink-600">표시할 수 없음</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityHint="전체 화면으로 사진을 확인합니다."
+      accessibilityLabel={`${label} 크게 보기`}
+      accessibilityRole="button"
+      className="aspect-square w-[31%] overflow-hidden rounded-xl bg-stone-100 active:opacity-80"
+      onPress={onPress}
+    >
+      <Image
+        accessibilityLabel={label}
+        className="h-full w-full"
+        contentFit="cover"
+        source={{ uri }}
+        transition={150}
+        onError={() => {
+          setHasError(true);
+          setIsLoading(false);
+        }}
+        onLoad={() => setIsLoading(false)}
+        onLoadStart={() => {
+          setHasError(false);
+          setIsLoading(true);
+        }}
+      />
+      {isLoading ? (
+        <View className="absolute inset-0 items-center justify-center bg-stone-100">
+          <ActivityIndicator accessibilityLabel={`${label} 불러오는 중`} color="#163A63" />
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
+function RequestPhotoViewerModal({
+  photo,
+  photoIndex,
+  totalPhotos,
+  onClose,
+}: {
+  photo: IRequestPhoto | null;
+  photoIndex: number;
+  totalPhotos: number;
+  onClose: () => void;
+}): React.JSX.Element {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const uri = photo ? getRequestPhotoUri(photo) : undefined;
+  const visible = photo !== null;
+  const positionLabel = photoIndex >= 0 ? `${photoIndex + 1} / ${totalPhotos}` : '';
+
+  useEffect(() => {
+    setIsLoading(true);
+    setHasError(false);
+  }, [photo?.id, uri]);
+
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      presentationStyle="overFullScreen"
+      transparent
+      visible={visible}
+    >
+      <SafeAreaView accessibilityViewIsModal className="flex-1 bg-black" edges={['top', 'bottom']}>
+        <View className="min-h-14 flex-row items-center justify-between px-4">
+          <Text className="text-sm font-bold text-white">{positionLabel}</Text>
+          <Pressable
+            accessibilityLabel="욕실 사진 크게 보기 닫기"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:bg-white/25"
+            onPress={onClose}
+          >
+            <Ionicons name="close" color="#FFFFFF" size={26} />
+          </Pressable>
+        </View>
+
+        <View className="flex-1 items-center justify-center px-4 pb-14">
+          {!uri || hasError ? (
+            <View accessibilityRole="alert" className="items-center px-6">
+              <Ionicons name="image-outline" color="#D0D5DD" size={42} />
+              <Text className="mt-3 text-center text-base font-bold text-white">
+                사진을 불러올 수 없어요.
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-stone-100">
+                잠시 후 견적 상세를 다시 열어 주세요.
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Image
+                accessibilityLabel={`욕실 사진 ${photoIndex + 1} 원본 비율 크게 보기`}
+                className="h-full w-full"
+                contentFit="contain"
+                source={{ uri }}
+                transition={150}
+                onError={() => {
+                  setHasError(true);
+                  setIsLoading(false);
+                }}
+                onLoad={() => setIsLoading(false)}
+                onLoadStart={() => {
+                  setHasError(false);
+                  setIsLoading(true);
+                }}
+              />
+              {isLoading ? (
+                <View className="absolute inset-0 items-center justify-center bg-black">
+                  <ActivityIndicator
+                    accessibilityLabel={`욕실 사진 ${photoIndex + 1} 불러오는 중`}
+                    color="#FFFFFF"
+                    size="large"
+                  />
+                  <Text className="mt-3 text-sm font-semibold text-white">
+                    사진을 불러오고 있어요.
+                  </Text>
+                </View>
+              ) : null}
+            </>
+          )}
+        </View>
+      </SafeAreaView>
+    </Modal>
   );
 }
 

@@ -552,6 +552,7 @@ export type Database = {
           name: string;
           price: number;
           quote_option_id: string;
+          tile_size: Database['public']['Enums']['quote_option_tile_size'] | null;
           updated_at: string;
         };
         Insert: {
@@ -562,6 +563,7 @@ export type Database = {
           name: string;
           price: number;
           quote_option_id: string;
+          tile_size?: Database['public']['Enums']['quote_option_tile_size'] | null;
           updated_at?: string;
         };
         Update: {
@@ -572,6 +574,7 @@ export type Database = {
           name?: string;
           price?: number;
           quote_option_id?: string;
+          tile_size?: Database['public']['Enums']['quote_option_tile_size'] | null;
           updated_at?: string;
         };
         Relationships: [
@@ -1104,6 +1107,22 @@ export type Database = {
         };
         Returns: string;
       };
+      submit_customer_remodel_request_with_photos: {
+        Args: {
+          target_address_detail: string;
+          target_bathroom_height: number;
+          target_bathroom_length: number;
+          target_bathroom_width: number;
+          target_budget_range: string;
+          target_desired_construction_date: string;
+          target_notes: string;
+          target_photos: Json;
+          target_region: string;
+          target_requires_demolition: boolean;
+          target_selections: Json;
+        };
+        Returns: string;
+      };
       update_demolition_cost_setting: {
         Args: { target_amount_manwon: number };
         Returns: undefined;
@@ -1137,6 +1156,7 @@ export type Database = {
       partner_member_status: 'invited' | 'active' | 'inactive';
       profile_status: 'active' | 'invited' | 'suspended' | 'deleted';
       quote_option_form_type: 'simple' | 'advanced';
+      quote_option_tile_size: '300x300' | '300x600' | '600x600' | '600x1200';
       quote_status: 'draft' | 'sent' | 'final' | 'confirmed';
       remodel_request_status:
         | 'draft'
@@ -1289,6 +1309,7 @@ export const Constants = {
       partner_member_status: ['invited', 'active', 'inactive'],
       profile_status: ['active', 'invited', 'suspended', 'deleted'],
       quote_option_form_type: ['simple', 'advanced'],
+      quote_option_tile_size: ['300x300', '300x600', '600x600', '600x1200'],
       quote_status: ['draft', 'sent', 'final', 'confirmed'],
       remodel_request_status: [
         'draft',

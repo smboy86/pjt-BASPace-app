@@ -61,6 +61,7 @@ const createInput = (assets: ImagePickerAsset[]) => ({
     key: `new-${index}`,
     name: `제품 ${index + 1}`,
     price: 0,
+    tileSize: '300x300' as const,
     displayOrder: 2,
     createdAt: `2026-07-27T00:00:0${index}.000Z`,
     image: { key: `new-image-${index}`, kind: 'new' as const, asset, uri: asset.uri },
@@ -198,10 +199,24 @@ describe('updateQuoteOption image compensation', () => {
       'update_quote_option_master',
       expect.objectContaining({
         target_products: [
-          expect.objectContaining({ display_order: 2 }),
-          expect.objectContaining({ display_order: 2 }),
+          expect.objectContaining({ display_order: 2, tile_size: '300x300' }),
+          expect.objectContaining({ display_order: 2, tile_size: '300x300' }),
         ],
       }),
     );
+  });
+
+  it('rejects an advanced product without a tile size before uploading its image', async () => {
+    const input = createInput([createAsset('missing-size')]);
+
+    await expect(
+      updateQuoteOption({
+        ...input,
+        products: input.products.map(({ tileSize: _tileSize, ...product }) => product),
+      }),
+    ).rejects.toMatchObject({ code: 'validation_error' });
+
+    expect(mocks.upload).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });

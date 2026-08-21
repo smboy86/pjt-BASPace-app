@@ -9,5 +9,6 @@ export {
   mapRemodelRequest,
   mapRemodelRequestScheduleChange,
   mapRemodelRequestStatus,
+  mapRequestPhoto,
   mapSelectionSnapshot,
 } from './remodel-request.mapper';

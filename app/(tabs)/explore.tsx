@@ -23,13 +23,25 @@ import {
   isFutureConstructionDate,
   useSubmitRemodelRequest,
 } from '@/features/create-remodel-request';
-import { ProductImagePreviewModal, useCustomerQuoteOptions } from '@/features/select-quote-options';
+import {
+  getAvailableTileSizes,
+  getProductsForTileSize,
+  ProductImagePreviewModal,
+  useCustomerQuoteOptions,
+} from '@/features/select-quote-options';
 import {
   ERemodelBudgetCode,
   REMODEL_BUDGET_OPTIONS,
   type IRequestPhoto,
 } from '@/entities/remodel-request';
-import type { IQuoteOption, IQuoteOptionProduct } from '@/entities/quote-option';
+import {
+  EQuoteOptionFormType,
+  QUOTE_OPTION_TILE_SIZES,
+  type IQuoteOption,
+  type IQuoteOptionProduct,
+  type TQuoteOptionTileSize,
+} from '@/entities/quote-option';
+import { compressImageAsset } from '@/shared/image-processing';
 
 interface IFormErrors {
   address?: string;
@@ -63,10 +75,14 @@ function CustomerRequestScreen(): React.JSX.Element {
   const [desiredConstructionDate, setDesiredConstructionDate] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [checkedOptionIds, setCheckedOptionIds] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<Record<string, string | undefined>>(
     {},
   );
+  const [selectedTileSizes, setSelectedTileSizes] = useState<
+    Record<string, TQuoteOptionTileSize | undefined>
+  >({});
   const [errors, setErrors] = useState<IFormErrors>({});
   const [isAddressSearchVisible, setIsAddressSearchVisible] = useState(false);
   const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
@@ -77,10 +93,15 @@ function CustomerRequestScreen(): React.JSX.Element {
     () =>
       quoteOptions.flatMap((option) => {
         if (!checkedOptionIds.includes(option.id)) return [];
-        const product = option.products.find((item) => item.id === selectedProductIds[option.id]);
+        const product = option.products.find(
+          (item) =>
+            item.id === selectedProductIds[option.id] &&
+            (option.formType !== EQuoteOptionFormType.ADVANCED ||
+              item.tileSize === selectedTileSizes[option.id]),
+        );
         return product ? [{ option, product }] : [];
       }),
-    [checkedOptionIds, quoteOptions, selectedProductIds],
+    [checkedOptionIds, quoteOptions, selectedProductIds, selectedTileSizes],
   );
   const selectedTotal = useMemo(
     () => selectedProducts.reduce((total, item) => total + item.product.price, 0),
@@ -88,6 +109,7 @@ function CustomerRequestScreen(): React.JSX.Element {
   );
 
   const selectPhoto = async (): Promise<void> => {
+    if (isProcessingPhotos) return;
     if (photos.length >= 5) {
       Alert.alert('사진은 최대 5장까지 등록할 수 있어요.');
       return;
@@ -106,16 +128,37 @@ function CustomerRequestScreen(): React.JSX.Element {
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: 5 - photos.length,
-      quality: 0.7,
+      quality: 1,
     });
 
     if (!result.canceled) {
-      setPhotos((current) => [...current, ...result.assets].slice(0, 5));
+      setIsProcessingPhotos(true);
+      const compressedPhotos: ImagePicker.ImagePickerAsset[] = [];
+      let failedCount = 0;
+      for (const asset of result.assets) {
+        try {
+          compressedPhotos.push(await compressImageAsset(asset, 'standard'));
+        } catch {
+          failedCount += 1;
+        }
+      }
+      setPhotos((current) => [...current, ...compressedPhotos].slice(0, 5));
+      setIsProcessingPhotos(false);
+      if (failedCount > 0) {
+        Alert.alert(
+          '일부 사진을 처리하지 못했어요',
+          `${failedCount}장의 사진을 제외했어요. 다른 사진을 선택해 주세요.`,
+        );
+      }
     }
   };
 
   const toggleOption = (option: IQuoteOption): void => {
-    if (option.products.length === 0) return;
+    const hasSelectableProducts =
+      option.formType === EQuoteOptionFormType.ADVANCED
+        ? option.products.some((product) => product.tileSize !== undefined)
+        : option.products.length > 0;
+    if (!hasSelectableProducts) return;
 
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const isChecked = checkedOptionIds.includes(option.id);
@@ -125,12 +168,27 @@ function CustomerRequestScreen(): React.JSX.Element {
 
     if (isChecked) {
       setSelectedProductIds((current) => ({ ...current, [option.id]: undefined }));
+      setSelectedTileSizes((current) => ({ ...current, [option.id]: undefined }));
     }
 
     setErrors((current) => {
       if (!current.options?.[option.id]) return current;
       const nextOptionErrors = { ...current.options };
       delete nextOptionErrors[option.id];
+      return {
+        ...current,
+        options: Object.keys(nextOptionErrors).length > 0 ? nextOptionErrors : undefined,
+      };
+    });
+  };
+
+  const selectTileSize = (optionId: string, tileSize: TQuoteOptionTileSize): void => {
+    setSelectedTileSizes((current) => ({ ...current, [optionId]: tileSize }));
+    setSelectedProductIds((current) => ({ ...current, [optionId]: undefined }));
+    setErrors((current) => {
+      if (!current.options?.[optionId]) return current;
+      const nextOptionErrors = { ...current.options };
+      delete nextOptionErrors[optionId];
       return {
         ...current,
         options: Object.keys(nextOptionErrors).length > 0 ? nextOptionErrors : undefined,
@@ -153,6 +211,11 @@ function CustomerRequestScreen(): React.JSX.Element {
 
   const validateForm = (): boolean => {
     const optionErrors = checkedOptionIds.reduce<Record<string, string>>((result, optionId) => {
+      const option = quoteOptions.find((item) => item.id === optionId);
+      if (option?.formType === EQuoteOptionFormType.ADVANCED && !selectedTileSizes[optionId]) {
+        result[optionId] = '타일규격을 먼저 선택해 주세요.';
+        return result;
+      }
       if (!selectedProductIds[optionId]) {
         result[optionId] = '이 옵션에서 제품을 하나 선택해 주세요.';
       }
@@ -189,6 +252,7 @@ function CustomerRequestScreen(): React.JSX.Element {
   };
 
   const submitRequest = async (): Promise<void> => {
+    if (isProcessingPhotos) return;
     if (!user) {
       Alert.alert('로그인이 필요해요', '다시 로그인한 뒤 요청을 등록해 주세요.');
       router.replace('/(auth)/login');
@@ -231,6 +295,7 @@ function CustomerRequestScreen(): React.JSX.Element {
           productId: product.id,
           productName: product.name,
           price: product.price,
+          tileSize: product.tileSize,
         })),
         requiresDemolition,
       });
@@ -246,6 +311,7 @@ function CustomerRequestScreen(): React.JSX.Element {
       setPhotos([]);
       setCheckedOptionIds([]);
       setSelectedProductIds({});
+      setSelectedTileSizes({});
       setErrors({});
       setIsConfirmationVisible(true);
     } catch {
@@ -413,20 +479,25 @@ function CustomerRequestScreen(): React.JSX.Element {
           <Pressable
             accessibilityLabel="욕실 사진 추가"
             className="mt-4 min-h-28 items-center justify-center rounded-2xl border border-dashed border-brand-700 bg-brand-100 active:opacity-80"
+            disabled={isProcessingPhotos}
             onPress={selectPhoto}
           >
             <Ionicons color="#163A63" name="images-outline" size={26} />
-            <Text className="mt-2 font-bold text-brand-900">사진 선택하기</Text>
-            <Text className="mt-1 text-xs text-ink-600">{photos.length}/5장 선택됨</Text>
+            <Text className="mt-2 font-bold text-brand-900">
+              {isProcessingPhotos ? '사진 최적화 중...' : '사진 선택하기'}
+            </Text>
+            <Text className="mt-1 text-xs text-ink-600">
+              {photos.length}/5장 선택됨 · 장당 최대 1.5MB
+            </Text>
           </Pressable>
         </Section>
 
         <Section
-          error={errors.options ? '체크한 항목마다 제품을 하나 선택해 주세요.' : undefined}
+          error={errors.options ? '체크한 항목의 규격과 제품 선택을 확인해 주세요.' : undefined}
           title="중요 선택 옵션"
         >
           <Text className="text-sm leading-5 text-ink-600">
-            필요한 항목만 체크하고, 펼쳐진 제품 중 하나를 선택해 주세요.
+            필요한 항목만 체크해 주세요. 타일은 규격을 먼저 고른 뒤 제품을 선택할 수 있어요.
           </Text>
           {quoteOptionsQuery.isPending && (
             <View className="items-center rounded-2xl bg-white py-8">
@@ -453,9 +524,11 @@ function CustomerRequestScreen(): React.JSX.Element {
               isChecked={checkedOptionIds.includes(option.id)}
               onProductSelect={(productId) => selectProduct(option.id, productId)}
               onProductImagePreview={setPreviewProduct}
+              onTileSizeSelect={(tileSize) => selectTileSize(option.id, tileSize)}
               onToggle={() => toggleOption(option)}
               option={option}
               selectedProductId={selectedProductIds[option.id]}
+              selectedTileSize={selectedTileSizes[option.id]}
             />
           ))}
         </Section>
@@ -492,15 +565,20 @@ function CustomerRequestScreen(): React.JSX.Element {
         <Pressable
           accessibilityLabel="견적 요청 제출"
           className={`mt-5 min-h-14 items-center justify-center rounded-2xl ${
-            submitMutation.isPending || quoteOptionsQuery.isPending
+            submitMutation.isPending || quoteOptionsQuery.isPending || isProcessingPhotos
               ? 'bg-stone-100'
               : 'bg-brand-900 active:opacity-80'
           }`}
-          disabled={submitMutation.isPending || quoteOptionsQuery.isPending}
+          disabled={submitMutation.isPending || quoteOptionsQuery.isPending || isProcessingPhotos}
           onPress={() => void submitRequest()}
         >
-          {submitMutation.isPending ? (
-            <ActivityIndicator color="#FFFFFF" />
+          {submitMutation.isPending || isProcessingPhotos ? (
+            <View className="flex-row items-center gap-2">
+              <ActivityIndicator color="#667085" />
+              <Text className="font-bold text-ink-600">
+                {isProcessingPhotos ? '사진 최적화 중...' : '견적 요청 중...'}
+              </Text>
+            </View>
           ) : (
             <Text
               className={`text-base font-bold ${
@@ -580,20 +658,29 @@ function QuoteOptionField({
   option,
   isChecked,
   selectedProductId,
+  selectedTileSize,
   error,
   onToggle,
   onProductSelect,
   onProductImagePreview,
+  onTileSizeSelect,
 }: {
   option: IQuoteOption;
   isChecked: boolean;
   selectedProductId?: string;
+  selectedTileSize?: TQuoteOptionTileSize;
   error?: string;
   onToggle: () => void;
   onProductSelect: (productId: string) => void;
   onProductImagePreview: (product: IQuoteOptionProduct) => void;
+  onTileSizeSelect: (tileSize: TQuoteOptionTileSize) => void;
 }): React.JSX.Element {
-  const hasProducts = option.products.length > 0;
+  const isAdvanced = option.formType === EQuoteOptionFormType.ADVANCED;
+  const availableTileSizes = getAvailableTileSizes(option.products);
+  const hasProducts = isAdvanced ? availableTileSizes.length > 0 : option.products.length > 0;
+  const visibleProducts = isAdvanced
+    ? getProductsForTileSize(option.products, selectedTileSize)
+    : option.products;
 
   return (
     <View
@@ -623,21 +710,62 @@ function QuoteOptionField({
 
       {isChecked && (
         <View className="border-t border-stone-100 pb-4 pt-3">
-          <ScrollView
-            contentContainerClassName="gap-3 px-4"
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {option.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                isSelected={selectedProductId === product.id}
-                onImagePreview={() => onProductImagePreview(product)}
-                onPress={() => onProductSelect(product.id)}
-                product={product}
-              />
-            ))}
-          </ScrollView>
+          {isAdvanced ? (
+            <View className="px-4">
+              <Text className="text-sm font-bold text-ink-900">타일규격 *</Text>
+              <View className="mt-2 flex-row flex-wrap gap-2">
+                {QUOTE_OPTION_TILE_SIZES.map((size) => {
+                  const available = availableTileSizes.includes(size.value);
+                  const selected = selectedTileSize === size.value;
+                  return (
+                    <Pressable
+                      key={size.value}
+                      accessibilityLabel={`타일규격 ${size.label}${available ? '' : ' 제품 없음'}`}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: selected, disabled: !available }}
+                      className={`min-h-11 items-center justify-center rounded-full px-4 ${
+                        selected
+                          ? 'bg-brand-900'
+                          : available
+                            ? 'border border-stone-100 bg-white'
+                            : 'bg-stone-100 opacity-60'
+                      }`}
+                      disabled={!available}
+                      onPress={() => onTileSizeSelect(size.value)}
+                    >
+                      <Text
+                        className={selected ? 'font-bold text-white' : 'font-semibold text-ink-600'}
+                      >
+                        {size.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+          {visibleProducts.length > 0 ? (
+            <ScrollView
+              contentContainerClassName="gap-3 px-4"
+              className={isAdvanced ? 'mt-4' : undefined}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {visibleProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  isSelected={selectedProductId === product.id}
+                  onImagePreview={() => onProductImagePreview(product)}
+                  onPress={() => onProductSelect(product.id)}
+                  product={product}
+                />
+              ))}
+            </ScrollView>
+          ) : isAdvanced ? (
+            <Text className="mt-3 px-4 text-xs text-ink-600">
+              타일규격을 선택하면 등록된 제품이 표시돼요.
+            </Text>
+          ) : null}
           {error && (
             <Text
               accessibilityRole="alert"

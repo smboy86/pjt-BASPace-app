@@ -74,6 +74,22 @@ describe('remodel request mapper', () => {
     expect(request.selections[0]?.basePriceSnapshot).toBe(1_250_000);
   });
 
+  it('maps the selected tile size from the product snapshot', () => {
+    const selection = mapSelectionSnapshot({
+      ...SELECTION_ROW,
+      category: '측면 타일',
+      selected_options: [
+        {
+          productId: 'tile-product-1',
+          productName: '오프화이트 타일',
+          tileSize: '300x600',
+        },
+      ],
+    });
+
+    expect(selection.tileSize).toBe('300x600');
+  });
+
   it('keeps the customer submitted schedule separate from the current admin schedule', () => {
     const request = mapRemodelRequest(REQUEST_ROW, [], undefined, '2026-08-18');
 

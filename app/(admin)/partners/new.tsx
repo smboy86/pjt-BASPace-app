@@ -23,8 +23,7 @@ import {
   useCreatePartner,
   type ICreatePartnerForm,
 } from '@/features/partner-management';
-
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+import { compressImageAsset, ImageCompressionError } from '@/shared/image-processing';
 
 const createPartnerSchema = z.object({
   companyName: z.string().trim().min(1, '업체명을 입력해 주세요.'),
@@ -44,6 +43,7 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
   const createPartner = useCreatePartner();
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const {
     control,
     formState: { errors, isValid },
@@ -75,16 +75,22 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: false,
-      quality: 0.9,
+      quality: 1,
     });
     if (result.canceled) return;
 
-    const selected = result.assets[0];
-    if (selected.fileSize && selected.fileSize > MAX_IMAGE_BYTES) {
-      setImageError('사업자등록증 이미지는 10MB 이하만 첨부할 수 있어요.');
-      return;
+    setIsProcessingImage(true);
+    try {
+      setImage(await compressImageAsset(result.assets[0], 'document'));
+    } catch (error) {
+      setImageError(
+        error instanceof ImageCompressionError
+          ? error.message
+          : '사업자등록증 이미지를 처리하지 못했어요. 다른 이미지를 선택해 주세요.',
+      );
+    } finally {
+      setIsProcessingImage(false);
     }
-    setImage(selected);
   };
 
   const submitForm = async (values: ICreatePartnerForm): Promise<void> => {
@@ -190,15 +196,17 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
                     <Pressable
                       accessibilityRole="button"
                       className="min-h-11 flex-1 items-center justify-center rounded-xl bg-brand-100"
-                      disabled={createPartner.isPending}
+                      disabled={createPartner.isPending || isProcessingImage}
                       onPress={() => void selectImage()}
                     >
-                      <Text className="font-bold text-brand-700">이미지 변경</Text>
+                      <Text className="font-bold text-brand-700">
+                        {isProcessingImage ? '이미지 최적화 중...' : '이미지 변경'}
+                      </Text>
                     </Pressable>
                     <Pressable
                       accessibilityRole="button"
                       className="min-h-11 flex-1 items-center justify-center rounded-xl bg-stone-100"
-                      disabled={createPartner.isPending}
+                      disabled={createPartner.isPending || isProcessingImage}
                       onPress={() => setImage(null)}
                     >
                       <Text className="font-bold text-ink-600">이미지 삭제</Text>
@@ -209,12 +217,16 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
                 <Pressable
                   accessibilityRole="button"
                   className="min-h-28 items-center justify-center rounded-2xl border border-dashed border-brand-700 bg-white px-4 active:bg-brand-100"
-                  disabled={createPartner.isPending}
+                  disabled={createPartner.isPending || isProcessingImage}
                   onPress={() => void selectImage()}
                 >
                   <Ionicons name="image-outline" color="#163A63" size={28} />
-                  <Text className="mt-2 font-bold text-brand-700">이미지 1장 첨부</Text>
-                  <Text className="mt-1 text-xs text-ink-600">JPEG, PNG, HEIC · 최대 10MB</Text>
+                  <Text className="mt-2 font-bold text-brand-700">
+                    {isProcessingImage ? '이미지 최적화 중...' : '이미지 1장 첨부'}
+                  </Text>
+                  <Text className="mt-1 text-xs text-ink-600">
+                    JPEG, PNG, HEIC, HEIF · 자동 최적화(최대 2MB)
+                  </Text>
                 </Pressable>
               )}
               {imageError ? (
@@ -283,14 +295,14 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
             accessibilityRole="button"
             accessibilityState={{
               busy: createPartner.isPending,
-              disabled: !isValid || createPartner.isPending,
+              disabled: !isValid || createPartner.isPending || isProcessingImage,
             }}
             className={`min-h-12 flex-row items-center justify-center rounded-xl ${
-              isValid && !createPartner.isPending
+              isValid && !createPartner.isPending && !isProcessingImage
                 ? 'bg-brand-900 active:opacity-80'
                 : 'bg-stone-100'
             }`}
-            disabled={!isValid || createPartner.isPending}
+            disabled={!isValid || createPartner.isPending || isProcessingImage}
             onPress={() => void handleSubmit(submitForm)()}
           >
             {createPartner.isPending ? <ActivityIndicator color="#FFFFFF" /> : null}
@@ -298,12 +310,16 @@ export default function AdminPartnerCreateScreen(): React.JSX.Element {
               className={`font-bold ${
                 createPartner.isPending
                   ? 'ml-2 text-white'
-                  : isValid
+                  : isValid && !isProcessingImage
                     ? 'text-white'
                     : 'text-ink-600'
               }`}
             >
-              {createPartner.isPending ? '업체 등록 중...' : '업체 등록'}
+              {createPartner.isPending
+                ? '업체 등록 중...'
+                : isProcessingImage
+                  ? '이미지 최적화 중...'
+                  : '업체 등록'}
             </Text>
           </Pressable>
         </View>

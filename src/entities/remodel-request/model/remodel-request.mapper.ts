@@ -5,12 +5,14 @@ import {
   ERemodelScope,
   ESelectionDecision,
   type IRemodelRequest,
+  type IRequestPhoto,
   type IRemodelRequestScheduleChange,
   type ISelectionSnapshot,
 } from '../types';
 
 type TRemodelRequestRow = Database['public']['Tables']['remodel_requests']['Row'];
 type TSelectionSnapshotRow = Database['public']['Tables']['selection_snapshots']['Row'];
+type TRequestPhotoRow = Database['public']['Tables']['request_photos']['Row'];
 type TScheduleChangeRow = Database['public']['Tables']['remodel_request_schedule_changes']['Row'];
 type TJsonObject = { [key: string]: TJson | undefined };
 
@@ -28,13 +30,14 @@ const findStringValue = (value: TJsonObject, keys: readonly string[]): string | 
 
 const mapSelectedOptions = (
   selectedOptions: TJson,
-): Pick<ISelectionSnapshot, 'selectedOptionIds' | 'selectedOptionNames'> => {
+): Pick<ISelectionSnapshot, 'selectedOptionIds' | 'selectedOptionNames' | 'tileSize'> => {
   if (!Array.isArray(selectedOptions)) {
     return { selectedOptionIds: [], selectedOptionNames: [] };
   }
 
   const selectedOptionIds: string[] = [];
   const selectedOptionNames: string[] = [];
+  let tileSize: string | undefined;
 
   selectedOptions.forEach((selectedOption) => {
     if (typeof selectedOption === 'string') {
@@ -47,6 +50,7 @@ const mapSelectedOptions = (
 
     const id = findStringValue(selectedOption, ['productId', 'optionId', 'id']);
     const name = findStringValue(selectedOption, ['productName', 'optionName', 'name', 'label']);
+    tileSize ??= findStringValue(selectedOption, ['tileSize']);
 
     if (id) selectedOptionIds.push(id);
     if (name) selectedOptionNames.push(name);
@@ -55,6 +59,7 @@ const mapSelectedOptions = (
   return {
     selectedOptionIds: [...new Set(selectedOptionIds)],
     selectedOptionNames: [...new Set(selectedOptionNames)],
+    tileSize,
   };
 };
 
@@ -141,11 +146,23 @@ export const mapRemodelRequestScheduleChange = (
   changedAt: row.changed_at,
 });
 
+export const mapRequestPhoto = (row: TRequestPhotoRow, displayUri: string): IRequestPhoto => ({
+  id: row.id,
+  displayUri,
+  storagePath: row.storage_path,
+  mimeType: row.mime_type ?? undefined,
+  sizeBytes: row.size_bytes ?? undefined,
+  category: row.category,
+  sortOrder: row.sort_order,
+  createdAt: row.created_at,
+});
+
 export const mapRemodelRequest = (
   row: TRemodelRequestRow,
   selections: ISelectionSnapshot[],
   latestScheduleChange?: IRemodelRequestScheduleChange,
   customerDesiredSchedule = row.desired_schedule,
+  photos: IRequestPhoto[] = [],
 ): IRemodelRequest => ({
   id: row.id,
   customerId: row.customer_id,
@@ -169,7 +186,7 @@ export const mapRemodelRequest = (
   scope: mapScope(row.scope),
   priorities: row.priorities,
   notes: row.notes,
-  photos: [],
+  photos,
   selections,
   adjustedEstimateAmount: row.adjusted_estimate_amount ?? undefined,
   adjustedEstimateReason: row.adjusted_estimate_reason ?? undefined,

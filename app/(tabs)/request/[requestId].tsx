@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useRemodelRequestStore } from '@/entities/remodel-request';
 import { useAuthSession } from '@/features/auth';
@@ -16,15 +15,7 @@ export default function CustomerRequestDetailRoute(): React.JSX.Element {
   const localRequest = useRemodelRequestStore((state) =>
     state.requests.find((item) => item.id === requestId && item.customerId === user?.id),
   );
-  const request = useMemo(() => {
-    if (!detailQuery.data?.request) return localRequest;
-    if (!localRequest) return detailQuery.data.request;
-
-    return {
-      ...detailQuery.data.request,
-      photos: localRequest.photos,
-    };
-  }, [detailQuery.data?.request, localRequest]);
+  const request = detailQuery.data?.request ?? localRequest;
 
   return (
     <RemodelRequestDetailScreen
