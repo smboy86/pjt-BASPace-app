@@ -180,6 +180,40 @@ describe('submit remodel request api', () => {
     });
   });
 
+  it('returns the four-wall tile snapshot after subtracting one door area', async () => {
+    const result = await submitRemodelRequest({
+      addressDetail: '',
+      bathroomHeight: 2200,
+      bathroomLength: 2200,
+      bathroomWidth: 1600,
+      budgetCode: ERemodelBudgetCode.CONSULTATION,
+      customerId: 'customer-1',
+      desiredConstructionDate: '2026-08-20',
+      notes: '',
+      photos: [],
+      region: '서울특별시 중구 세종대로 110',
+      requiresDemolition: false,
+      selections: [
+        {
+          optionCode: 'TILE',
+          optionId: 'wall-tile-option',
+          optionName: '측면 타일',
+          productId: 'wall-tile-product',
+          productName: '오프화이트 벽 타일',
+          price: 100_000,
+          tileSize: '300x600',
+        },
+      ],
+    });
+
+    expect(result.selections[0]).toMatchObject({
+      basePriceSnapshot: 449_000,
+      optionCode: 'TILE',
+      priceCalculationUnavailable: false,
+      unitPriceSnapshot: 100_000,
+    });
+  });
+
   it('removes an uploaded photo when the atomic request RPC fails', async () => {
     vi.stubGlobal(
       'fetch',

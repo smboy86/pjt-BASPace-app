@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import {
   EQuoteOptionFormType,
-  FLOOR_TILE_OPTION_CODE,
+  isAreaPricedTileOptionCode,
   QUOTE_OPTION_TILE_SIZES,
   type TQuoteOptionTileSize,
 } from '@/entities/quote-option';
@@ -166,7 +166,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
     }
   };
   const requiresTileSize = optionQuery.data?.formType === EQuoteOptionFormType.ADVANCED;
-  const usesFloorTileUnitPrice = optionQuery.data?.code === FLOOR_TILE_OPTION_CODE;
+  const usesTileUnitPrice = isAreaPricedTileOptionCode(optionQuery.data?.code ?? '');
   const productsAreValid = products.every(
     (product) =>
       (!requiresTileSize || product.tileSize !== undefined) &&
@@ -318,7 +318,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
                 <Text className="text-base font-bold text-ink-900">옵션 제품</Text>
                 <Text className="text-xs text-ink-600">
                   {requiresTileSize
-                    ? `규격 · 순서 · 이름 · 이미지 · ${usesFloorTileUnitPrice ? '평당 단가' : '단가'}`
+                    ? `규격 · 순서 · 이름 · 이미지 · ${usesTileUnitPrice ? '평당 단가' : '단가'}`
                     : '순서 · 이름 · 이미지 · 단가'}
                 </Text>
               </View>
@@ -329,7 +329,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
                   index={index}
                   disabled={updateOption.isPending || isProcessingImage}
                   isProcessingImage={isProcessingImage}
-                  usesFloorTileUnitPrice={usesFloorTileUnitPrice}
+                  usesTileUnitPrice={usesTileUnitPrice}
                   showTileSize={requiresTileSize}
                   onChange={changeProduct}
                   onDelete={removeProduct}
@@ -386,7 +386,7 @@ function ProductCard({
   index,
   disabled,
   isProcessingImage,
-  usesFloorTileUnitPrice,
+  usesTileUnitPrice,
   showTileSize,
   onChange,
   onDelete,
@@ -396,7 +396,7 @@ function ProductCard({
   index: number;
   disabled: boolean;
   isProcessingImage: boolean;
-  usesFloorTileUnitPrice: boolean;
+  usesTileUnitPrice: boolean;
   showTileSize: boolean;
   onChange: (key: string, patch: Partial<TEditableProduct>) => void;
   onDelete: (key: string) => void;
@@ -446,7 +446,7 @@ function ProductCard({
         </View>
         <View className="flex-1">
           <Field
-            label={usesFloorTileUnitPrice ? '평당 단가 *' : '제품 단가 *'}
+            label={usesTileUnitPrice ? '평당 단가 *' : '제품 단가 *'}
             value={product.priceText}
             onChangeText={(priceText) =>
               onChange(product.key, {

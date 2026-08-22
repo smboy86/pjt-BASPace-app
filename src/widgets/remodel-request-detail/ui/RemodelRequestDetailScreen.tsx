@@ -16,10 +16,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ERequestPartnerStatus } from '@/entities/partner';
 import { EQuoteStatus, useQuoteStore } from '@/entities/quote';
-import {
-  FLOOR_TILE_OPTION_CODE,
-  FLOOR_TILE_PRICE_UNAVAILABLE_LABEL,
-} from '@/entities/quote-option';
+import { isAreaPricedTileOptionCode, TILE_PRICE_UNAVAILABLE_LABEL } from '@/entities/quote-option';
 import {
   ERemodelRequestStatus,
   formatRemodelSchedule,
@@ -570,7 +567,7 @@ export function RemodelRequestDetailScreen({
                     {selection.tileSize ? ` · ${selection.tileSize.replace('x', '×')}` : ''}:{' '}
                     {selection.itemName ?? '선택 안 함'}
                   </Text>
-                  {selection.optionCode === FLOOR_TILE_OPTION_CODE ? (
+                  {isAreaPricedTileOptionCode(selection.optionCode ?? '') ? (
                     <View className="max-w-48 items-end">
                       {/* {selection.unitPriceSnapshot !== undefined ? (
                         <Text className="text-xs font-semibold text-brand-700">
@@ -579,7 +576,7 @@ export function RemodelRequestDetailScreen({
                       ) : null} */}
                       {selection.priceCalculationUnavailable ? (
                         <Text className="mt-1 text-right text-xs font-semibold text-red-600">
-                          {FLOOR_TILE_PRICE_UNAVAILABLE_LABEL}
+                          {TILE_PRICE_UNAVAILABLE_LABEL}
                         </Text>
                       ) : selection.basePriceSnapshot !== undefined ? (
                         <Text className="mt-1 text-sm font-bold text-ink-900">
