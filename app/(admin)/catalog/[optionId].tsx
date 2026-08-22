@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import {
   EQuoteOptionFormType,
+  FLOOR_TILE_OPTION_CODE,
   QUOTE_OPTION_TILE_SIZES,
   type TQuoteOptionTileSize,
 } from '@/entities/quote-option';
@@ -165,6 +166,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
     }
   };
   const requiresTileSize = optionQuery.data?.formType === EQuoteOptionFormType.ADVANCED;
+  const usesFloorTileUnitPrice = optionQuery.data?.code === FLOOR_TILE_OPTION_CODE;
   const productsAreValid = products.every(
     (product) =>
       (!requiresTileSize || product.tileSize !== undefined) &&
@@ -316,7 +318,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
                 <Text className="text-base font-bold text-ink-900">옵션 제품</Text>
                 <Text className="text-xs text-ink-600">
                   {requiresTileSize
-                    ? '규격 · 순서 · 이름 · 이미지 · 단가'
+                    ? `규격 · 순서 · 이름 · 이미지 · ${usesFloorTileUnitPrice ? '평당 단가' : '단가'}`
                     : '순서 · 이름 · 이미지 · 단가'}
                 </Text>
               </View>
@@ -327,6 +329,7 @@ export default function AdminQuoteOptionDetailScreen(): React.JSX.Element {
                   index={index}
                   disabled={updateOption.isPending || isProcessingImage}
                   isProcessingImage={isProcessingImage}
+                  usesFloorTileUnitPrice={usesFloorTileUnitPrice}
                   showTileSize={requiresTileSize}
                   onChange={changeProduct}
                   onDelete={removeProduct}
@@ -383,6 +386,7 @@ function ProductCard({
   index,
   disabled,
   isProcessingImage,
+  usesFloorTileUnitPrice,
   showTileSize,
   onChange,
   onDelete,
@@ -392,6 +396,7 @@ function ProductCard({
   index: number;
   disabled: boolean;
   isProcessingImage: boolean;
+  usesFloorTileUnitPrice: boolean;
   showTileSize: boolean;
   onChange: (key: string, patch: Partial<TEditableProduct>) => void;
   onDelete: (key: string) => void;
@@ -441,7 +446,7 @@ function ProductCard({
         </View>
         <View className="flex-1">
           <Field
-            label="제품 단가 *"
+            label={usesFloorTileUnitPrice ? '평당 단가 *' : '제품 단가 *'}
             value={product.priceText}
             onChangeText={(priceText) =>
               onChange(product.key, {
@@ -501,14 +506,14 @@ function TileSizeField({
 }): React.JSX.Element {
   return (
     <View className="mb-3">
-      <Text className="mb-2 text-sm font-bold text-ink-900">타일규격 *</Text>
+      <Text className="mb-2 text-sm font-bold text-ink-900">타일규격(mm) *</Text>
       <View className="flex-row flex-wrap gap-2">
         {QUOTE_OPTION_TILE_SIZES.map((size) => {
           const selected = value === size.value;
           return (
             <Pressable
               key={size.value}
-              accessibilityLabel={`타일규격 ${size.label}`}
+              accessibilityLabel={`타일규격(mm) ${size.label}`}
               accessibilityRole="radio"
               accessibilityState={{ checked: selected, disabled }}
               className={`min-h-11 items-center justify-center rounded-full px-4 ${

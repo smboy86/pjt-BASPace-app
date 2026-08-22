@@ -25,6 +25,8 @@ vi.mock('@/entities/remodel-request', () => ({
   ESelectionDecision: { SELECTED: 'selected' },
 }));
 
+vi.mock('@/entities/quote-option', async () => import('../../../entities/quote-option'));
+
 describe('submit remodel request api', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -106,6 +108,78 @@ describe('submit remodel request api', () => {
     });
   });
 
+  it('returns the calculated floor tile snapshot while submitting only trusted product ids', async () => {
+    const result = await submitRemodelRequest({
+      addressDetail: '',
+      bathroomHeight: 2200,
+      bathroomLength: 2200,
+      bathroomWidth: 1600,
+      budgetCode: ERemodelBudgetCode.CONSULTATION,
+      customerId: 'customer-1',
+      desiredConstructionDate: '2026-08-20',
+      notes: '',
+      photos: [],
+      region: '서울특별시 중구 세종대로 110',
+      requiresDemolition: false,
+      selections: [
+        {
+          optionCode: 'FLOOR_TILE',
+          optionId: 'floor-tile-option',
+          optionName: '바닥 타일',
+          productId: 'floor-tile-product',
+          productName: '오프화이트 타일',
+          price: 100_000,
+          tileSize: '300x300',
+        },
+      ],
+    });
+
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'submit_customer_remodel_request_with_photos',
+      expect.objectContaining({
+        target_selections: [{ optionId: 'floor-tile-option', productId: 'floor-tile-product' }],
+      }),
+    );
+    expect(result.selections[0]).toMatchObject({
+      basePriceSnapshot: 106_000,
+      optionCode: 'FLOOR_TILE',
+      priceCalculationUnavailable: false,
+      unitPriceSnapshot: 100_000,
+    });
+  });
+
+  it('returns a zero floor tile snapshot when bathroom measurements are unavailable', async () => {
+    const result = await submitRemodelRequest({
+      addressDetail: '',
+      bathroomHeight: 0,
+      bathroomLength: 0,
+      bathroomWidth: 0,
+      budgetCode: ERemodelBudgetCode.CONSULTATION,
+      customerId: 'customer-1',
+      desiredConstructionDate: '2026-08-20',
+      notes: '',
+      photos: [],
+      region: '서울특별시 중구 세종대로 110',
+      requiresDemolition: false,
+      selections: [
+        {
+          optionCode: 'FLOOR_TILE',
+          optionId: 'floor-tile-option',
+          optionName: '바닥 타일',
+          productId: 'floor-tile-product',
+          productName: '오프화이트 타일',
+          price: 100_000,
+          tileSize: '300x300',
+        },
+      ],
+    });
+
+    expect(result.selections[0]).toMatchObject({
+      basePriceSnapshot: 0,
+      priceCalculationUnavailable: true,
+    });
+  });
+
   it('removes an uploaded photo when the atomic request RPC fails', async () => {
     vi.stubGlobal(
       'fetch',
@@ -146,8 +220,6 @@ describe('submit remodel request api', () => {
       expect.any(ArrayBuffer),
       { contentType: 'image/jpeg', upsert: false },
     );
-    expect(mocks.remove).toHaveBeenCalledWith([
-      expect.stringMatching(/^customer-1\/.*\.jpg$/),
-    ]);
+    expect(mocks.remove).toHaveBeenCalledWith([expect.stringMatching(/^customer-1\/.*\.jpg$/)]);
   });
 });

@@ -35,7 +35,10 @@ import {
   type IRequestPhoto,
 } from '@/entities/remodel-request';
 import {
+  calculateFloorTilePrice,
   EQuoteOptionFormType,
+  FLOOR_TILE_OPTION_CODE,
+  FLOOR_TILE_PRICE_UNAVAILABLE_LABEL,
   QUOTE_OPTION_TILE_SIZES,
   type IQuoteOption,
   type IQuoteOptionProduct,
@@ -104,8 +107,20 @@ function CustomerRequestScreen(): React.JSX.Element {
     [checkedOptionIds, quoteOptions, selectedProductIds, selectedTileSizes],
   );
   const selectedTotal = useMemo(
-    () => selectedProducts.reduce((total, item) => total + item.product.price, 0),
-    [selectedProducts],
+    () =>
+      selectedProducts.reduce(
+        (total, item) =>
+          total +
+          (item.option.code === FLOOR_TILE_OPTION_CODE
+            ? calculateFloorTilePrice({
+                bathroomLengthMm: Number(bathroomLength),
+                bathroomWidthMm: Number(bathroomWidth),
+                unitPrice: item.product.price,
+              }).amount
+            : item.product.price),
+        0,
+      ),
+    [bathroomLength, bathroomWidth, selectedProducts],
   );
 
   const selectPhoto = async (): Promise<void> => {
@@ -527,6 +542,8 @@ function CustomerRequestScreen(): React.JSX.Element {
               onTileSizeSelect={(tileSize) => selectTileSize(option.id, tileSize)}
               onToggle={() => toggleOption(option)}
               option={option}
+              bathroomLengthMm={Number(bathroomLength)}
+              bathroomWidthMm={Number(bathroomWidth)}
               selectedProductId={selectedProductIds[option.id]}
               selectedTileSize={selectedTileSizes[option.id]}
             />
@@ -553,7 +570,8 @@ function CustomerRequestScreen(): React.JSX.Element {
             {formatPrice(selectedTotal)}
           </Text>
           <Text className="mt-2 text-xs leading-5 text-ink-600">
-            선택한 제품 단가의 합계이며, 최종 공사 견적은 관리자 확인 후 안내됩니다.
+            바닥 타일은 욕실 면적과 평당 단가로 계산하며, 나머지는 선택한 제품 단가를 합산합니다.
+            최종 공사 견적은 관리자 확인 후 안내됩니다.
           </Text>
         </View>
 
@@ -656,6 +674,8 @@ function Section({
 
 function QuoteOptionField({
   option,
+  bathroomLengthMm,
+  bathroomWidthMm,
   isChecked,
   selectedProductId,
   selectedTileSize,
@@ -666,6 +686,8 @@ function QuoteOptionField({
   onTileSizeSelect,
 }: {
   option: IQuoteOption;
+  bathroomLengthMm: number;
+  bathroomWidthMm: number;
   isChecked: boolean;
   selectedProductId?: string;
   selectedTileSize?: TQuoteOptionTileSize;
@@ -712,7 +734,7 @@ function QuoteOptionField({
         <View className="border-t border-stone-100 pb-4 pt-3">
           {isAdvanced ? (
             <View className="px-4">
-              <Text className="text-sm font-bold text-ink-900">타일규격 *</Text>
+              <Text className="text-sm font-bold text-ink-900">타일규격(mm) *</Text>
               <View className="mt-2 flex-row flex-wrap gap-2">
                 {QUOTE_OPTION_TILE_SIZES.map((size) => {
                   const available = availableTileSizes.includes(size.value);
@@ -754,6 +776,9 @@ function QuoteOptionField({
               {visibleProducts.map((product) => (
                 <ProductCard
                   key={product.id}
+                  bathroomLengthMm={bathroomLengthMm}
+                  bathroomWidthMm={bathroomWidthMm}
+                  isFloorTile={option.code === FLOOR_TILE_OPTION_CODE}
                   isSelected={selectedProductId === product.id}
                   onImagePreview={() => onProductImagePreview(product)}
                   onPress={() => onProductSelect(product.id)}
@@ -782,15 +807,34 @@ function QuoteOptionField({
 
 function ProductCard({
   product,
+  bathroomLengthMm,
+  bathroomWidthMm,
+  isFloorTile,
   isSelected,
   onPress,
   onImagePreview,
 }: {
   product: IQuoteOptionProduct;
+  bathroomLengthMm: number;
+  bathroomWidthMm: number;
+  isFloorTile: boolean;
   isSelected: boolean;
   onPress: () => void;
   onImagePreview: () => void;
 }): React.JSX.Element {
+  const floorTilePrice = isFloorTile
+    ? calculateFloorTilePrice({
+        bathroomLengthMm,
+        bathroomWidthMm,
+        unitPrice: product.price,
+      })
+    : null;
+  const priceAccessibilityLabel = floorTilePrice
+    ? floorTilePrice.isCalculable
+      ? `평당 ${formatPrice(product.price)}, 계산된 가격 ${formatPrice(floorTilePrice.amount)}`
+      : `평당 ${formatPrice(product.price)}, ${FLOOR_TILE_PRICE_UNAVAILABLE_LABEL}`
+    : formatPrice(product.price);
+
   return (
     <View
       className={`w-44 overflow-hidden rounded-2xl border ${
@@ -798,7 +842,7 @@ function ProductCard({
       }`}
     >
       <Pressable
-        accessibilityLabel={`${product.name} ${formatPrice(product.price)} 선택`}
+        accessibilityLabel={`${product.name} ${priceAccessibilityLabel} 선택`}
         accessibilityRole="radio"
         accessibilityState={{ checked: isSelected }}
         className="active:opacity-80"
@@ -827,9 +871,26 @@ function ProductCard({
               size={20}
             />
           </View>
-          <Text className="mt-2 text-sm font-semibold text-brand-900">
-            + {formatPrice(product.price)}
-          </Text>
+          {floorTilePrice ? (
+            <View className="mt-2 gap-1">
+              {/* <Text className="text-sm font-semibold text-brand-900">
+                평당 {formatPrice(product.price)}
+              </Text> */}
+              {floorTilePrice.isCalculable ? (
+                <Text className="text-sm font-bold text-brand-900">
+                  계산된 가격 {formatPrice(floorTilePrice.amount)}
+                </Text>
+              ) : (
+                <Text className="text-xs font-semibold leading-4 text-red-600">
+                  {FLOOR_TILE_PRICE_UNAVAILABLE_LABEL}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <Text className="mt-2 text-sm font-semibold text-brand-900">
+              + {formatPrice(product.price)}
+            </Text>
+          )}
         </View>
       </Pressable>
 

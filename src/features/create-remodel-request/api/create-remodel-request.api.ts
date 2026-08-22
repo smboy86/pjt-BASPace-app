@@ -1,3 +1,4 @@
+import { calculateFloorTilePrice, FLOOR_TILE_OPTION_CODE } from '@/entities/quote-option';
 import {
   ERemodelRequestStatus,
   ERemodelScope,
@@ -161,16 +162,30 @@ export const submitRemodelRequest = async (
       mimeType: uploadedPhotos[index]?.mimeType,
       sizeBytes: uploadedPhotos[index]?.sizeBytes,
     })),
-    selections: input.selections.map((selection) => ({
-      id: `${requestId}-${selection.optionId}`,
-      category: selection.optionName,
-      itemName: selection.productName,
-      selectedOptionIds: [selection.productId],
-      selectedOptionNames: [selection.productName],
-      tileSize: selection.tileSize,
-      basePriceSnapshot: selection.price,
-      decisionStatus: ESelectionDecision.SELECTED,
-    })),
+    selections: input.selections.map((selection) => {
+      const floorTilePrice =
+        selection.optionCode === FLOOR_TILE_OPTION_CODE
+          ? calculateFloorTilePrice({
+              bathroomLengthMm: input.bathroomLength,
+              bathroomWidthMm: input.bathroomWidth,
+              unitPrice: selection.price,
+            })
+          : null;
+
+      return {
+        id: `${requestId}-${selection.optionId}`,
+        category: selection.optionName,
+        itemName: selection.productName,
+        optionCode: selection.optionCode,
+        selectedOptionIds: [selection.productId],
+        selectedOptionNames: [selection.productName],
+        tileSize: selection.tileSize,
+        unitPriceSnapshot: selection.price,
+        priceCalculationUnavailable: floorTilePrice ? !floorTilePrice.isCalculable : undefined,
+        basePriceSnapshot: floorTilePrice?.amount ?? selection.price,
+        decisionStatus: ESelectionDecision.SELECTED,
+      };
+    }),
     submittedAt: now,
     createdAt: now,
     updatedAt: now,

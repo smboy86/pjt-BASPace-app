@@ -82,12 +82,18 @@ describe('remodel request mapper', () => {
         {
           productId: 'tile-product-1',
           productName: '오프화이트 타일',
+          optionCode: 'FLOOR_TILE',
+          priceCalculationUnavailable: true,
           tileSize: '300x600',
+          unitPrice: 100_000,
         },
       ],
     });
 
     expect(selection.tileSize).toBe('300x600');
+    expect(selection.optionCode).toBe('FLOOR_TILE');
+    expect(selection.priceCalculationUnavailable).toBe(true);
+    expect(selection.unitPriceSnapshot).toBe(100_000);
   });
 
   it('keeps the customer submitted schedule separate from the current admin schedule', () => {

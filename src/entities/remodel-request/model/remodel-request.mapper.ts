@@ -28,9 +28,35 @@ const findStringValue = (value: TJsonObject, keys: readonly string[]): string | 
   return undefined;
 };
 
+const findNumberValue = (value: TJsonObject, keys: readonly string[]): number | undefined => {
+  for (const key of keys) {
+    const candidate = value[key];
+    if (typeof candidate === 'number') return candidate;
+  }
+
+  return undefined;
+};
+
+const findBooleanValue = (value: TJsonObject, keys: readonly string[]): boolean | undefined => {
+  for (const key of keys) {
+    const candidate = value[key];
+    if (typeof candidate === 'boolean') return candidate;
+  }
+
+  return undefined;
+};
+
 const mapSelectedOptions = (
   selectedOptions: TJson,
-): Pick<ISelectionSnapshot, 'selectedOptionIds' | 'selectedOptionNames' | 'tileSize'> => {
+): Pick<
+  ISelectionSnapshot,
+  | 'optionCode'
+  | 'priceCalculationUnavailable'
+  | 'selectedOptionIds'
+  | 'selectedOptionNames'
+  | 'tileSize'
+  | 'unitPriceSnapshot'
+> => {
   if (!Array.isArray(selectedOptions)) {
     return { selectedOptionIds: [], selectedOptionNames: [] };
   }
@@ -38,6 +64,9 @@ const mapSelectedOptions = (
   const selectedOptionIds: string[] = [];
   const selectedOptionNames: string[] = [];
   let tileSize: string | undefined;
+  let optionCode: string | undefined;
+  let unitPriceSnapshot: number | undefined;
+  let priceCalculationUnavailable: boolean | undefined;
 
   selectedOptions.forEach((selectedOption) => {
     if (typeof selectedOption === 'string') {
@@ -51,6 +80,11 @@ const mapSelectedOptions = (
     const id = findStringValue(selectedOption, ['productId', 'optionId', 'id']);
     const name = findStringValue(selectedOption, ['productName', 'optionName', 'name', 'label']);
     tileSize ??= findStringValue(selectedOption, ['tileSize']);
+    optionCode ??= findStringValue(selectedOption, ['optionCode']);
+    unitPriceSnapshot ??= findNumberValue(selectedOption, ['unitPrice']);
+    priceCalculationUnavailable ??= findBooleanValue(selectedOption, [
+      'priceCalculationUnavailable',
+    ]);
 
     if (id) selectedOptionIds.push(id);
     if (name) selectedOptionNames.push(name);
@@ -60,6 +94,9 @@ const mapSelectedOptions = (
     selectedOptionIds: [...new Set(selectedOptionIds)],
     selectedOptionNames: [...new Set(selectedOptionNames)],
     tileSize,
+    optionCode,
+    unitPriceSnapshot,
+    priceCalculationUnavailable,
   };
 };
 

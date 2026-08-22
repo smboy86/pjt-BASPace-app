@@ -55,9 +55,12 @@ export interface ISelectionSnapshot {
   category: string;
   catalogItemId?: string;
   itemName?: string;
+  optionCode?: string;
   selectedOptionIds: string[];
   selectedOptionNames: string[];
   tileSize?: string;
+  unitPriceSnapshot?: number;
+  priceCalculationUnavailable?: boolean;
   basePriceSnapshot?: number;
   decisionStatus: ESelectionDecision;
 }
